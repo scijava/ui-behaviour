@@ -27,7 +27,7 @@ public class InputTriggerDescriptionsBuilder
 
 	public List< InputTriggerDescription > getDescriptions()
 	{
-		final ArrayList< InputTriggerDescription > descs = new ArrayList<>();
+		final ArrayList< InputTriggerDescription > descs = new ArrayList< InputTriggerDescription >();
 
 		for ( final Entry< String, Set< Input > > entry : config.actionToInputsMap.entrySet() )
 		{

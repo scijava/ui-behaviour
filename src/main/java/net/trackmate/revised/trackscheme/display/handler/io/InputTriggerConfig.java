@@ -20,7 +20,7 @@ public class InputTriggerConfig
 
 	public InputTriggerConfig( final Collection< InputTriggerDescription > keyMappings ) throws IllegalArgumentException
 	{
-		actionToInputsMap = new HashMap<>();
+		actionToInputsMap = new HashMap< String, Set< Input > >();
 		for ( final InputTriggerDescription mapping : keyMappings )
 		{
 			final InputTrigger trigger = InputTrigger.getFromString( mapping.getTrigger() );
@@ -32,7 +32,7 @@ public class InputTriggerConfig
 			Set< Input > inputs = actionToInputsMap.get( input.behaviour );
 			if ( inputs == null )
 			{
-				inputs = new HashSet<>();
+				inputs = new HashSet< Input >();
 				actionToInputsMap.put( input.behaviour, inputs );
 			}
 			inputs.add( input );
@@ -69,7 +69,7 @@ public class InputTriggerConfig
 		{
 			this.map = map;
 			this.config = config;
-			this.contexts = new HashSet<>();
+			this.contexts = new HashSet< String >();
 			this.contexts.addAll( Arrays.asList( contexts ) );
 		}
 
@@ -126,7 +126,7 @@ public class InputTriggerConfig
 		{
 			this.trigger = trigger;
 			this.behaviour = behaviour;
-			this.contexts = new HashSet<>( contexts );
+			this.contexts = new HashSet< String >( contexts );
 		}
 
 		@Override
@@ -157,7 +157,7 @@ public class InputTriggerConfig
 	Set< InputTrigger > getInputs( final String behaviourName, final Set< String > contexts )
 	{
 		final Set< Input > inputs = actionToInputsMap.get( behaviourName );
-		final Set< InputTrigger > triggers = new HashSet<>();
+		final Set< InputTrigger > triggers = new HashSet< InputTrigger >();
 		if ( inputs != null )
 		{
 			for ( final Input input : inputs )
@@ -173,7 +173,7 @@ public class InputTriggerConfig
 
 	InputTriggerConfig()
 	{
-		actionToInputsMap = new HashMap<>();
+		actionToInputsMap = new HashMap< String, Set< Input > >();
 	}
 
 	void addMap( final InputTriggerMap map, final String context )
@@ -188,7 +188,7 @@ public class InputTriggerConfig
 				Set< Input > inputs = actionToInputsMap.get( behaviourName );
 				if ( inputs == null )
 				{
-					inputs = new HashSet<>();
+					inputs = new HashSet< Input >();
 					actionToInputsMap.put( behaviourName, inputs );
 				}
 
@@ -229,7 +229,7 @@ public class InputTriggerConfig
 			Set< Input > inputs = actionToInputsMap.get( behaviourName );
 			if ( inputs == null )
 			{
-				inputs = new HashSet<>();
+				inputs = new HashSet< Input >();
 				actionToInputsMap.put( behaviourName, inputs );
 			}
 

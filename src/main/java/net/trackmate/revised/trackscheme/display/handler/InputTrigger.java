@@ -197,7 +197,7 @@ public class InputTrigger
     {
 		if ( modifierKeywords == null )
 		{
-			final Map< String, Integer > uninitializedMap = new HashMap<>( 8, 1.0f );
+			final Map< String, Integer > uninitializedMap = new HashMap< String, Integer >( 8, 1.0f );
 			uninitializedMap.put( "shift",
 					Integer.valueOf( InputEvent.SHIFT_DOWN_MASK ) );
 			uninitializedMap.put( "control",
@@ -229,7 +229,7 @@ public class InputTrigger
 	private synchronized static InputTrigger getCached( final InputTrigger buttonsAndKeys )
 	{
 		if ( cache == null )
-			cache = new HashMap<>();
+			cache = new HashMap< InputTrigger, InputTrigger >();
 
 		final InputTrigger b = cache.get( buttonsAndKeys );
 		if ( b == null )

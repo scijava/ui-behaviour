@@ -41,7 +41,7 @@ public class InputTriggerMap
 	 */
 	public InputTriggerMap()
 	{
-		triggerToKeys = new HashMap<>();
+		triggerToKeys = new HashMap< InputTrigger, Set< String > >();
 		parent = null;
 		expectedParentModCount = 0;
 		modCount = 0;
@@ -82,7 +82,7 @@ public class InputTriggerMap
 		Set< String > behaviourKeys = triggerToKeys.get( inputTrigger );
 		if ( behaviourKeys == null )
 		{
-			behaviourKeys = new HashSet<>();
+			behaviourKeys = new HashSet< String >();
 			triggerToKeys.put( inputTrigger, behaviourKeys );
 		}
 
@@ -103,7 +103,7 @@ public class InputTriggerMap
 		if ( parent != null )
 			keys = parent.get( inputTrigger );
 		else
-			keys = new HashSet<>();
+			keys = new HashSet< String >();
 		keys.addAll( triggerToKeys.get( inputTrigger ) );
 		return keys;
 	}
@@ -159,7 +159,7 @@ public class InputTriggerMap
 		if ( parent != null )
 			allBindings = parent.getAllBindings();
 		else
-			allBindings = new HashMap<>();
+			allBindings = new HashMap< InputTrigger, Set<String> >();
 
 		for ( final Entry< InputTrigger, Set< String > > entry : triggerToKeys.entrySet() )
 		{
@@ -170,7 +170,7 @@ public class InputTriggerMap
 			Set< String > behaviourKeys = allBindings.get( inputTrigger );
 			if ( behaviourKeys == null )
 			{
-				behaviourKeys = new HashSet<>();
+				behaviourKeys = new HashSet< String >();
 				allBindings.put( inputTrigger, behaviourKeys );
 			}
 			behaviourKeys.addAll( entry.getValue() );
