@@ -31,7 +31,6 @@ public class InputTriggerDescriptionsBuilder
 
 		for ( final Entry< String, Set< Input > > entry : config.actionToInputsMap.entrySet() )
 		{
-			final String behaviourName = entry.getKey();
 			final Set< Input > inputs = entry.getValue();
 			for ( final Input input : inputs )
 			{
