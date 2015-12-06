@@ -12,9 +12,11 @@ import javax.swing.InputMap;
 import javax.swing.KeyStroke;
 
 import bdv.behaviour.InputTrigger;
+import bdv.behaviour.InputTriggerAdder;
 import bdv.behaviour.InputTriggerMap;
+import bdv.behaviour.KeyStrokeAdder;
 
-public class InputTriggerConfig
+public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeAdder.Factory
 {
 	final HashMap< String, Set< Input > > actionToInputsMap;
 
@@ -39,12 +41,20 @@ public class InputTriggerConfig
 		}
 	}
 
-	public InputTriggerAdder adder( final InputTriggerMap map )
+	@Override
+	public InputTriggerAdder inputTriggerAdder( final InputTriggerMap map, final String ... contexts )
 	{
-		return new InputTriggerAdder( map, this );
+		return new InputTriggerAdderImp( map, this, contexts );
 	}
 
-	public static class InputTriggerAdder
+
+	@Override
+	public KeyStrokeAdder keyStrokeAdder( final InputMap map, final String ... contexts )
+	{
+		return new KeyStrokeAdderImp( map, this, contexts );
+	}
+
+	public static class InputTriggerAdderImp implements InputTriggerAdder
 	{
 		private final InputTriggerMap map;
 
@@ -52,7 +62,7 @@ public class InputTriggerConfig
 
 		private final Set< String > contexts;
 
-		public InputTriggerAdder(
+		public InputTriggerAdderImp(
 				final InputTriggerMap map,
 				final InputTriggerConfig config,
 				final Set< String > contexts )
@@ -62,7 +72,7 @@ public class InputTriggerConfig
 			this.contexts = contexts;
 		}
 
-		public InputTriggerAdder(
+		public InputTriggerAdderImp(
 				final InputTriggerMap map,
 				final InputTriggerConfig config,
 				final String ... contexts )
@@ -73,6 +83,7 @@ public class InputTriggerConfig
 			this.contexts.addAll( Arrays.asList( contexts ) );
 		}
 
+		@Override
 		public void put( final String behaviourName, final InputTrigger ... defaultTriggers )
 		{
 			final Set< InputTrigger > triggers = config.getInputs( behaviourName, contexts );
@@ -92,6 +103,7 @@ public class InputTriggerConfig
 			}
 		}
 
+		@Override
 		public void put( final String behaviourName, final String ... defaultTriggers )
 		{
 			final InputTrigger[] triggers = new InputTrigger[ defaultTriggers.length ];
@@ -101,9 +113,83 @@ public class InputTriggerConfig
 			put( behaviourName, triggers );
 		}
 
+		@Override
 		public void put( final String behaviourName )
 		{
 			put( behaviourName, new InputTrigger[ 0 ] );
+		}
+	}
+
+	public static class KeyStrokeAdderImp implements KeyStrokeAdder
+	{
+		private final InputMap map;
+
+		private final InputTriggerConfig config;
+
+		private final Set< String > contexts;
+
+		public KeyStrokeAdderImp(
+				final InputMap map,
+				final InputTriggerConfig config,
+				final Set< String > contexts )
+		{
+			this.map = map;
+			this.config = config;
+			this.contexts = contexts;
+		}
+
+		public KeyStrokeAdderImp(
+				final InputMap map,
+				final InputTriggerConfig config,
+				final String ... contexts )
+		{
+			this.map = map;
+			this.config = config;
+			this.contexts = new HashSet< String >();
+			this.contexts.addAll( Arrays.asList( contexts ) );
+		}
+
+		@Override
+		public void put( final String actionName, final KeyStroke... defaultKeyStrokes )
+		{
+			final Set< InputTrigger > triggers = config.getInputs( actionName, contexts );
+			boolean configKeyAdded = false;
+			for ( final InputTrigger trigger : triggers )
+			{
+				if ( trigger.isKeyStroke() )
+				{
+					map.put( trigger.getKeyStroke(), actionName );
+					configKeyAdded = true;
+				}
+			}
+			if ( configKeyAdded )
+				return;
+
+			if ( defaultKeyStrokes.length > 0 )
+			{
+				for ( final KeyStroke keyStroke : defaultKeyStrokes )
+					map.put( keyStroke, actionName );
+			}
+			else
+			{
+				System.err.println( "Could not assign KeyStroke for \"" + actionName + "\". Nothing defined in InputTriggerConfig, and no default given." );
+			}
+		}
+
+		@Override
+		public void put( final String actionName, final String... defaultKeyStrokes )
+		{
+			final KeyStroke[] keyStrokes = new KeyStroke[ defaultKeyStrokes.length ];
+			int i = 0;
+			for ( final String s : defaultKeyStrokes )
+				keyStrokes[ i++ ] = KeyStroke.getKeyStroke( s );
+			put( actionName, keyStrokes );
+		}
+
+		@Override
+		public void put( final String actionName )
+		{
+			put( actionName, new KeyStroke[ 0 ] );
 		}
 	}
 
