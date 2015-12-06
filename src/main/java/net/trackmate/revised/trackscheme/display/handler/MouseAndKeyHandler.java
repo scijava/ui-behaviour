@@ -20,7 +20,13 @@ import java.util.Set;
 public class MouseAndKeyHandler
 	implements KeyListener, MouseListener, MouseWheelListener, MouseMotionListener
 {
-	private static final int DOUBLE_CLICK_INTERVAL = ( Integer ) Toolkit.getDefaultToolkit().getDesktopProperty( "awt.multiClickInterval" );
+	private static final int DOUBLE_CLICK_INTERVAL = getDoubleClickInterval();
+
+	private static int getDoubleClickInterval()
+	{
+		final Object prop = Toolkit.getDefaultToolkit().getDesktopProperty( "awt.multiClickInterval" );
+		return prop == null ? 200 : ( Integer ) prop;
+	}
 
 	private InputTriggerMap inputMap;
 
