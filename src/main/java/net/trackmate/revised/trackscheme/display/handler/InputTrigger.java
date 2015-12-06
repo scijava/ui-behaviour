@@ -7,7 +7,6 @@ import gnu.trove.set.hash.TIntHashSet;
 
 import java.awt.AWTKeyStroke;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -71,6 +70,9 @@ public class InputTrigger
 				}
 				else
 				{
+					System.out.println( s );
+					System.out.println( token );
+					System.out.println();
 					final int keyCode = KeyStroke.getKeyStroke( token ).getKeyCode();
 //					final int keyCode = KeyCode.get( token ).getCode();
 					if ( keyCode == 0 )
@@ -171,7 +173,8 @@ public class InputTrigger
 			final int key = iter.next();
 			if ( buf.length() > 0 )
 				buf.append( " " );
-			buf.append( KeyEvent.getKeyText( key ) );
+			final String vkName = KeyStroke.getKeyStroke( key, 0 ).toString();
+			buf.append( vkName.replace( "pressed ", "" ) );
 		}
 
 		return buf.toString();
