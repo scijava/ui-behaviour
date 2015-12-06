@@ -8,7 +8,7 @@ import javax.swing.ActionMap;
 
 /**
  * Maps {@link String} keys to {@link Behaviour}s. Equivalent to
- * {@link BehaviourMap}.
+ * {@link ActionMap}.
  *
  * @author Tobias Pietzsch &lt;tobias.pietzsch@gmail.com&gt;
  */
