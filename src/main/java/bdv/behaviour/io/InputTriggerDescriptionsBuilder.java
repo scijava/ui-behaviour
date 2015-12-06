@@ -1,4 +1,4 @@
-package net.trackmate.revised.trackscheme.display.handler.io;
+package bdv.behaviour.io;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +7,8 @@ import java.util.Set;
 
 import javax.swing.InputMap;
 
-import net.trackmate.revised.trackscheme.display.handler.InputTriggerMap;
-import net.trackmate.revised.trackscheme.display.handler.io.InputTriggerConfig.Input;
+import bdv.behaviour.InputTriggerMap;
+import bdv.behaviour.io.InputTriggerConfig.Input;
 
 /**
  * Creates {@link InputTriggerDescription}s from existing {@link InputMap}s and {@link InputTriggerMap}s.

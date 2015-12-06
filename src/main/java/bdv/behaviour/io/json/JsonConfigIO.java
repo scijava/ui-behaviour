@@ -1,4 +1,4 @@
-package net.trackmate.revised.trackscheme.display.handler.io.json;
+package bdv.behaviour.io.json;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -8,7 +8,7 @@ import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import net.trackmate.revised.trackscheme.display.handler.io.InputTriggerDescription;
+import bdv.behaviour.io.InputTriggerDescription;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

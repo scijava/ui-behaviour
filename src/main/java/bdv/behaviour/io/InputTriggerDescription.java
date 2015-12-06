@@ -1,9 +1,9 @@
-package net.trackmate.revised.trackscheme.display.handler.io;
+package bdv.behaviour.io;
 
 import javax.swing.Action;
 
-import net.trackmate.revised.trackscheme.display.handler.Behaviour;
-import net.trackmate.revised.trackscheme.display.handler.InputTrigger;
+import bdv.behaviour.Behaviour;
+import bdv.behaviour.InputTrigger;
 
 /**
  * IO record describing the mapping of one {@link InputTrigger} to an

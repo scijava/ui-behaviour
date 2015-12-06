@@ -1,4 +1,4 @@
-package net.trackmate.revised.trackscheme.display.handler.io;
+package bdv.behaviour.io;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,8 +11,8 @@ import java.util.Set;
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
 
-import net.trackmate.revised.trackscheme.display.handler.InputTrigger;
-import net.trackmate.revised.trackscheme.display.handler.InputTriggerMap;
+import bdv.behaviour.InputTrigger;
+import bdv.behaviour.InputTriggerMap;
 
 public class InputTriggerConfig
 {

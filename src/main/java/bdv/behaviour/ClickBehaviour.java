@@ -1,4 +1,4 @@
-package net.trackmate.revised.trackscheme.display.handler;
+package bdv.behaviour;
 
 public interface ClickBehaviour extends Behaviour
 {

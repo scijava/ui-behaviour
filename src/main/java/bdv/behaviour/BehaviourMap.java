@@ -1,4 +1,4 @@
-package net.trackmate.revised.trackscheme.display.handler;
+package bdv.behaviour;
 
 import java.util.HashMap;
 import java.util.Map;

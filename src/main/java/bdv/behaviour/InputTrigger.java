@@ -1,4 +1,4 @@
-package net.trackmate.revised.trackscheme.display.handler;
+package bdv.behaviour;
 
 import gnu.trove.TIntCollection;
 import gnu.trove.iterator.TIntIterator;
