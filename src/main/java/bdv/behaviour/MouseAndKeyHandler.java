@@ -71,13 +71,13 @@ public class MouseAndKeyHandler
 		}
 	}
 
-	private final ArrayList< BehaviourEntry< DragBehaviour > > buttonDrags = new ArrayList< BehaviourEntry< DragBehaviour > >();
+	private final ArrayList< BehaviourEntry< DragBehaviour > > buttonDrags = new ArrayList<>();
 
-	private final ArrayList< BehaviourEntry< DragBehaviour > > keyDrags = new ArrayList< BehaviourEntry< DragBehaviour > >();
+	private final ArrayList< BehaviourEntry< DragBehaviour > > keyDrags = new ArrayList<>();
 
-	private final ArrayList< BehaviourEntry< ClickBehaviour > > buttonClicks = new ArrayList< BehaviourEntry< ClickBehaviour > >();
+	private final ArrayList< BehaviourEntry< ClickBehaviour > > buttonClicks = new ArrayList<>();
 
-	private final ArrayList< BehaviourEntry< ClickBehaviour > > keyClicks = new ArrayList< BehaviourEntry< ClickBehaviour > >();
+	private final ArrayList< BehaviourEntry< ClickBehaviour > > keyClicks = new ArrayList<>();
 
 	/**
 	 * Make sure that the internal behaviour lists are up to date. For this, we
@@ -125,7 +125,7 @@ public class MouseAndKeyHandler
 
 				if ( behaviour instanceof DragBehaviour )
 				{
-					final BehaviourEntry< DragBehaviour > dragEntry = new BehaviourEntry< DragBehaviour >( buttons, ( DragBehaviour ) behaviour );
+					final BehaviourEntry< DragBehaviour > dragEntry = new BehaviourEntry<>( buttons, ( DragBehaviour ) behaviour );
 					if ( buttons.isKeyStroke() )
 						keyDrags.add( dragEntry );
 					else
@@ -133,7 +133,7 @@ public class MouseAndKeyHandler
 				}
 				else if ( behaviour instanceof ClickBehaviour )
 				{
-					final BehaviourEntry< ClickBehaviour > clickEntry = new BehaviourEntry< ClickBehaviour >( buttons, ( ClickBehaviour ) behaviour );
+					final BehaviourEntry< ClickBehaviour > clickEntry = new BehaviourEntry<>( buttons, ( ClickBehaviour ) behaviour );
 					if ( buttons.isKeyStroke() )
 						keyClicks.add( clickEntry );
 					else
@@ -178,12 +178,12 @@ public class MouseAndKeyHandler
 	/**
 	 * Active {@link DragBehaviour}s initiated by mouse button press.
 	 */
-	private final ArrayList< BehaviourEntry< DragBehaviour > > activeButtonDrags = new ArrayList< BehaviourEntry< DragBehaviour > >();
+	private final ArrayList< BehaviourEntry< DragBehaviour > > activeButtonDrags = new ArrayList<>();
 
 	/**
 	 * Active {@link DragBehaviour}s initiated by key press.
 	 */
-	private final ArrayList< BehaviourEntry< DragBehaviour > > activeKeyDrags = new ArrayList< BehaviourEntry< DragBehaviour > >();
+	private final ArrayList< BehaviourEntry< DragBehaviour > > activeKeyDrags = new ArrayList<>();
 
 	/**
 	 * Stores when the last non-double-clicked keystroke happened.

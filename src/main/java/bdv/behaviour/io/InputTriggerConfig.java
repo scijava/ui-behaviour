@@ -22,7 +22,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 
 	public InputTriggerConfig( final Collection< InputTriggerDescription > keyMappings ) throws IllegalArgumentException
 	{
-		actionToInputsMap = new HashMap< String, Set< Input > >();
+		actionToInputsMap = new HashMap<>();
 		for ( final InputTriggerDescription mapping : keyMappings )
 		{
 			final InputTrigger trigger = InputTrigger.getFromString( mapping.getTrigger() );
@@ -34,7 +34,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			Set< Input > inputs = actionToInputsMap.get( input.behaviour );
 			if ( inputs == null )
 			{
-				inputs = new HashSet< Input >();
+				inputs = new HashSet<>();
 				actionToInputsMap.put( input.behaviour, inputs );
 			}
 			inputs.add( input );
@@ -79,7 +79,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		{
 			this.map = map;
 			this.config = config;
-			this.contexts = new HashSet< String >();
+			this.contexts = new HashSet<>();
 			this.contexts.addAll( Arrays.asList( contexts ) );
 		}
 
@@ -212,7 +212,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		{
 			this.trigger = trigger;
 			this.behaviour = behaviour;
-			this.contexts = new HashSet< String >( contexts );
+			this.contexts = new HashSet<>( contexts );
 		}
 
 		@Override
@@ -243,7 +243,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 	Set< InputTrigger > getInputs( final String behaviourName, final Set< String > contexts )
 	{
 		final Set< Input > inputs = actionToInputsMap.get( behaviourName );
-		final Set< InputTrigger > triggers = new HashSet< InputTrigger >();
+		final Set< InputTrigger > triggers = new HashSet<>();
 		if ( inputs != null )
 		{
 			for ( final Input input : inputs )
@@ -259,7 +259,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 
 	InputTriggerConfig()
 	{
-		actionToInputsMap = new HashMap< String, Set< Input > >();
+		actionToInputsMap = new HashMap<>();
 	}
 
 	void addMap( final InputTriggerMap map, final String context )
@@ -274,7 +274,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 				Set< Input > inputs = actionToInputsMap.get( behaviourName );
 				if ( inputs == null )
 				{
-					inputs = new HashSet< Input >();
+					inputs = new HashSet<>();
 					actionToInputsMap.put( behaviourName, inputs );
 				}
 
@@ -315,7 +315,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			Set< Input > inputs = actionToInputsMap.get( behaviourName );
 			if ( inputs == null )
 			{
-				inputs = new HashSet< Input >();
+				inputs = new HashSet<>();
 				actionToInputsMap.put( behaviourName, inputs );
 			}
 

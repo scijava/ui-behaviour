@@ -34,7 +34,7 @@ public class BehaviourMap
      */
 	public BehaviourMap()
 	{
-		behaviours = new HashMap< String, Behaviour >();
+		behaviours = new HashMap<>();
 		parent = null;
 		expectedParentModCount = 0;
 		modCount = 0;
@@ -116,7 +116,7 @@ public class BehaviourMap
 	public synchronized Map< String, Behaviour > getAllBindings()
 	{
 		final Map< String, Behaviour > allBindings =
-				( parent == null ) ? new HashMap< String, Behaviour >() : parent.getAllBindings();
+				( parent == null ) ? new HashMap<>() : parent.getAllBindings();
 
 		for ( final Entry< String, Behaviour > entry : behaviours.entrySet() )
 			allBindings.put( entry.getKey(), entry.getValue() );
