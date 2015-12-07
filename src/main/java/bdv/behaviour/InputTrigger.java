@@ -1,10 +1,5 @@
 package bdv.behaviour;
 
-import gnu.trove.TIntCollection;
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.awt.AWTKeyStroke;
 import java.awt.event.InputEvent;
 import java.util.Collections;
@@ -13,6 +8,11 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.swing.KeyStroke;
+
+import gnu.trove.TIntCollection;
+import gnu.trove.iterator.TIntIterator;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * A combination of keys, mouse buttons, and/or mouse scrolling that can trigger a {@link Behaviour}.
@@ -26,10 +26,17 @@ public class InputTrigger
 {
 	static final int DOUBLE_CLICK_MASK = 1 << 20;
 
+	static final int SCROLL_MASK = 1 << 21;
+
 	/**
 	 * Word to use to specify a double-click modifier.
 	 */
 	private static final String DOUBLE_CLICK_TEXT = "double-click";
+
+	/**
+	 * Word to use to specify scrolling.
+	 */
+	private static final String SCROLL_TEXT = "scroll";
 
 	private final int mask;
 
@@ -163,6 +170,7 @@ public class InputTrigger
 		addModifierText( InputEvent.BUTTON2_DOWN_MASK, "button2", buf );
 		addModifierText( InputEvent.BUTTON3_DOWN_MASK, "button3", buf );
 		addModifierText( DOUBLE_CLICK_MASK, DOUBLE_CLICK_TEXT, buf );
+		addModifierText( SCROLL_MASK, SCROLL_TEXT, buf );
 
 		final TIntIterator iter = pressedKeys.iterator();
 		while ( iter.hasNext() )
@@ -218,6 +226,8 @@ public class InputTrigger
 					Integer.valueOf( InputEvent.BUTTON3_DOWN_MASK ) );
 			uninitializedMap.put( DOUBLE_CLICK_TEXT,
 					Integer.valueOf( DOUBLE_CLICK_MASK ) );
+			uninitializedMap.put( SCROLL_TEXT,
+					Integer.valueOf( SCROLL_MASK ) );
 			modifierKeywords =
 					Collections.synchronizedMap( uninitializedMap );
 		}

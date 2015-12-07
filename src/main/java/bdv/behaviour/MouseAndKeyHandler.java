@@ -1,8 +1,5 @@
 package bdv.behaviour;
 
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -15,6 +12,9 @@ import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 
 public class MouseAndKeyHandler
@@ -79,6 +79,8 @@ public class MouseAndKeyHandler
 
 	private final ArrayList< BehaviourEntry< ClickBehaviour > > keyClicks = new ArrayList<>();
 
+	private final ArrayList< BehaviourEntry< ScrollBehaviour > > scrolls = new ArrayList<>();
+
 	/**
 	 * Make sure that the internal behaviour lists are up to date. For this, we
 	 * keep track the modification count of {@link #inputMap} and
@@ -138,6 +140,11 @@ public class MouseAndKeyHandler
 						keyClicks.add( clickEntry );
 					else
 						buttonClicks.add( clickEntry );
+				}
+				else if ( behaviour instanceof ScrollBehaviour )
+				{
+					final BehaviourEntry< ScrollBehaviour > scrollEntry = new BehaviourEntry<>( buttons, ( ScrollBehaviour ) behaviour );
+					scrolls.add( scrollEntry );
 				}
 			}
 		}
@@ -233,6 +240,9 @@ public class MouseAndKeyHandler
 				timeKeyDown = e.getWhen();
 		}
 
+		if ( e instanceof MouseWheelEvent )
+			modifiersEx |= InputTrigger.SCROLL_MASK;
+
 		return modifiersEx;
 	}
 
@@ -274,14 +284,38 @@ public class MouseAndKeyHandler
 	{
 		System.out.println( "MouseAndKeyHandler.mouseWheelMoved()" );
 		update();
-		// TODO Auto-generated method stub
 
+		System.out.println( MouseEvent.getModifiersExText( e.getModifiersEx() ) );
+
+		final int mask = getMask( e );
+		final int x = e.getX();
+		final int y = e.getY();
+		final double wheelRotation = e.getPreciseWheelRotation();
+
+		/*
+		 * AWT uses the SHIFT_DOWN_MASK to indicate horizontal scrolling. We
+		 * keep track of whether the SHIFT key was actually pressed for
+		 * disambiguation. However, we can only detect horizontal scrolling if
+		 * the SHIFT key is not pressed. With SHIFT pressed, everything is
+		 * treated as vertical scrolling.
+		 */
+		final boolean exShiftMask = ( e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK ) != 0;
+		final boolean isHorizontal = !shiftPressed && exShiftMask;
+
+		for ( final BehaviourEntry< ScrollBehaviour > scroll : scrolls )
+		{
+			if ( scroll.buttons.matches( mask, pressedKeys ) )
+			{
+				scroll.behaviour.scroll( wheelRotation, isHorizontal, x, y );
+			}
+		}
 	}
 
 	@Override
 	public void mouseClicked( final MouseEvent e )
 	{
 		System.out.println( "MouseAndKeyHandler.mouseClicked()" );
+		System.out.println( e );
 		update();
 
 		final int mask = getMask( e );
@@ -301,6 +335,7 @@ public class MouseAndKeyHandler
 	public void mousePressed( final MouseEvent e )
 	{
 		System.out.println( "MouseAndKeyHandler.mousePressed()" );
+		System.out.println( e );
 		update();
 
 		final int mask = getMask( e );
@@ -321,6 +356,7 @@ public class MouseAndKeyHandler
 	public void mouseReleased( final MouseEvent e )
 	{
 		System.out.println( "MouseAndKeyHandler.mouseReleased()" );
+		System.out.println( e );
 		update();
 
 		final int x = e.getX();
