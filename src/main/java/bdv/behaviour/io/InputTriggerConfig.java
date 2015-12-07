@@ -284,7 +284,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 					if ( input.trigger.equals( trigger ) )
 					{
 						/*
-						 * the trigger -> behavioiur binding already exists.
+						 * the trigger -> behaviour binding already exists.
 						 * just add the new context
 						 */
 						input.contexts.add( context );
