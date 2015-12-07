@@ -16,6 +16,10 @@
 	<name>Configurable Keys</name>
 	<description>configurable key and mouse event handling</description>
 
+	<properties>
+		<scijava.jvm.version>1.8</scijava.jvm.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>net.sf.trove4j</groupId>
@@ -96,6 +100,13 @@
 						<root>src/main/java</root>
 						<root>src/test/java</root>
 					</roots>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 		</plugins>
