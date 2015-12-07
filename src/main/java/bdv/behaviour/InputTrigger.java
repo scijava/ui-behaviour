@@ -70,9 +70,6 @@ public class InputTrigger
 				}
 				else
 				{
-					System.out.println( s );
-					System.out.println( token );
-					System.out.println();
 					final int keyCode = KeyStroke.getKeyStroke( token ).getKeyCode();
 //					final int keyCode = KeyCode.get( token ).getCode();
 					if ( keyCode == 0 )
