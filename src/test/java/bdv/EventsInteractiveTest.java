@@ -1,0 +1,140 @@
+package bdv;
+
+import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import bdv.behaviour.BehaviourMap;
+import bdv.behaviour.ClickBehaviour;
+import bdv.behaviour.DragBehaviour;
+import bdv.behaviour.InputTrigger;
+import bdv.behaviour.InputTriggerMap;
+import bdv.behaviour.MouseAndKeyHandler;
+import bdv.behaviour.ScrollBehaviour;
+
+public class EventsInteractiveTest
+{
+	static class MyDragBehaviour implements DragBehaviour
+	{
+		private final String name;
+
+		public MyDragBehaviour(
+				final String name,
+				final String inputTrigger,
+				final BehaviourMap behaviourMap,
+				final InputTriggerMap inputMap )
+		{
+			this.name = name;
+			behaviourMap.put( name, this );
+			inputMap.put( InputTrigger.getFromString( inputTrigger ), name );
+		}
+
+		@Override
+		public void init( final int x, final int y )
+		{
+			System.out.println( name + ": init(" + x + ", " + y + ")" );
+		}
+
+		@Override
+		public void drag( final int x, final int y )
+		{
+			System.out.println( name + ": drag(" + x + ", " + y + ")" );
+		}
+
+		@Override
+		public void end( final int x, final int y )
+		{
+			System.out.println( name + ": end(" + x + ", " + y + ")" );
+		}
+	}
+
+	static class MyClickBehaviour implements ClickBehaviour
+	{
+		private final String name;
+
+		public MyClickBehaviour(
+				final String name,
+				final String inputTrigger,
+				final BehaviourMap behaviourMap,
+				final InputTriggerMap inputMap )
+		{
+			this.name = name;
+			behaviourMap.put( name, this );
+			inputMap.put( InputTrigger.getFromString( inputTrigger ), name );
+		}
+
+		@Override
+		public void click( final int x, final int y )
+		{
+			System.out.println( name + ": click(" + x + ", " + y + ")" );
+		}
+	}
+
+	static class MyScrollBehaviour implements ScrollBehaviour
+	{
+		private final String name;
+
+		public MyScrollBehaviour(
+				final String name,
+				final String inputTrigger,
+				final BehaviourMap behaviourMap,
+				final InputTriggerMap inputMap )
+		{
+			this.name = name;
+			behaviourMap.put( name, this );
+			inputMap.put( InputTrigger.getFromString( inputTrigger ), name );
+		}
+
+		@Override
+		public void scroll( final double wheelRotation, final boolean isHorizontal, final int x, final int y )
+		{
+			System.out.println( name + ": scroll(" + wheelRotation + ", " + isHorizontal + ", " + x + ", " + y + ")" );
+		}
+	}
+
+	public static void main( final String[] args )
+	{
+		final JFrame frame = new JFrame( "EventsInteractiveTest" );
+		final JPanel panel = new JPanel();
+		panel.setPreferredSize( new Dimension( 400, 400 ) );
+		panel.addMouseListener( new MouseAdapter()
+		{
+			@Override
+			public void mousePressed( final MouseEvent e )
+			{
+				panel.requestFocusInWindow();
+			}
+		} );
+
+		final MouseAndKeyHandler handler = new MouseAndKeyHandler();
+		panel.addMouseListener( handler );
+		panel.addMouseMotionListener( handler );
+		panel.addMouseWheelListener( handler );
+		panel.addKeyListener( handler );
+
+		final InputTriggerMap inputMap = new InputTriggerMap();
+		final BehaviourMap behaviourMap = new BehaviourMap();
+		handler.setInputMap( inputMap );
+		handler.setBehaviourMap( behaviourMap );
+
+		new MyDragBehaviour( "left-drag", "button1", behaviourMap, inputMap );
+		new MyDragBehaviour( "right-drag", "button3", behaviourMap, inputMap );
+
+		new MyDragBehaviour( "meta-left-drag", "meta button1", behaviourMap, inputMap );
+		new MyDragBehaviour( "meta-right-drag", "meta button3", behaviourMap, inputMap );
+
+		new MyClickBehaviour( "left-click", "button1", behaviourMap, inputMap );
+		new MyClickBehaviour( "right-click", "button3", behaviourMap, inputMap );
+
+		new MyClickBehaviour( "meta-left-click", "meta button1", behaviourMap, inputMap );
+		new MyClickBehaviour( "meta-right-click", "meta button3", behaviourMap, inputMap );
+
+		frame.add( panel );
+		frame.pack();
+		frame.setVisible( true );
+		panel.requestFocusInWindow();
+	}
+}
