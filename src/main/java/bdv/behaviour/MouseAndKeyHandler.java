@@ -22,6 +22,8 @@ public class MouseAndKeyHandler
 {
 	private static final int DOUBLE_CLICK_INTERVAL = getDoubleClickInterval();
 
+	private static final int OSX_META_LEFT_CLICK = InputEvent.BUTTON1_MASK | InputEvent.BUTTON3_MASK | InputEvent.META_MASK;
+
 	private static int getDoubleClickInterval()
 	{
 		final Object prop = Toolkit.getDefaultToolkit().getDesktopProperty( "awt.multiClickInterval" );
@@ -165,12 +167,19 @@ public class MouseAndKeyHandler
 	private final TIntSet pressedKeys = new TIntHashSet( 5, 0.5f, -1 );
 
 	/**
-	 * Whether the shift key is currently pressed. We need this, because for
+	 * Whether the SHIFT key is currently pressed. We need this, because for
 	 * mouse-wheel AWT uses the SHIFT_DOWN_MASK to indicate horizontal
 	 * scrolling. We keep track of whether the SHIFT key was actually pressed
 	 * for disambiguation.
 	 */
 	private boolean shiftPressed = false;
+
+	/**
+	 * Whether the META key is currently pressed. We need this, because on OS X
+	 * AWT sets the META_DOWN_MASK to for right clicks. We keep track of whether
+	 * the META key was actually pressed for disambiguation.
+	 */
+	private boolean metaPressed = false;
 
 	/**
 	 * The current mouse coordinates, updated through {@link #mouseMoved(MouseEvent)}.
@@ -200,16 +209,27 @@ public class MouseAndKeyHandler
 	private int getMask( final InputEvent e )
 	{
 		final int modifiers = e.getModifiers();
-		int modifiersEx = e.getModifiersEx();
+		final int modifiersEx = e.getModifiersEx();
+		int mask = modifiersEx;
 
 		/*
 		 * For scrolling AWT uses the SHIFT_DOWN_MASK to indicate horizontal scrolling.
 		 * We keep track of whether the SHIFT key was actually pressed for disambiguation.
 		 */
 		if ( shiftPressed )
-			modifiersEx |= InputEvent.SHIFT_DOWN_MASK;
+			mask |= InputEvent.SHIFT_DOWN_MASK;
 		else
-			modifiersEx &= ~InputEvent.SHIFT_DOWN_MASK;
+			mask &= ~InputEvent.SHIFT_DOWN_MASK;
+
+		/*
+		 * On OS X AWT sets the META_DOWN_MASK to for right clicks. We keep
+		 * track of whether the META key was actually pressed for
+		 * disambiguation.
+		 */
+		if ( metaPressed )
+			mask |= InputEvent.META_DOWN_MASK;
+		else
+			mask &= ~InputEvent.META_DOWN_MASK;
 
 		/*
 		 * We add the button modifiers to modifiersEx such that the
@@ -219,31 +239,39 @@ public class MouseAndKeyHandler
 		 * longer down at this point).
 		 */
 		if ( ( modifiers & InputEvent.BUTTON1_MASK ) != 0 )
-			modifiersEx |= InputEvent.BUTTON1_DOWN_MASK;
+			mask |= InputEvent.BUTTON1_DOWN_MASK;
 		if ( ( modifiers & InputEvent.BUTTON2_MASK ) != 0 )
-			modifiersEx |= InputEvent.BUTTON2_DOWN_MASK;
+			mask |= InputEvent.BUTTON2_DOWN_MASK;
 		if ( ( modifiers & InputEvent.BUTTON3_MASK ) != 0 )
-			modifiersEx |= InputEvent.BUTTON3_DOWN_MASK;
+			mask |= InputEvent.BUTTON3_DOWN_MASK;
+
+		/*
+		 * On OS X AWT sets the BUTTON3_DOWN_MASK for meta+left clicks. Fix
+		 * that.
+		 */
+		System.out.println( modifiers + " -- " + OSX_META_LEFT_CLICK );
+		if ( modifiers == OSX_META_LEFT_CLICK )
+			mask &= ~InputEvent.BUTTON3_DOWN_MASK;
 
 		/*
 		 * Deal with double-clicks.
 		 */
 
 		if ( e instanceof MouseEvent && ( ( MouseEvent ) e ).getClickCount() > 1 )
-			modifiersEx |= InputTrigger.DOUBLE_CLICK_MASK; // mouse
+			mask |= InputTrigger.DOUBLE_CLICK_MASK; // mouse
 		else if ( e instanceof KeyEvent )
 		{
 			// double-click on keys.
 			if ( ( e.getWhen() - timeKeyDown ) < DOUBLE_CLICK_INTERVAL )
-				modifiersEx |= InputTrigger.DOUBLE_CLICK_MASK;
+				mask |= InputTrigger.DOUBLE_CLICK_MASK;
 			else
 				timeKeyDown = e.getWhen();
 		}
 
 		if ( e instanceof MouseWheelEvent )
-			modifiersEx |= InputTrigger.SCROLL_MASK;
+			mask |= InputTrigger.SCROLL_MASK;
 
-		return modifiersEx;
+		return mask;
 	}
 
 
@@ -395,11 +423,14 @@ public class MouseAndKeyHandler
 		{
 			shiftPressed = true;
 		}
+		else if ( e.getKeyCode() == KeyEvent.VK_META )
+		{
+			metaPressed = true;
+		}
 		else if (
 				e.getKeyCode() != KeyEvent.VK_ALT &&
 				e.getKeyCode() != KeyEvent.VK_CONTROL &&
-				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH &&
-				e.getKeyCode() != KeyEvent.VK_META )
+				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH )
 		{
 			pressedKeys.add( e.getKeyCode() );
 
@@ -434,11 +465,14 @@ public class MouseAndKeyHandler
 		{
 			shiftPressed = false;
 		}
+		else if ( e.getKeyCode() == KeyEvent.VK_META )
+		{
+			metaPressed = false;
+		}
 		else if (
 				e.getKeyCode() != KeyEvent.VK_ALT &&
 				e.getKeyCode() != KeyEvent.VK_CONTROL &&
-				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH &&
-				e.getKeyCode() != KeyEvent.VK_META )
+				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH )
 		{
 			pressedKeys.remove( e.getKeyCode() );
 
