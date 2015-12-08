@@ -24,6 +24,10 @@ public class MouseAndKeyHandler
 
 	private static final int OSX_META_LEFT_CLICK = InputEvent.BUTTON1_MASK | InputEvent.BUTTON3_MASK | InputEvent.META_MASK;
 
+	private static final int OSX_ALT_LEFT_CLICK = InputEvent.BUTTON1_MASK | InputEvent.BUTTON2_MASK | InputEvent.ALT_MASK;
+
+	private static final int OSX_ALT_RIGHT_CLICK = InputEvent.BUTTON3_MASK | InputEvent.BUTTON2_MASK | InputEvent.ALT_MASK | InputEvent.META_MASK;
+
 	private static int getDoubleClickInterval()
 	{
 		final Object prop = Toolkit.getDefaultToolkit().getDesktopProperty( "awt.multiClickInterval" );
@@ -237,21 +241,40 @@ public class MouseAndKeyHandler
 		 * modifiersEx such that BUTTON1_DOWN_MASK is also present in
 		 * mouseClicked() when BUTTON1 was clicked (although the button is no
 		 * longer down at this point).
+		 *
+		 * ...but only if its not a MouseWheelEvent because OS X sets button
+		 * modifiers if ALT or META modifiers are pressed.
 		 */
-		if ( ( modifiers & InputEvent.BUTTON1_MASK ) != 0 )
-			mask |= InputEvent.BUTTON1_DOWN_MASK;
-		if ( ( modifiers & InputEvent.BUTTON2_MASK ) != 0 )
-			mask |= InputEvent.BUTTON2_DOWN_MASK;
-		if ( ( modifiers & InputEvent.BUTTON3_MASK ) != 0 )
-			mask |= InputEvent.BUTTON3_DOWN_MASK;
+		if ( ! ( e instanceof MouseWheelEvent ) )
+		{
+			if ( ( modifiers & InputEvent.BUTTON1_MASK ) != 0 )
+				mask |= InputEvent.BUTTON1_DOWN_MASK;
+			if ( ( modifiers & InputEvent.BUTTON2_MASK ) != 0 )
+				mask |= InputEvent.BUTTON2_DOWN_MASK;
+			if ( ( modifiers & InputEvent.BUTTON3_MASK ) != 0 )
+				mask |= InputEvent.BUTTON3_DOWN_MASK;
+		}
 
 		/*
 		 * On OS X AWT sets the BUTTON3_DOWN_MASK for meta+left clicks. Fix
 		 * that.
 		 */
-		System.out.println( modifiers + " -- " + OSX_META_LEFT_CLICK );
 		if ( modifiers == OSX_META_LEFT_CLICK )
 			mask &= ~InputEvent.BUTTON3_DOWN_MASK;
+
+		/*
+		 * On OS X AWT sets the BUTTON2_DOWN_MASK for alt+left clicks. Fix
+		 * that.
+		 */
+		if ( modifiers == OSX_ALT_LEFT_CLICK )
+			mask &= ~InputEvent.BUTTON2_DOWN_MASK;
+
+		/*
+		 * On OS X AWT sets the BUTTON2_DOWN_MASK for alt+right clicks. Fix
+		 * that.
+		 */
+		if ( modifiers == OSX_ALT_RIGHT_CLICK )
+			mask &= ~InputEvent.BUTTON2_DOWN_MASK;
 
 		/*
 		 * Deal with double-clicks.
@@ -284,7 +307,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseDragged( final MouseEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.mouseDragged()" );
+//		System.out.println( "MouseAndKeyHandler.mouseDragged()" );
+//		System.out.println( e );
 		update();
 
 		final int x = e.getX();
@@ -297,7 +321,7 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseMoved( final MouseEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.mouseMoved()" );
+//		System.out.println( "MouseAndKeyHandler.mouseMoved()" );
 		update();
 
 		mouseX = e.getX();
@@ -310,10 +334,9 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseWheelMoved( final MouseWheelEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.mouseWheelMoved()" );
+//		System.out.println( "MouseAndKeyHandler.mouseWheelMoved()" );
+//		System.out.println( e );
 		update();
-
-		System.out.println( MouseEvent.getModifiersExText( e.getModifiersEx() ) );
 
 		final int mask = getMask( e );
 		final int x = e.getX();
@@ -342,8 +365,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseClicked( final MouseEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.mouseClicked()" );
-		System.out.println( e );
+//		System.out.println( "MouseAndKeyHandler.mouseClicked()" );
+//		System.out.println( e );
 		update();
 
 		final int mask = getMask( e );
@@ -362,8 +385,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void mousePressed( final MouseEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.mousePressed()" );
-		System.out.println( e );
+//		System.out.println( "MouseAndKeyHandler.mousePressed()" );
+//		System.out.println( e );
 		update();
 
 		final int mask = getMask( e );
@@ -383,8 +406,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseReleased( final MouseEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.mouseReleased()" );
-		System.out.println( e );
+//		System.out.println( "MouseAndKeyHandler.mouseReleased()" );
+//		System.out.println( e );
 		update();
 
 		final int x = e.getX();
@@ -398,25 +421,21 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseEntered( final MouseEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.mouseEntered()" );
+//		System.out.println( "MouseAndKeyHandler.mouseEntered()" );
 		update();
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void mouseExited( final MouseEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.mouseExited()" );
+//		System.out.println( "MouseAndKeyHandler.mouseExited()" );
 		update();
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void keyPressed( final KeyEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.keyPressed()" );
+//		System.out.println( "MouseAndKeyHandler.keyPressed()" );
 		update();
 
 		if ( e.getKeyCode() == KeyEvent.VK_SHIFT )
@@ -458,7 +477,7 @@ public class MouseAndKeyHandler
 	@Override
 	public void keyReleased( final KeyEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.keyReleased()" );
+//		System.out.println( "MouseAndKeyHandler.keyReleased()" );
 		update();
 
 		if ( e.getKeyCode() == KeyEvent.VK_SHIFT )
@@ -485,9 +504,7 @@ public class MouseAndKeyHandler
 	@Override
 	public void keyTyped( final KeyEvent e )
 	{
-		System.out.println( "MouseAndKeyHandler.keyTyped()" );
+//		System.out.println( "MouseAndKeyHandler.keyTyped()" );
 		update();
-		// TODO Auto-generated method stub
-
 	}
 }
