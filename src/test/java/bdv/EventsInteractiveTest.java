@@ -1,6 +1,11 @@
 package bdv;
 
 import java.awt.Dimension;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -99,6 +104,35 @@ public class EventsInteractiveTest
 	{
 		final JFrame frame = new JFrame( "EventsInteractiveTest" );
 		final JPanel panel = new JPanel();
+
+		/*
+		 * Disable the alt key functionality that moves the focus to the window
+		 * menu on Windows platform.
+		 */
+		panel.addFocusListener( new FocusListener()
+		{
+			private final KeyEventDispatcher altDisabler = new KeyEventDispatcher()
+			{
+				@Override
+				public boolean dispatchKeyEvent( final KeyEvent e )
+				{
+					return e.getKeyCode() == 18;
+				}
+			};
+
+			@Override
+			public void focusGained( final FocusEvent e )
+			{
+				KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher( altDisabler );
+			}
+
+			@Override
+			public void focusLost( final FocusEvent e )
+			{
+				KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher( altDisabler );
+			}
+		} );
+
 		panel.setPreferredSize( new Dimension( 400, 400 ) );
 		panel.addMouseListener( new MouseAdapter()
 		{
