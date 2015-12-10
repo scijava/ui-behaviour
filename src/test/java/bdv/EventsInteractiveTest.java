@@ -125,30 +125,35 @@ public class EventsInteractiveTest
 		new MyDragBehaviour( "shift-left-drag", "shift button1", behaviourMap, inputMap );
 		new MyDragBehaviour( "ctrl-left-drag", "ctrl button1", behaviourMap, inputMap );
 		new MyDragBehaviour( "alt-left-drag", "alt button1", behaviourMap, inputMap );
+		new MyDragBehaviour( "win-left-drag", "win button1", behaviourMap, inputMap );
 
 		new MyDragBehaviour( "right-drag", "button3", behaviourMap, inputMap );
 		new MyDragBehaviour( "meta-right-drag", "meta button3", behaviourMap, inputMap );
 		new MyDragBehaviour( "shift-right-drag", "shift button3", behaviourMap, inputMap );
 		new MyDragBehaviour( "ctrl-right-drag", "ctrl button3", behaviourMap, inputMap );
 		new MyDragBehaviour( "alt-right-drag", "alt button3", behaviourMap, inputMap );
+		new MyDragBehaviour( "win-right-drag", "win button3", behaviourMap, inputMap );
 
 		new MyClickBehaviour( "left-click", "button1", behaviourMap, inputMap );
 		new MyClickBehaviour( "meta-left-click", "meta button1", behaviourMap, inputMap );
 		new MyClickBehaviour( "shift-left-click", "shift button1", behaviourMap, inputMap );
 		new MyClickBehaviour( "ctrl-left-click", "ctrl button1", behaviourMap, inputMap );
 		new MyClickBehaviour( "alt-left-click", "alt button1", behaviourMap, inputMap );
+		new MyClickBehaviour( "win-left-click", "win button1", behaviourMap, inputMap );
 
 		new MyClickBehaviour( "right-click", "button3", behaviourMap, inputMap );
 		new MyClickBehaviour( "meta-right-click", "meta button3", behaviourMap, inputMap );
 		new MyClickBehaviour( "shift-right-click", "shift button3", behaviourMap, inputMap );
 		new MyClickBehaviour( "ctrl-right-click", "ctrl button3", behaviourMap, inputMap );
 		new MyClickBehaviour( "alt-right-click", "alt button3", behaviourMap, inputMap );
+		new MyClickBehaviour( "win-right-click", "win button3", behaviourMap, inputMap );
 
 		new MyScrollBehaviour( "scroll", "scroll", behaviourMap, inputMap );
 		new MyScrollBehaviour( "meta-scroll", "meta scroll", behaviourMap, inputMap );
 		new MyScrollBehaviour( "shift-scroll", "shift scroll", behaviourMap, inputMap );
 		new MyScrollBehaviour( "ctrl-scroll", "ctrl scroll", behaviourMap, inputMap );
 		new MyScrollBehaviour( "alt-scroll", "alt scroll", behaviourMap, inputMap );
+		new MyScrollBehaviour( "win-scroll", "win scroll", behaviourMap, inputMap );
 
 		frame.add( panel );
 		frame.pack();

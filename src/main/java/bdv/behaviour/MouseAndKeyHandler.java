@@ -1,5 +1,8 @@
 package bdv.behaviour;
 
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
+
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -12,9 +15,6 @@ import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 
 
 public class MouseAndKeyHandler
@@ -186,7 +186,8 @@ public class MouseAndKeyHandler
 	private boolean metaPressed = false;
 
 	/**
-	 * The current mouse coordinates, updated through {@link #mouseMoved(MouseEvent)}.
+	 * The current mouse coordinates, updated through
+	 * {@link #mouseMoved(MouseEvent)}.
 	 */
 	private int mouseX;
 
@@ -209,6 +210,7 @@ public class MouseAndKeyHandler
 	 * Stores when the last non-double-clicked keystroke happened.
 	 */
 	private long timeKeyDown;
+
 
 	private int getMask( final InputEvent e )
 	{

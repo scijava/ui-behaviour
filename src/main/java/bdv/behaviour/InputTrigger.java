@@ -1,5 +1,10 @@
 package bdv.behaviour;
 
+import gnu.trove.TIntCollection;
+import gnu.trove.iterator.TIntIterator;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
+
 import java.awt.AWTKeyStroke;
 import java.awt.event.InputEvent;
 import java.util.Collections;
@@ -8,11 +13,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.swing.KeyStroke;
-
-import gnu.trove.TIntCollection;
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * A combination of keys, mouse buttons, and/or mouse scrolling that can trigger a {@link Behaviour}.
@@ -38,6 +38,16 @@ public class InputTrigger
 	 */
 	private static final String SCROLL_TEXT = "scroll";
 
+	/**
+	 * KeyEvent VK_ syntax for the window key, that we want to replace.
+	 */
+	private static final String WINDOWS_VK_STRING = "WINDOWS";
+
+	/**
+	 * Replacement for the KeyEvent VK_ syntax for the window key.
+	 */
+	private static final String WINDOWS_VK_STRING_REPLACEMENT = "win";
+
 	private final int mask;
 
 	private final TIntSet pressedKeys;
@@ -61,7 +71,7 @@ public class InputTrigger
 
 		for ( int i = 1; i <= count; i++ )
 		{
-			final String token = st.nextToken();
+			String token = st.nextToken();
 			if ( token.equals( "released" ) )
 			{}
 			else if ( token.equals( "pressed" ) )
@@ -77,6 +87,9 @@ public class InputTrigger
 				}
 				else
 				{
+					if ( token.equals( WINDOWS_VK_STRING_REPLACEMENT ) )
+						token = WINDOWS_VK_STRING;
+
 					final int keyCode = KeyStroke.getKeyStroke( token ).getKeyCode();
 //					final int keyCode = KeyCode.get( token ).getCode();
 					if ( keyCode == 0 )
