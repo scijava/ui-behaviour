@@ -117,6 +117,11 @@ public class InputTrigger
 		return pressedKeys;
 	}
 
+	public boolean isKeyTriggered()
+	{
+		return ( mask & ( InputEvent.BUTTON1_DOWN_MASK |  InputEvent.BUTTON2_DOWN_MASK | InputEvent.BUTTON3_DOWN_MASK | SCROLL_MASK ) ) == 0;
+	}
+
 	public boolean isKeyStroke()
 	{
 		return keyStroke != null;

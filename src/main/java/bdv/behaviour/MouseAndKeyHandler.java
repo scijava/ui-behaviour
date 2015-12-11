@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import gnu.trove.map.hash.TIntLongHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -134,7 +135,7 @@ public class MouseAndKeyHandler
 				if ( behaviour instanceof DragBehaviour )
 				{
 					final BehaviourEntry< DragBehaviour > dragEntry = new BehaviourEntry<>( buttons, ( DragBehaviour ) behaviour );
-					if ( buttons.isKeyStroke() )
+					if ( buttons.isKeyTriggered() )
 						keyDrags.add( dragEntry );
 					else
 						buttonDrags.add( dragEntry );
@@ -142,7 +143,7 @@ public class MouseAndKeyHandler
 				else if ( behaviour instanceof ClickBehaviour )
 				{
 					final BehaviourEntry< ClickBehaviour > clickEntry = new BehaviourEntry<>( buttons, ( ClickBehaviour ) behaviour );
-					if ( buttons.isKeyStroke() )
+					if ( buttons.isKeyTriggered() )
 						keyClicks.add( clickEntry );
 					else
 						buttonClicks.add( clickEntry );
@@ -169,6 +170,11 @@ public class MouseAndKeyHandler
 	 * Control, Shift, Alt, AltGr, Meta.
 	 */
 	private final TIntSet pressedKeys = new TIntHashSet( 5, 0.5f, -1 );
+
+	/**
+	 * When keys where pressed
+	 */
+	private final TIntLongHashMap keyPressTimes = new TIntLongHashMap( 100, 0.5f, -1, -1 );
 
 	/**
 	 * Whether the SHIFT key is currently pressed. We need this, because for
@@ -204,11 +210,6 @@ public class MouseAndKeyHandler
 	 * Active {@link DragBehaviour}s initiated by key press.
 	 */
 	private final ArrayList< BehaviourEntry< DragBehaviour > > activeKeyDrags = new ArrayList<>();
-
-	/**
-	 * Stores when the last non-double-clicked keystroke happened.
-	 */
-	private long timeKeyDown;
 
 	private int getMask( final InputEvent e )
 	{
@@ -277,19 +278,11 @@ public class MouseAndKeyHandler
 			mask &= ~InputEvent.BUTTON2_DOWN_MASK;
 
 		/*
-		 * Deal with double-clicks.
+		 * Deal with mouse double-clicks.
 		 */
 
 		if ( e instanceof MouseEvent && ( ( MouseEvent ) e ).getClickCount() > 1 )
 			mask |= InputTrigger.DOUBLE_CLICK_MASK; // mouse
-		else if ( e instanceof KeyEvent )
-		{
-			// double-click on keys.
-			if ( ( e.getWhen() - timeKeyDown ) < DOUBLE_CLICK_INTERVAL )
-				mask |= InputTrigger.DOUBLE_CLICK_MASK;
-			else
-				timeKeyDown = e.getWhen();
-		}
 
 		if ( e instanceof MouseWheelEvent )
 			mask |= InputTrigger.SCROLL_MASK;
@@ -373,9 +366,11 @@ public class MouseAndKeyHandler
 		final int x = e.getX();
 		final int y = e.getY();
 
+		final int clickMask = mask & ~InputTrigger.DOUBLE_CLICK_MASK;
 		for ( final BehaviourEntry< ClickBehaviour > click : buttonClicks )
 		{
-			if ( click.buttons.matches( mask, pressedKeys ) )
+			if ( click.buttons.matches( mask, pressedKeys ) ||
+					( clickMask != mask && click.buttons.matches( clickMask, pressedKeys ) ) )
 			{
 				click.behaviour.click( x, y );
 			}
@@ -436,6 +431,7 @@ public class MouseAndKeyHandler
 	public void keyPressed( final KeyEvent e )
 	{
 //		System.out.println( "MouseAndKeyHandler.keyPressed()" );
+//		System.out.println( e );
 		update();
 
 		if ( e.getKeyCode() == KeyEvent.VK_SHIFT )
@@ -451,13 +447,30 @@ public class MouseAndKeyHandler
 				e.getKeyCode() != KeyEvent.VK_CONTROL &&
 				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH )
 		{
-			pressedKeys.add( e.getKeyCode() );
+			final boolean inserted = pressedKeys.add( e.getKeyCode() );
+
+			/*
+			 * Create mask and deal with double-click on keys.
+			 */
 
 			final int mask = getMask( e );
+			boolean doubleClick = false;
+			if ( inserted )
+			{
+				// double-click on keys.
+				final long lastPressTime = keyPressTimes.get( e.getKeyCode() );
+				if ( lastPressTime != -1 && ( e.getWhen() - lastPressTime ) < DOUBLE_CLICK_INTERVAL )
+					doubleClick = true;
+
+				keyPressTimes.put( e.getKeyCode(), e.getWhen() );
+			}
+			final int doubleClickMask = mask | InputTrigger.DOUBLE_CLICK_MASK;
 
 			for ( final BehaviourEntry< DragBehaviour > drag : keyDrags )
 			{
-				if ( !activeKeyDrags.contains( drag ) && drag.buttons.matches( mask, pressedKeys ) )
+				if ( !activeKeyDrags.contains( drag ) &&
+						( drag.buttons.matches( mask, pressedKeys ) ||
+						( doubleClick && drag.buttons.matches( doubleClickMask, pressedKeys ) ) ) )
 				{
 					drag.behaviour.init( mouseX, mouseY );
 					activeKeyDrags.add( drag );
@@ -466,7 +479,8 @@ public class MouseAndKeyHandler
 
 			for ( final BehaviourEntry< ClickBehaviour > click : keyClicks )
 			{
-				if ( click.buttons.matches( mask, pressedKeys ) )
+				if ( click.buttons.matches( mask, pressedKeys ) ||
+						( doubleClick && click.buttons.matches( doubleClickMask, pressedKeys ) ) )
 				{
 					click.behaviour.click( mouseX, mouseY );
 				}
