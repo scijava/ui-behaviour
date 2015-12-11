@@ -77,12 +77,10 @@ public class InputTrigger
 				}
 				else
 				{
-					final int keyCode = KeyStroke.getKeyStroke( token ).getKeyCode();
-//					final int keyCode = KeyCode.get( token ).getCode();
-					if ( keyCode == 0 )
+					final KeyStroke ks = KeyStroke.getKeyStroke( token );
+					if ( ks == null || ks.getKeyCode() == 0 )
 						throw new IllegalArgumentException( "InputTrigger String \"" + s + "\" is formatted incorrectly" );
-					else
-						pressedKeys.add( keyCode );
+					pressedKeys.add( ks.getKeyCode() );
 				}
 			}
 		}
