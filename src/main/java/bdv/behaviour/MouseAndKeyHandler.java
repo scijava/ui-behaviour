@@ -1,8 +1,5 @@
 package bdv.behaviour;
 
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -15,6 +12,10 @@ import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import gnu.trove.map.hash.TIntLongHashMap;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 
 public class MouseAndKeyHandler
@@ -134,7 +135,7 @@ public class MouseAndKeyHandler
 				if ( behaviour instanceof DragBehaviour )
 				{
 					final BehaviourEntry< DragBehaviour > dragEntry = new BehaviourEntry<>( buttons, ( DragBehaviour ) behaviour );
-					if ( buttons.isKeyStroke() )
+					if ( buttons.isKeyTriggered() )
 						keyDrags.add( dragEntry );
 					else
 						buttonDrags.add( dragEntry );
@@ -142,7 +143,7 @@ public class MouseAndKeyHandler
 				else if ( behaviour instanceof ClickBehaviour )
 				{
 					final BehaviourEntry< ClickBehaviour > clickEntry = new BehaviourEntry<>( buttons, ( ClickBehaviour ) behaviour );
-					if ( buttons.isKeyStroke() )
+					if ( buttons.isKeyTriggered() )
 						keyClicks.add( clickEntry );
 					else
 						buttonClicks.add( clickEntry );
@@ -171,6 +172,11 @@ public class MouseAndKeyHandler
 	private final TIntSet pressedKeys = new TIntHashSet( 5, 0.5f, -1 );
 
 	/**
+	 * When keys where pressed
+	 */
+	private final TIntLongHashMap keyPressTimes = new TIntLongHashMap( 100, 0.5f, -1, -1 );
+
+	/**
 	 * Whether the SHIFT key is currently pressed. We need this, because for
 	 * mouse-wheel AWT uses the SHIFT_DOWN_MASK to indicate horizontal
 	 * scrolling. We keep track of whether the SHIFT key was actually pressed
@@ -186,8 +192,7 @@ public class MouseAndKeyHandler
 	private boolean metaPressed = false;
 
 	/**
-	 * The current mouse coordinates, updated through
-	 * {@link #mouseMoved(MouseEvent)}.
+	 * The current mouse coordinates, updated through {@link #mouseMoved(MouseEvent)}.
 	 */
 	private int mouseX;
 
@@ -210,7 +215,6 @@ public class MouseAndKeyHandler
 	 * Stores when the last non-double-clicked keystroke happened.
 	 */
 	private long timeKeyDown;
-
 
 	private int getMask( final InputEvent e )
 	{
@@ -438,6 +442,7 @@ public class MouseAndKeyHandler
 	public void keyPressed( final KeyEvent e )
 	{
 //		System.out.println( "MouseAndKeyHandler.keyPressed()" );
+//		System.out.println( e );
 		update();
 
 		if ( e.getKeyCode() == KeyEvent.VK_SHIFT )
@@ -453,13 +458,30 @@ public class MouseAndKeyHandler
 				e.getKeyCode() != KeyEvent.VK_CONTROL &&
 				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH )
 		{
-			pressedKeys.add( e.getKeyCode() );
+			final boolean inserted = pressedKeys.add( e.getKeyCode() );
+
+			/*
+			 * Create mask and deal with double-click on keys.
+			 */
 
 			final int mask = getMask( e );
+			boolean doubleClick = false;
+			if ( inserted )
+			{
+				// double-click on keys.
+				final long lastPressTime = keyPressTimes.get( e.getKeyCode() );
+				if ( lastPressTime != -1 && ( e.getWhen() - lastPressTime ) < DOUBLE_CLICK_INTERVAL )
+					doubleClick = true;
+
+				keyPressTimes.put( e.getKeyCode(), e.getWhen() );
+			}
+			final int doubleClickMask = mask | InputTrigger.DOUBLE_CLICK_MASK;
 
 			for ( final BehaviourEntry< DragBehaviour > drag : keyDrags )
 			{
-				if ( !activeKeyDrags.contains( drag ) && drag.buttons.matches( mask, pressedKeys ) )
+				if ( !activeKeyDrags.contains( drag ) &&
+						( drag.buttons.matches( mask, pressedKeys ) ||
+						( doubleClick && drag.buttons.matches( doubleClickMask, pressedKeys ) ) ) )
 				{
 					drag.behaviour.init( mouseX, mouseY );
 					activeKeyDrags.add( drag );
@@ -468,7 +490,8 @@ public class MouseAndKeyHandler
 
 			for ( final BehaviourEntry< ClickBehaviour > click : keyClicks )
 			{
-				if ( click.buttons.matches( mask, pressedKeys ) )
+				if ( click.buttons.matches( mask, pressedKeys ) ||
+						( doubleClick && click.buttons.matches( doubleClickMask, pressedKeys ) ) )
 				{
 					click.behaviour.click( mouseX, mouseY );
 				}

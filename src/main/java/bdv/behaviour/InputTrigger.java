@@ -1,10 +1,5 @@
 package bdv.behaviour;
 
-import gnu.trove.TIntCollection;
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.awt.AWTKeyStroke;
 import java.awt.event.InputEvent;
 import java.util.Collections;
@@ -13,6 +8,11 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.swing.KeyStroke;
+
+import gnu.trove.TIntCollection;
+import gnu.trove.iterator.TIntIterator;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * A combination of keys, mouse buttons, and/or mouse scrolling that can trigger a {@link Behaviour}.
@@ -71,7 +71,7 @@ public class InputTrigger
 
 		for ( int i = 1; i <= count; i++ )
 		{
-			String token = st.nextToken();
+			final String token = st.nextToken();
 			if ( token.equals( "released" ) )
 			{}
 			else if ( token.equals( "pressed" ) )
@@ -90,12 +90,10 @@ public class InputTrigger
 					if ( token.equals( WINDOWS_VK_STRING_REPLACEMENT ) )
 						token = WINDOWS_VK_STRING;
 
-					final int keyCode = KeyStroke.getKeyStroke( token ).getKeyCode();
-//					final int keyCode = KeyCode.get( token ).getCode();
-					if ( keyCode == 0 )
+					final KeyStroke ks = KeyStroke.getKeyStroke( token );
+					if ( ks == null || ks.getKeyCode() == 0 )
 						throw new IllegalArgumentException( "InputTrigger String \"" + s + "\" is formatted incorrectly" );
-					else
-						pressedKeys.add( keyCode );
+					pressedKeys.add( ks.getKeyCode() );
 				}
 			}
 		}
@@ -130,6 +128,11 @@ public class InputTrigger
 	public TIntCollection getPressedKeys()
 	{
 		return pressedKeys;
+	}
+
+	public boolean isKeyTriggered()
+	{
+		return ( mask & ( InputEvent.BUTTON1_DOWN_MASK |  InputEvent.BUTTON2_DOWN_MASK | InputEvent.BUTTON3_DOWN_MASK | SCROLL_MASK ) ) == 0;
 	}
 
 	public boolean isKeyStroke()
