@@ -192,6 +192,11 @@ public class MouseAndKeyHandler
 	private boolean metaPressed = false;
 
 	/**
+	 * Whether the WINDOWS key is currently pressed.
+	 */
+	private boolean winPressed = false;
+
+	/**
 	 * The current mouse coordinates, updated through {@link #mouseMoved(MouseEvent)}.
 	 */
 	private int mouseX;
@@ -240,6 +245,9 @@ public class MouseAndKeyHandler
 			mask |= InputEvent.META_DOWN_MASK;
 		else
 			mask &= ~InputEvent.META_DOWN_MASK;
+
+		if ( winPressed )
+			mask |= InputTrigger.WIN_DOWN_MASK;
 
 		/*
 		 * We add the button modifiers to modifiersEx such that the
@@ -453,6 +461,10 @@ public class MouseAndKeyHandler
 		{
 			metaPressed = true;
 		}
+		else if ( e.getKeyCode() == KeyEvent.VK_WINDOWS )
+		{
+			winPressed = true;
+		}
 		else if (
 				e.getKeyCode() != KeyEvent.VK_ALT &&
 				e.getKeyCode() != KeyEvent.VK_CONTROL &&
@@ -512,6 +524,10 @@ public class MouseAndKeyHandler
 		else if ( e.getKeyCode() == KeyEvent.VK_META )
 		{
 			metaPressed = false;
+		}
+		else if ( e.getKeyCode() == KeyEvent.VK_WINDOWS )
+		{
+			winPressed = false;
 		}
 		else if (
 				e.getKeyCode() != KeyEvent.VK_ALT &&

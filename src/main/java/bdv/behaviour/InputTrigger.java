@@ -28,6 +28,8 @@ public class InputTrigger
 
 	static final int SCROLL_MASK = 1 << 21;
 
+	static final int WIN_DOWN_MASK = 1 << 22;
+
 	/**
 	 * Word to use to specify a double-click modifier.
 	 */
@@ -39,14 +41,9 @@ public class InputTrigger
 	private static final String SCROLL_TEXT = "scroll";
 
 	/**
-	 * KeyEvent VK_ syntax for the window key, that we want to replace.
+	 * Word used to specify the windows key.
 	 */
-	private static final String WINDOWS_VK_STRING = "WINDOWS";
-
-	/**
-	 * Replacement for the KeyEvent VK_ syntax for the window key.
-	 */
-	private static final String WINDOWS_VK_STRING_REPLACEMENT = "win";
+	private static final String WINDOWS_TEXT= "win";
 
 	private final int mask;
 
@@ -87,9 +84,6 @@ public class InputTrigger
 				}
 				else
 				{
-					if ( token.equals( WINDOWS_VK_STRING_REPLACEMENT ) )
-						token = WINDOWS_VK_STRING;
-
 					final KeyStroke ks = KeyStroke.getKeyStroke( token );
 					if ( ks == null || ks.getKeyCode() == 0 )
 						throw new IllegalArgumentException( "InputTrigger String \"" + s + "\" is formatted incorrectly" );
@@ -187,6 +181,7 @@ public class InputTrigger
 		addModifierText( InputEvent.BUTTON3_DOWN_MASK, "button3", buf );
 		addModifierText( DOUBLE_CLICK_MASK, DOUBLE_CLICK_TEXT, buf );
 		addModifierText( SCROLL_MASK, SCROLL_TEXT, buf );
+		addModifierText( WIN_DOWN_MASK, WINDOWS_TEXT, buf );
 
 		final TIntIterator iter = pressedKeys.iterator();
 		while ( iter.hasNext() )
@@ -244,6 +239,8 @@ public class InputTrigger
 					Integer.valueOf( DOUBLE_CLICK_MASK ) );
 			uninitializedMap.put( SCROLL_TEXT,
 					Integer.valueOf( SCROLL_MASK ) );
+			uninitializedMap.put( WINDOWS_TEXT,
+					Integer.valueOf( WIN_DOWN_MASK ) );
 			modifierKeywords =
 					Collections.synchronizedMap( uninitializedMap );
 		}
