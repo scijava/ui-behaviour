@@ -49,6 +49,9 @@ public class BehaviourMap
 	public void setParent( final BehaviourMap map )
 	{
 		this.parent = map;
+		if ( map != null )
+			expectedParentModCount = parent.modCount();
+		++modCount;
 	}
 
 	/**

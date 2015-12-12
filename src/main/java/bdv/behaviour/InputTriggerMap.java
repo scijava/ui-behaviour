@@ -56,7 +56,8 @@ public class InputTriggerMap
 	public void setParent( final InputTriggerMap map )
 	{
 		this.parent = map;
-		expectedParentModCount = parent.modCount();
+		if ( map != null )
+			expectedParentModCount = parent.modCount();
 		++modCount;
 	}
 
