@@ -20,9 +20,18 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 {
 	final HashMap< String, Set< Input > > actionToInputsMap;
 
+	public InputTriggerConfig()
+	{
+		actionToInputsMap = new HashMap<>();
+	}
+
 	public InputTriggerConfig( final Collection< InputTriggerDescription > keyMappings ) throws IllegalArgumentException
 	{
 		actionToInputsMap = new HashMap<>();
+
+		if ( keyMappings == null )
+			return;
+
 		for ( final InputTriggerDescription mapping : keyMappings )
 		{
 			final InputTrigger trigger = InputTrigger.getFromString( mapping.getTrigger() );
@@ -256,11 +265,6 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 	/*
 	 * creating InputTriggerConfig from InputTriggerMaps and InputMaps
 	 */
-
-	InputTriggerConfig()
-	{
-		actionToInputsMap = new HashMap<>();
-	}
 
 	void addMap( final InputTriggerMap map, final String context )
 	{
