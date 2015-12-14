@@ -1,9 +1,5 @@
 package bdv.behaviour.io;
 
-import javax.swing.Action;
-
-import bdv.behaviour.Behaviour;
-import bdv.behaviour.InputTrigger;
 
 /**
  * IO record describing the mapping of one {@link InputTrigger} to an
@@ -16,17 +12,17 @@ public class InputTriggerDescription
 	/**
 	 * String representation of the {@link InputTrigger}.
 	 */
-	private final String trigger;
+	private String trigger;
 
 	/**
 	 * Key of the {@link Action} or {@link Behaviour}.
 	 */
-	private final String action;
+	private String action;
 
 	/**
 	 * A list of contexts in which this mapping is active.
 	 */
-	private final String[] contexts;
+	private String[] contexts;
 
 	public InputTriggerDescription(
 			final String trigger,
@@ -38,17 +34,20 @@ public class InputTriggerDescription
 		this.contexts = contexts;
 	}
 
+	public InputTriggerDescription()
+	{}
+
 	@Override
 	public String toString()
 	{
 		String s =
 				"( trigger  = \"" + trigger +"\"\n" +
 				"  action   = \"" + action +"\"\n" +
-				"  contexts = {";
+						"  contexts = [";
 		if ( contexts != null )
 			for ( int i = 0; i < contexts.length; ++i )
 				s += "\"" + contexts[ i ] + "\"" + ( i == contexts.length - 1 ? "" : ", " );
-		s += "} )\n";
+		s += "] )\n";
 		return s;
 	}
 
@@ -65,5 +64,20 @@ public class InputTriggerDescription
 	public String[] getContexts()
 	{
 		return contexts;
+	}
+
+	public void setTrigger( final String trigger )
+	{
+		this.trigger = trigger;
+	}
+
+	public void setAction( final String action )
+	{
+		this.action = action;
+	}
+
+	public void setContexts( final String[] contexts )
+	{
+		this.contexts = contexts;
 	}
 }
