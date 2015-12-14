@@ -31,7 +31,7 @@ public class InputTriggerDescription
 	{
 		this.trigger = trigger;
 		this.action = action;
-		this.contexts = contexts;
+		setContexts( contexts );
 	}
 
 	public InputTriggerDescription()
@@ -78,6 +78,9 @@ public class InputTriggerDescription
 
 	public void setContexts( final String[] contexts )
 	{
-		this.contexts = contexts;
+		if ( contexts == null || ( contexts.length == 1 && contexts[ 0 ].isEmpty() ) )
+			this.contexts = new String[ 0 ];
+		else
+			this.contexts = contexts;
 	}
 }
