@@ -1,6 +1,8 @@
 package bdv.behaviour;
 
 import java.awt.Toolkit;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -19,7 +21,7 @@ import gnu.trove.set.hash.TIntHashSet;
 
 
 public class MouseAndKeyHandler
-	implements KeyListener, MouseListener, MouseWheelListener, MouseMotionListener
+	implements KeyListener, MouseListener, MouseWheelListener, MouseMotionListener, FocusListener
 {
 	private static final int DOUBLE_CLICK_INTERVAL = getDoubleClickInterval();
 
@@ -515,6 +517,7 @@ public class MouseAndKeyHandler
 	public void keyReleased( final KeyEvent e )
 	{
 //		System.out.println( "MouseAndKeyHandler.keyReleased()" );
+//		System.out.println( e );
 		update();
 
 		if ( e.getKeyCode() == KeyEvent.VK_SHIFT )
@@ -546,6 +549,27 @@ public class MouseAndKeyHandler
 	public void keyTyped( final KeyEvent e )
 	{
 //		System.out.println( "MouseAndKeyHandler.keyTyped()" );
+//		System.out.println( e );
 		update();
+	}
+
+	@Override
+	public void focusGained( final FocusEvent e )
+	{
+//		System.out.println( "MouseAndKeyHandler.focusGained()" );
+		pressedKeys.clear();
+		shiftPressed = false;
+		metaPressed = false;
+		winPressed = false;
+	}
+
+	@Override
+	public void focusLost( final FocusEvent e )
+	{
+//		System.out.println( "MouseAndKeyHandler.focusLost()" );
+		pressedKeys.clear();
+		shiftPressed = false;
+		metaPressed = false;
+		winPressed = false;
 	}
 }
