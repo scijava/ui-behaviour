@@ -6,17 +6,15 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.constructor.ConstructorException;
 import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.scanner.ScannerException;
 
 import bdv.behaviour.io.InputTriggerDescription;
 
@@ -27,22 +25,23 @@ import bdv.behaviour.io.InputTriggerDescription;
  * The YAML file will have this shape:
  *
  * <pre>
- * --- !mapping
- * action: ts select vertex
- * contexts: [trackscheme]
- * trigger: button1
- * --- !mapping
- * action: ts select edge
- * contexts: [bdv, trackscheme]
- * trigger: button2
- * --- !mapping
- * action: navigate
- * contexts: [bdv, trackscheme]
- * trigger: A
- * --- !mapping
- * action: sleep
- * contexts: []
- * trigger: B
+ * ---
+ *- !mapping
+ *  action: ts select vertex
+ *  contexts: [trackscheme]
+ *  trigger: button1
+ *- !mapping
+ *  action: ts select edge
+ *  contexts: [bdv, trackscheme]
+ *  trigger: button2
+ *- !mapping
+ *  action: navigate
+ *  contexts: [bdv, trackscheme]
+ *  trigger: A
+ *- !mapping
+ *  action: sleep
+ *  contexts: []
+ *  trigger: B
  * </pre>
  *
  * @author Jean-Yves Tinevez.
@@ -77,35 +76,30 @@ public class YamlConfigIO
 	/**
 	 * Writes the specified {@link InputTriggerDescription}s on the specified
 	 * writer.
-	 * <p>
-	 * If the specified writer is configured to append to the stream, this method
-	 * can be used to append configuration items to a configuration file created elsewhere.
-	 *
-	 * @param descriptions
-	 *            an iterator over the mapping description to write.
-	 * @param writer
-	 *            the writer. Is not closed after this method returns.
+	 * 
+	 * @param descriptions an iterable of the mapping description to write.
+	 * 
+	 * @param writer the writer. Is not closed after this method returns.
 	 */
-	public static void write( final Iterator< InputTriggerDescription > descriptions, final Writer writer )
+	public static void write( final Iterable< InputTriggerDescription > descriptions, final Writer writer )
 	{
 		final Yaml yaml = getYaml();
-		yaml.dumpAll( descriptions, writer );
+		yaml.dump( descriptions, writer );
 	}
 
 	/**
 	 * Writes the specified {@link InputTriggerDescription}s on the specified
 	 * file.
 	 *
-	 * @param descriptions
-	 *            an iterator over the mapping description to write.
-	 * @param fileName
-	 *            the system-dependent filename.
-	 * @throws IOException
-	 *             if the named file exists but is a directory rather than a
-	 *             regular file, does not exist but cannot be created, or cannot
-	 *             be opened for any other reason
+	 * @param descriptions an iterable of the mapping description to write.
+	 * 
+	 * @param fileName the system-dependent filename.
+	 * 
+	 * @throws IOException if the named file exists but is a directory rather
+	 * than a regular file, does not exist but cannot be created, or cannot be
+	 * opened for any other reason
 	 */
-	public static void write( final Iterator< InputTriggerDescription > descriptions, final String fileName ) throws IOException
+	public static void write( final Iterable< InputTriggerDescription > descriptions, final String fileName ) throws IOException
 	{
 		final FileWriter writer = new FileWriter( fileName );
 		write( descriptions, writer );
@@ -116,79 +110,75 @@ public class YamlConfigIO
 	 * Reads from the specified reader instance and returns the list of
 	 * serialized {@link InputTriggerDescription}s that are found in the input
 	 * stream.
+	 * 
+	 * <p> Malformed serializations generate an error which is echoed on the
+	 * console.
 	 *
-	 * @param reader
-	 *            the reader to read from. Is not closed after this method
-	 *            returns.
-	 * @return a new list containing the {@link InputTriggerDescription}s found in
-	 *         the stream. Other objects are ignored.
+	 * @param reader the reader to read from. Is not closed after this method
+	 * returns.
+	 * 
+	 * @return a new list containing the {@link InputTriggerDescription}s found
+	 * in the stream. Empty if the serialization is malformed.
 	 */
 	public static List< InputTriggerDescription > read( final Reader reader )
 	{
 		final Yaml yaml = getYaml();
-		final Iterator< Object > it = yaml.loadAll( reader ).iterator();
 		final List< InputTriggerDescription > descriptions = new ArrayList< InputTriggerDescription >();
+
 		try
 		{
-			while ( it.hasNext() )
-			{
-				try
-				{
-					final Object obj = it.next();
-					if ( obj instanceof InputTriggerDescription )
-					{
-						final InputTriggerDescription mapping = ( InputTriggerDescription ) obj;
-						if ( null == mapping.getAction())
-						{
-							System.err.println( "[YamlConfigIO] Missing action definition for mapping:\n" + mapping + "- ignored." );
-							continue;
-						}
-						if ( null == mapping.getContexts() )
-						{
-							System.err.println( "[YamlConfigIO] Missing contexts definition for mapping:\n" + mapping + "- ignored." );
-							continue;
-						}
-						if ( null == mapping.getTrigger() )
-						{
-							System.err.println( "[YamlConfigIO] Missing trigger definition for mapping:\n" + mapping + "- ignored." );
-							continue;
-						}
 
-						descriptions.add( mapping );
+		final Object obj = yaml.load( reader );
+		if ( obj instanceof Iterable )
+		{
+			final Iterable< ? > raw = ( Iterable< ? > ) obj;
+			for ( final Object item : raw )
+			{
+				if ( item instanceof InputTriggerDescription )
+				{
+					final InputTriggerDescription mapping = ( InputTriggerDescription ) item;
+					if ( null == mapping.getAction() )
+					{
+						System.err.println( "[YamlConfigIO] Missing action definition for mapping:\n" + mapping + "- ignored." );
+						continue;
 					}
-				}
-				catch ( final ConstructorException ce )
-				{
-					System.err.println( "[YamlConfigIO] Unkown element at line " + ( ce.getProblemMark().getLine() + 1 ) + ", ignored:" );
-					System.err.println( ce.getProblemMark().get_snippet() );
-				}
-				catch ( final ScannerException se )
-				{
-					System.err.println( "[YamlConfigIO] Unable to read element at line " + ( se.getProblemMark().getLine() + 1 ) + ", ignored:" );
-					System.err.println( se.getProblemMark().get_snippet() );
+					if ( null == mapping.getContexts() )
+					{
+						System.err.println( "[YamlConfigIO] Missing contexts definition for mapping:\n" + mapping + "- ignored." );
+						continue;
+					}
+					if ( null == mapping.getTrigger() )
+					{
+						System.err.println( "[YamlConfigIO] Missing trigger definition for mapping:\n" + mapping + "- ignored." );
+						continue;
+					}
+
+					descriptions.add( mapping );
 				}
 			}
+
 		}
-		catch ( final ScannerException se )
+		}
+		catch ( final ParserException pse )
 		{
-			System.err.println( "[YamlConfigIO] Unable to scan file for value around line " + ( se.getProblemMark().getLine() + 1 ) + ", aborting:" );
-			System.err.println( se.getProblemMark().get_snippet() );
+			System.err.println( "Problem reading data:" );
+			System.err.println( pse.getProblemMark() );
 		}
 		return descriptions;
 	}
 
 	/**
-	 * Reads from the specified file and returns the list of serialized
-	 * {@link InputTriggerDescription}s that are found in the file.
+	 * Reads from the specified file and returns the list of serialized {@link
+	 * InputTriggerDescription}s that are found in the file.
 	 *
-	 * @param fileName
-	 *            the system-dependent filename.
-	 * @return a new list containing the {@link InputTriggerDescription}s found in
-	 *         the file. Other objects are ignored.
-	 * @throws IOException
-	 *             if an I/O error occurs, if the named file does not exist, is
-	 *             a directory rather than a regular file, or for some other
-	 *             reason cannot be opened for reading.
+	 * @param fileName the system-dependent filename.
+	 * 
+	 * @return a new list containing the {@link InputTriggerDescription}s found
+	 * in the file. Empty if the file is malformed.
+	 * 
+	 * @throws IOException if an I/O error occurs, if the named file does not
+	 * exist, is a directory rather than a regular file, or for some other
+	 * reason cannot be opened for reading.
 	 */
 	public static List< InputTriggerDescription > read( final String fileName ) throws IOException
 	{
