@@ -35,7 +35,7 @@ public class InputTriggerDescriptionsBuilder
 			for ( final Input input : inputs )
 			{
 				final InputTriggerDescription desc = new InputTriggerDescription(
-						input.trigger.toString(),
+						new String[] { input.trigger.toString() },
 						input.behaviour,
 						input.contexts.toArray( new String[ 0 ] ) );
 				descs.add( desc );

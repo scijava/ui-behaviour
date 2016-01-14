@@ -147,7 +147,7 @@ public class YamlConfigIO
 						System.err.println( "[YamlConfigIO] Missing contexts definition for mapping:\n" + mapping + "- ignored." );
 						continue;
 					}
-					if ( null == mapping.getTrigger() )
+						if ( null == mapping.getTriggers() )
 					{
 						System.err.println( "[YamlConfigIO] Missing trigger definition for mapping:\n" + mapping + "- ignored." );
 						continue;

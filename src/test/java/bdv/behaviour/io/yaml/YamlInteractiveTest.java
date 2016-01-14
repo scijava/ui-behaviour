@@ -31,10 +31,10 @@ public class YamlInteractiveTest
 		System.out.println( "\nWriting to file " + fileName );
 
 		final ArrayList< InputTriggerDescription > keyMappings = new ArrayList< InputTriggerDescription >();
-		keyMappings.add( new InputTriggerDescription( "button1", "ts select vertex", "trackscheme" ) );
-		keyMappings.add( new InputTriggerDescription( "button2", "ts select edge", "bdv", "trackscheme" ) );
-		keyMappings.add( new InputTriggerDescription( "A", "navigate", "bdv", "trackscheme" ) );
-		keyMappings.add( new InputTriggerDescription( "B", "sleep", "" ) );
+		keyMappings.add( new InputTriggerDescription( new String[] { "button1" }, "ts select vertex", "trackscheme" ) );
+		keyMappings.add( new InputTriggerDescription( new String[] { "button2" }, "ts select edge", "bdv", "trackscheme" ) );
+		keyMappings.add( new InputTriggerDescription( new String[] { "A" }, "navigate", "bdv", "trackscheme" ) );
+		keyMappings.add( new InputTriggerDescription( new String[] { "B" }, "sleep", "" ) );
 		YamlConfigIO.write( keyMappings, "yamltest.txt" );
 
 		System.out.println( "\nContent of file:" );

@@ -12,7 +12,7 @@ public class InputTriggerDescription
 	/**
 	 * String representation of the {@link InputTrigger}.
 	 */
-	private String trigger;
+	private String[] triggers;
 
 	/**
 	 * Key of the {@link Action} or {@link Behaviour}.
@@ -25,11 +25,11 @@ public class InputTriggerDescription
 	private String[] contexts;
 
 	public InputTriggerDescription(
-			final String trigger,
+			final String[] trigger,
 			final String action,
 			final String... contexts )
 	{
-		this.trigger = trigger;
+		this.triggers = trigger;
 		this.action = action;
 		setContexts( contexts );
 	}
@@ -40,10 +40,15 @@ public class InputTriggerDescription
 	@Override
 	public String toString()
 	{
-		String s =
-				"( trigger  = \"" + trigger +"\"\n" +
-				"  action   = \"" + action +"\"\n" +
-						"  contexts = [";
+		String s = "( trigger  = [";
+		if ( triggers != null )
+			for ( int i = 0; i < triggers.length; ++i )
+				s += "\"" + triggers[ i ] + "\"" + ( i == triggers.length - 1 ? "" : ", " );
+		s += "]\n";
+
+		s += "  action   = \"" + action + "\"\n";
+
+		s += "  contexts = [";
 		if ( contexts != null )
 			for ( int i = 0; i < contexts.length; ++i )
 				s += "\"" + contexts[ i ] + "\"" + ( i == contexts.length - 1 ? "" : ", " );
@@ -51,9 +56,9 @@ public class InputTriggerDescription
 		return s;
 	}
 
-	public String getTrigger()
+	public String[] getTriggers()
 	{
-		return trigger;
+		return triggers;
 	}
 
 	public String getAction()
@@ -66,9 +71,9 @@ public class InputTriggerDescription
 		return contexts;
 	}
 
-	public void setTrigger( final String trigger )
+	public void setTriggers( final String[] triggers )
 	{
-		this.trigger = trigger;
+		this.triggers = triggers;
 	}
 
 	public void setAction( final String action )
