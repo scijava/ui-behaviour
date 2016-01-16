@@ -14,7 +14,7 @@ import bdv.behaviour.InputTrigger;
 public class InputTriggerDescription
 {
 	/**
-	 * String representation of the {@link InputTrigger}.
+	 * String representations of the {@link InputTrigger}s.
 	 */
 	private String[] triggers;
 
@@ -29,11 +29,11 @@ public class InputTriggerDescription
 	private String[] contexts;
 
 	public InputTriggerDescription(
-			final String[] trigger,
+			final String[] triggers,
 			final String action,
 			final String... contexts )
 	{
-		this.triggers = trigger;
+		this.triggers = triggers;
 		this.action = action;
 		setContexts( contexts );
 	}
