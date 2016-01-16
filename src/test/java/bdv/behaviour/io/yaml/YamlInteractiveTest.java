@@ -31,40 +31,16 @@ public class YamlInteractiveTest
 		System.out.println( "\nWriting to file " + fileName );
 
 		final ArrayList< InputTriggerDescription > keyMappings = new ArrayList< InputTriggerDescription >();
-		keyMappings.add( new InputTriggerDescription( "button1", "ts select vertex", "trackscheme" ) );
-		keyMappings.add( new InputTriggerDescription( "button2", "ts select edge", "bdv", "trackscheme" ) );
-		keyMappings.add( new InputTriggerDescription( "A", "navigate", "bdv", "trackscheme" ) );
-		keyMappings.add( new InputTriggerDescription( "B", "sleep", "" ) );
-		YamlConfigIO.write( keyMappings.iterator(), "yamltest.txt" );
+		keyMappings.add( new InputTriggerDescription( new String[] { "button1" }, "ts select vertex", "trackscheme" ) );
+		keyMappings.add( new InputTriggerDescription( new String[] { "button2" }, "ts select edge", "bdv", "trackscheme" ) );
+		keyMappings.add( new InputTriggerDescription( new String[] { "A" }, "navigate", "bdv", "trackscheme" ) );
+		keyMappings.add( new InputTriggerDescription( new String[] { "B" }, "sleep", "" ) );
+		YamlConfigIO.write( keyMappings, "yamltest.txt" );
 
 		System.out.println( "\nContent of file:" );
 
-		BufferedReader reader =  new BufferedReader(new FileReader( fileName ));
+		final BufferedReader reader =  new BufferedReader(new FileReader( fileName ));
 		String line = reader.readLine();
-		while ( line != null )
-		{
-			System.out.println( line );
-			line = reader.readLine();
-		}
-		reader.close();
-
-		/*
-		 * TEST APPEND
-		 */
-
-		System.out.println("\nAppending to file " + fileName);
-		
-		final ArrayList< InputTriggerDescription > keyMappings2 = new ArrayList< InputTriggerDescription >();
-		keyMappings2.add( new InputTriggerDescription( "ctrl X", "cut", "" ) );
-		keyMappings2.add( new InputTriggerDescription( "ctrl V", "paste", "" ) );
-		FileWriter writer = new FileWriter( fileName, true );
-		YamlConfigIO.write( keyMappings2.iterator(), writer );
-		writer.close();
-		
-
-		System.out.println( "\nContent of file:" );
-		reader =  new BufferedReader(new FileReader( fileName ));
-		line = reader.readLine();
 		while ( line != null )
 		{
 			System.out.println( line );
@@ -84,32 +60,32 @@ public class YamlInteractiveTest
 		 * TEST HETEROGENOUS DATA
 		 */
 		
-		System.out.println("\nHeterogeneous data.");
+		System.out.println( "\nMalformed data." );
 		
-		writer = new FileWriter( fileName, true );
-		
-		// Write a tag that is not handled
-		writer.write( "--- !display\n" );
-		writer.write( "brightness: 100\n" );
-		writer.write( "contrast: 50\n" );
+		final FileWriter writer = new FileWriter( fileName, false );
 		
 		// Write a tag with a mistake
-		writer.write( "--- !mapping\n" );
+		writer.write( "- !mapping\n" );
 		writer.write( "acton: paste\n");
 		writer.write( "contexts: []\n" );
 		writer.write( "key: ctrl C\n");
 		
 		// Write a tag with a serious problem
-		writer.write( "--- !mapping\n" );
+		writer.write( "- !mapping\n" );
 		writer.write( "action: pastecontexts: []\n" );
 		writer.write( "key: ctrl C\n");
 
 		// The write something legit.
-		writer.write( "--- !mapping\n" );
+		writer.write( "- !mapping\n" );
 		writer.write( "action: zap2\n");
 		writer.write( "contexts: []\n" );
 		writer.write( "key: Z2\n");
 		
+		// Write a tag that is not handled
+		writer.write( "---\n- !display\n" );
+		writer.write( "brightness: 100\n" );
+		writer.write( "contrast: 50\n" );
+
 		writer.close();
 		
 		System.out.println( "\nReading from file:" );
