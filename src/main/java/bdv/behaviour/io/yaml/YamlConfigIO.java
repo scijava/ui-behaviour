@@ -45,11 +45,9 @@ import bdv.behaviour.io.InputTriggerDescription;
  * </pre>
  *
  * @author Jean-Yves Tinevez.
- *
  */
 public class YamlConfigIO
 {
-
 	private static final Tag tag = new Tag( "!mapping" );
 
 	/**
@@ -76,10 +74,11 @@ public class YamlConfigIO
 	/**
 	 * Writes the specified {@link InputTriggerDescription}s on the specified
 	 * writer.
-	 * 
-	 * @param descriptions an iterable of the mapping description to write.
-	 * 
-	 * @param writer the writer. Is not closed after this method returns.
+	 *
+	 * @param descriptions
+	 *            an iterable of the mapping description to write.
+	 * @param writer
+	 *            the writer. Is not closed after this method returns.
 	 */
 	public static void write( final Iterable< InputTriggerDescription > descriptions, final Writer writer )
 	{
@@ -91,13 +90,14 @@ public class YamlConfigIO
 	 * Writes the specified {@link InputTriggerDescription}s on the specified
 	 * file.
 	 *
-	 * @param descriptions an iterable of the mapping description to write.
-	 * 
-	 * @param fileName the system-dependent filename.
-	 * 
-	 * @throws IOException if the named file exists but is a directory rather
-	 * than a regular file, does not exist but cannot be created, or cannot be
-	 * opened for any other reason
+	 * @param descriptions
+	 *            an iterable of the mapping description to write.
+	 * @param fileName
+	 *            the system-dependent filename.
+	 * @throws IOException
+	 *             if the named file exists but is a directory rather than a
+	 *             regular file, does not exist but cannot be created, or cannot
+	 *             be opened for any other reason
 	 */
 	public static void write( final Iterable< InputTriggerDescription > descriptions, final String fileName ) throws IOException
 	{
@@ -110,15 +110,16 @@ public class YamlConfigIO
 	 * Reads from the specified reader instance and returns the list of
 	 * serialized {@link InputTriggerDescription}s that are found in the input
 	 * stream.
-	 * 
-	 * <p> Malformed serializations generate an error which is echoed on the
+	 *
+	 * <p>
+	 * Malformed serializations generate an error which is echoed on the
 	 * console.
 	 *
-	 * @param reader the reader to read from. Is not closed after this method
-	 * returns.
-	 * 
+	 * @param reader
+	 *            the reader to read from. Is not closed after this method
+	 *            returns.
 	 * @return a new list containing the {@link InputTriggerDescription}s found
-	 * in the stream. Empty if the serialization is malformed.
+	 *         in the stream. Empty if the serialization is malformed.
 	 */
 	public static List< InputTriggerDescription > read( final Reader reader )
 	{
@@ -127,37 +128,35 @@ public class YamlConfigIO
 
 		try
 		{
-
-		final Object obj = yaml.load( reader );
-		if ( obj instanceof Iterable )
-		{
-			final Iterable< ? > raw = ( Iterable< ? > ) obj;
-			for ( final Object item : raw )
+			final Object obj = yaml.load( reader );
+			if ( obj instanceof Iterable )
 			{
-				if ( item instanceof InputTriggerDescription )
+				final Iterable< ? > raw = ( Iterable< ? > ) obj;
+				for ( final Object item : raw )
 				{
-					final InputTriggerDescription mapping = ( InputTriggerDescription ) item;
-					if ( null == mapping.getAction() )
+					if ( item instanceof InputTriggerDescription )
 					{
-						System.err.println( "[YamlConfigIO] Missing action definition for mapping:\n" + mapping + "- ignored." );
-						continue;
-					}
-					if ( null == mapping.getContexts() )
-					{
-						System.err.println( "[YamlConfigIO] Missing contexts definition for mapping:\n" + mapping + "- ignored." );
-						continue;
-					}
+						final InputTriggerDescription mapping = ( InputTriggerDescription ) item;
+						if ( null == mapping.getAction() )
+						{
+							System.err.println( "[YamlConfigIO] Missing action definition for mapping:\n" + mapping + "- ignored." );
+							continue;
+						}
+						if ( null == mapping.getContexts() )
+						{
+							System.err.println( "[YamlConfigIO] Missing contexts definition for mapping:\n" + mapping + "- ignored." );
+							continue;
+						}
 						if ( null == mapping.getTriggers() )
-					{
-						System.err.println( "[YamlConfigIO] Missing trigger definition for mapping:\n" + mapping + "- ignored." );
-						continue;
-					}
+						{
+							System.err.println( "[YamlConfigIO] Missing trigger definition for mapping:\n" + mapping + "- ignored." );
+							continue;
+						}
 
-					descriptions.add( mapping );
+						descriptions.add( mapping );
+					}
 				}
 			}
-
-		}
 		}
 		catch ( final ParserException pse )
 		{
@@ -168,17 +167,17 @@ public class YamlConfigIO
 	}
 
 	/**
-	 * Reads from the specified file and returns the list of serialized {@link
-	 * InputTriggerDescription}s that are found in the file.
+	 * Reads from the specified file and returns the list of serialized
+	 * {@link InputTriggerDescription}s that are found in the file.
 	 *
-	 * @param fileName the system-dependent filename.
-	 * 
+	 * @param fileName
+	 *            the system-dependent filename.
 	 * @return a new list containing the {@link InputTriggerDescription}s found
-	 * in the file. Empty if the file is malformed.
-	 * 
-	 * @throws IOException if an I/O error occurs, if the named file does not
-	 * exist, is a directory rather than a regular file, or for some other
-	 * reason cannot be opened for reading.
+	 *         in the file. Empty if the file is malformed.
+	 * @throws IOException
+	 *             if an I/O error occurs, if the named file does not exist, is
+	 *             a directory rather than a regular file, or for some other
+	 *             reason cannot be opened for reading.
 	 */
 	public static List< InputTriggerDescription > read( final String fileName ) throws IOException
 	{
