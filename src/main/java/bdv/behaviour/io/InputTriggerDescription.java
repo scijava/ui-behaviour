@@ -1,5 +1,9 @@
 package bdv.behaviour.io;
 
+import javax.swing.Action;
+
+import bdv.behaviour.Behaviour;
+import bdv.behaviour.InputTrigger;
 
 /**
  * IO record describing the mapping of one {@link InputTrigger} to an
@@ -41,9 +45,9 @@ public class InputTriggerDescription
 	public String toString()
 	{
 		String s =
-				"( trigger  = \"" + trigger +"\"\n" +
-				"  action   = \"" + action +"\"\n" +
-						"  contexts = [";
+				"( trigger  = \"" + trigger + "\"\n" +
+				"  action   = \"" + action + "\"\n" +
+				"  contexts = [";
 		if ( contexts != null )
 			for ( int i = 0; i < contexts.length; ++i )
 				s += "\"" + contexts[ i ] + "\"" + ( i == contexts.length - 1 ? "" : ", " );
