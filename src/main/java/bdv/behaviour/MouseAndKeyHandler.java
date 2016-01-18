@@ -218,11 +218,6 @@ public class MouseAndKeyHandler
 	 */
 	private final ArrayList< BehaviourEntry< DragBehaviour > > activeKeyDrags = new ArrayList<>();
 
-	/**
-	 * Stores when the last non-double-clicked keystroke happened.
-	 */
-	private long timeKeyDown;
-
 	private int getMask( final InputEvent e )
 	{
 		final int modifiers = e.getModifiers();
@@ -293,19 +288,11 @@ public class MouseAndKeyHandler
 			mask &= ~InputEvent.BUTTON2_DOWN_MASK;
 
 		/*
-		 * Deal with double-clicks.
+		 * Deal with mous double-clicks.
 		 */
 
 		if ( e instanceof MouseEvent && ( ( MouseEvent ) e ).getClickCount() > 1 )
 			mask |= InputTrigger.DOUBLE_CLICK_MASK; // mouse
-		else if ( e instanceof KeyEvent )
-		{
-			// double-click on keys.
-			if ( ( e.getWhen() - timeKeyDown ) < DOUBLE_CLICK_INTERVAL )
-				mask |= InputTrigger.DOUBLE_CLICK_MASK;
-			else
-				timeKeyDown = e.getWhen();
-		}
 
 		if ( e instanceof MouseWheelEvent )
 			mask |= InputTrigger.SCROLL_MASK;
@@ -389,9 +376,11 @@ public class MouseAndKeyHandler
 		final int x = e.getX();
 		final int y = e.getY();
 
+		final int clickMask = mask & ~InputTrigger.DOUBLE_CLICK_MASK;
 		for ( final BehaviourEntry< ClickBehaviour > click : buttonClicks )
 		{
-			if ( click.buttons.matches( mask, pressedKeys ) )
+			if ( click.buttons.matches( mask, pressedKeys ) ||
+					( clickMask != mask && click.buttons.matches( clickMask, pressedKeys ) ) )
 			{
 				click.behaviour.click( x, y );
 			}
