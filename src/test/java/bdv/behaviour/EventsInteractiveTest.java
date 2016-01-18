@@ -1,4 +1,4 @@
-package bdv;
+package bdv.behaviour;
 
 import java.awt.Dimension;
 import java.awt.KeyEventDispatcher;
