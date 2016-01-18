@@ -3,9 +3,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>sc.fiji</groupId>
-		<artifactId>pom-bigdataviewer</artifactId>
-		<version>2.2.2</version>
+		<groupId>net.imagej</groupId>
+		<artifactId>pom-imagej</artifactId>
+		<version>14.4.1</version>
 	</parent>
 
 	<artifactId>configurable-keys</artifactId>
@@ -91,29 +91,4 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<configuration>
-					<licenseName>bsd_2</licenseName>
-					<copyrightOwners>Tobias Pietzsch, Jean-Yves Tinevez</copyrightOwners>
-					<organizationName>BigDataViewer authors</organizationName>
-					<projectName>Configurable key and mouse event handling</projectName>
-					<roots>
-						<root>src/main/java</root>
-						<root>src/test/java</root>
-					</roots>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>
