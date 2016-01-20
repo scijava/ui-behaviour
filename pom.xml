@@ -3,14 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>net.imagej</groupId>
-		<artifactId>pom-imagej</artifactId>
-		<version>14.4.1</version>
+		<groupId>org.scijava</groupId>
+		<artifactId>pom-scijava</artifactId>
+		<version>9.2.0</version>
 	</parent>
 
-	<artifactId>configurable-keys</artifactId>
+	<artifactId>ui-behaviour</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<url>http://github.com/bigdataviewer/configurable-keys</url>
+	<url>http://github.com/scijava/ui-behaviour</url>
 	<inceptionYear>2015</inceptionYear>
 
 	<name>Configurable Keys</name>
@@ -74,14 +74,14 @@
 	</repositories>
 
 	<scm>
-		<connection>scm:git:git://github.com/bigdataviewer/configurable-keys</connection>
-		<developerConnection>scm:git:git@github.com:bigdataviewer/configurable-keys</developerConnection>
+		<connection>scm:git:git://github.com/scijava/ui-behaviour</connection>
+		<developerConnection>scm:git:git@github.com:scijava/ui-behaviour</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/bigdataviewer/configurable-keys</url>
+		<url>https://github.com/scijava/ui-behaviour</url>
 	</scm>
 	<ciManagement>
 		<system>Jenkins</system>
-		<url>http://jenkins.imagej.net/job/Configurable-Keys/</url>
+		<url>http://jenkins.imagej.net/job/ui-behaviour	/</url>
 	</ciManagement>
 
 	<licenses>
