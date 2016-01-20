@@ -84,7 +84,7 @@
 		<url>http://jenkins.imagej.net/job/ui-behaviour	/</url>
 	</ciManagement>
 
-	<licenses>
+	<licenses> 
 		<license>
 			<name>BSD 2-Clause License</name>
 			<url>http://opensource.org/licenses/BSD-2-Clause</url>
