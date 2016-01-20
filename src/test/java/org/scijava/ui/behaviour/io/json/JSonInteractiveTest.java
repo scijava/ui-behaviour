@@ -10,7 +10,7 @@ import java.util.List;
 import org.scijava.ui.behaviour.io.InputTriggerDescription;
 import org.scijava.ui.behaviour.io.json.JsonConfigIO;
 
-public class JSonInteractiveTest
+public class JsonInteractiveTest
 {
 	public static void main( final String[] args ) throws IOException
 	{
