@@ -457,6 +457,7 @@ public class MouseAndKeyHandler
 			winPressed = true;
 		}
 		else if (
+				e.getKeyCode() != 0 &&
 				e.getKeyCode() != KeyEvent.VK_ALT &&
 				e.getKeyCode() != KeyEvent.VK_CONTROL &&
 				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH )
@@ -522,6 +523,7 @@ public class MouseAndKeyHandler
 			winPressed = false;
 		}
 		else if (
+				e.getKeyCode() != 0 &&
 				e.getKeyCode() != KeyEvent.VK_ALT &&
 				e.getKeyCode() != KeyEvent.VK_CONTROL &&
 				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH )
