@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>ui-behaviour</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<url>http://github.com/scijava/ui-behaviour</url>
 	<inceptionYear>2015</inceptionYear>
 
