@@ -180,7 +180,7 @@ public class InputTriggerMap
 		return allBindings;
 	}
 
-	protected int modCount()
+	public int modCount()
 	{
 		if ( parent != null )
 		{

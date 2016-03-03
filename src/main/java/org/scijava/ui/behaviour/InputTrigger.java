@@ -24,11 +24,11 @@ import gnu.trove.set.hash.TIntHashSet;
  */
 public class InputTrigger
 {
-	static final int DOUBLE_CLICK_MASK = 1 << 20;
+	public static final int DOUBLE_CLICK_MASK = 1 << 20;
 
-	static final int SCROLL_MASK = 1 << 21;
+	public static final int SCROLL_MASK = 1 << 21;
 
-	static final int WIN_DOWN_MASK = 1 << 22;
+	public static final int WIN_DOWN_MASK = 1 << 22;
 
 	/**
 	 * Word to use to specify a double-click modifier.
