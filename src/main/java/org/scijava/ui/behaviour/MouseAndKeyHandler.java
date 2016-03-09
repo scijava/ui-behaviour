@@ -19,9 +19,8 @@ import gnu.trove.map.hash.TIntLongHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
-
 public class MouseAndKeyHandler
-	implements KeyListener, MouseListener, MouseWheelListener, MouseMotionListener, FocusListener
+		implements KeyListener, MouseListener, MouseWheelListener, MouseMotionListener, FocusListener
 {
 	private static final int DOUBLE_CLICK_INTERVAL = getDoubleClickInterval();
 
@@ -165,7 +164,7 @@ public class MouseAndKeyHandler
 	 * Event handling. Forwards to registered behaviours.
 	 */
 
-
+	private final GlobalKeyEventDispatcher globalKeys = GlobalKeyEventDispatcher.getInstance();
 
 	/**
 	 * Which keys are currently pressed. This does not include modifier keys
@@ -177,26 +176,6 @@ public class MouseAndKeyHandler
 	 * When keys where pressed
 	 */
 	private final TIntLongHashMap keyPressTimes = new TIntLongHashMap( 100, 0.5f, -1, -1 );
-
-	/**
-	 * Whether the SHIFT key is currently pressed. We need this, because for
-	 * mouse-wheel AWT uses the SHIFT_DOWN_MASK to indicate horizontal
-	 * scrolling. We keep track of whether the SHIFT key was actually pressed
-	 * for disambiguation.
-	 */
-	private boolean shiftPressed = false;
-
-	/**
-	 * Whether the META key is currently pressed. We need this, because on OS X
-	 * AWT sets the META_DOWN_MASK to for right clicks. We keep track of whether
-	 * the META key was actually pressed for disambiguation.
-	 */
-	private boolean metaPressed = false;
-
-	/**
-	 * Whether the WINDOWS key is currently pressed.
-	 */
-	private boolean winPressed = false;
 
 	/**
 	 * The current mouse coordinates, updated through {@link #mouseMoved(MouseEvent)}.
@@ -228,7 +207,7 @@ public class MouseAndKeyHandler
 		 * For scrolling AWT uses the SHIFT_DOWN_MASK to indicate horizontal scrolling.
 		 * We keep track of whether the SHIFT key was actually pressed for disambiguation.
 		 */
-		if ( shiftPressed )
+		if ( globalKeys.shiftPressed() )
 			mask |= InputEvent.SHIFT_DOWN_MASK;
 		else
 			mask &= ~InputEvent.SHIFT_DOWN_MASK;
@@ -238,12 +217,12 @@ public class MouseAndKeyHandler
 		 * track of whether the META key was actually pressed for
 		 * disambiguation.
 		 */
-		if ( metaPressed )
+		if ( globalKeys.metaPressed() )
 			mask |= InputEvent.META_DOWN_MASK;
 		else
 			mask &= ~InputEvent.META_DOWN_MASK;
 
-		if ( winPressed )
+		if ( globalKeys.winPressed() )
 			mask |= InputTrigger.WIN_DOWN_MASK;
 
 		/*
@@ -288,7 +267,7 @@ public class MouseAndKeyHandler
 			mask &= ~InputEvent.BUTTON2_DOWN_MASK;
 
 		/*
-		 * Deal with mous double-clicks.
+		 * Deal with mouse double-clicks.
 		 */
 
 		if ( e instanceof MouseEvent && ( ( MouseEvent ) e ).getClickCount() > 1 )
@@ -354,7 +333,7 @@ public class MouseAndKeyHandler
 		 * treated as vertical scrolling.
 		 */
 		final boolean exShiftMask = ( e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK ) != 0;
-		final boolean isHorizontal = !shiftPressed && exShiftMask;
+		final boolean isHorizontal = !globalKeys.shiftPressed() && exShiftMask;
 
 		for ( final BehaviourEntry< ScrollBehaviour > scroll : scrolls )
 		{
@@ -444,20 +423,10 @@ public class MouseAndKeyHandler
 //		System.out.println( e );
 		update();
 
-		if ( e.getKeyCode() == KeyEvent.VK_SHIFT )
-		{
-			shiftPressed = true;
-		}
-		else if ( e.getKeyCode() == KeyEvent.VK_META )
-		{
-			metaPressed = true;
-		}
-		else if ( e.getKeyCode() == KeyEvent.VK_WINDOWS )
-		{
-			winPressed = true;
-		}
-		else if (
-				e.getKeyCode() != 0 &&
+		if (	e.getKeyCode() != 0 &&
+				e.getKeyCode() != KeyEvent.VK_SHIFT &&
+				e.getKeyCode() != KeyEvent.VK_META &&
+				e.getKeyCode() != KeyEvent.VK_WINDOWS &&
 				e.getKeyCode() != KeyEvent.VK_ALT &&
 				e.getKeyCode() != KeyEvent.VK_CONTROL &&
 				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH )
@@ -510,20 +479,10 @@ public class MouseAndKeyHandler
 //		System.out.println( e );
 		update();
 
-		if ( e.getKeyCode() == KeyEvent.VK_SHIFT )
-		{
-			shiftPressed = false;
-		}
-		else if ( e.getKeyCode() == KeyEvent.VK_META )
-		{
-			metaPressed = false;
-		}
-		else if ( e.getKeyCode() == KeyEvent.VK_WINDOWS )
-		{
-			winPressed = false;
-		}
-		else if (
-				e.getKeyCode() != 0 &&
+		if (	e.getKeyCode() != 0 &&
+				e.getKeyCode() != KeyEvent.VK_SHIFT &&
+				e.getKeyCode() != KeyEvent.VK_META &&
+				e.getKeyCode() != KeyEvent.VK_WINDOWS &&
 				e.getKeyCode() != KeyEvent.VK_ALT &&
 				e.getKeyCode() != KeyEvent.VK_CONTROL &&
 				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH )
@@ -541,7 +500,6 @@ public class MouseAndKeyHandler
 	{
 //		System.out.println( "MouseAndKeyHandler.keyTyped()" );
 //		System.out.println( e );
-		update();
 	}
 
 	@Override
@@ -549,18 +507,12 @@ public class MouseAndKeyHandler
 	{
 //		System.out.println( "MouseAndKeyHandler.focusGained()" );
 		pressedKeys.clear();
-		shiftPressed = false;
-		metaPressed = false;
-		winPressed = false;
+		pressedKeys.addAll( globalKeys.pressedKeys() );
 	}
 
 	@Override
 	public void focusLost( final FocusEvent e )
 	{
 //		System.out.println( "MouseAndKeyHandler.focusLost()" );
-		pressedKeys.clear();
-		shiftPressed = false;
-		metaPressed = false;
-		winPressed = false;
 	}
 }
