@@ -162,7 +162,7 @@ public class GlobalKeyEventDispatcher implements KeyEventDispatcher
 			final long t = System.currentTimeMillis();
 			if ( evt.getNewValue() == null )
 				focuslosttime = t;
-			else if ( evt.getOldValue() == null &&  t - focuslosttime < 3 )
+			else if ( evt.getOldValue() == null &&  t - focuslosttime > 3 )
 			{
 				instance.shiftPressed = false;
 				instance.metaPressed = false;
