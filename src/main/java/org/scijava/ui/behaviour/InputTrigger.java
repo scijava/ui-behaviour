@@ -30,6 +30,10 @@ public class InputTrigger
 
 	public static final int WIN_DOWN_MASK = 1 << 22;
 
+	public static final int IGNORE_MASK = -1;
+
+	public static final InputTrigger NOT_MAPPED = new InputTrigger( IGNORE_MASK, new TIntHashSet(), null );
+
 	/**
 	 * Word to use to specify a double-click modifier.
 	 */
@@ -57,6 +61,9 @@ public class InputTrigger
 	{
 		if ( s == null || s.length() == 0 )
 			return null;
+
+		if ( s.equals( "not mapped" ) )
+			return NOT_MAPPED;
 
         final StringTokenizer st = new StringTokenizer(s, " ");
         final Map<String, Integer> modifierKeywords = getModifierKeywords();

@@ -102,11 +102,17 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			final Set< InputTrigger > triggers = config.getInputs( behaviourName, contexts );
 			if ( !triggers.isEmpty() )
 			{
+				if ( triggers.contains( InputTrigger.NOT_MAPPED ) )
+					return;
+
 				for ( final InputTrigger trigger : triggers )
 					map.put( trigger, behaviourName );
 			}
 			else if ( defaultTriggers.length > 0 )
 			{
+				if ( defaultTriggers[ 0 ].equals( InputTrigger.NOT_MAPPED ))
+					return;
+
 				for ( final InputTrigger trigger : defaultTriggers )
 					map.put( trigger, behaviourName );
 			}
@@ -166,6 +172,9 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		public void put( final String actionName, final KeyStroke... defaultKeyStrokes )
 		{
 			final Set< InputTrigger > triggers = config.getInputs( actionName, contexts );
+			if ( triggers.contains( InputTrigger.NOT_MAPPED ) )
+				return;
+
 			boolean configKeyAdded = false;
 			for ( final InputTrigger trigger : triggers )
 			{
