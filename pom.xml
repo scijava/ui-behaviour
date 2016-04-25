@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>ui-behaviour</artifactId>
-	<version>1.0.4-SNAPSHOT</version>
+	<version>1.0.4</version>
 	<url>http://github.com/scijava/ui-behaviour</url>
 	<inceptionYear>2015</inceptionYear>
 
@@ -76,7 +76,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/scijava/ui-behaviour</connection>
 		<developerConnection>scm:git:git@github.com:scijava/ui-behaviour</developerConnection>
-		<tag>HEAD</tag>
+		<tag>ui-behaviour-1.0.4</tag>
 		<url>https://github.com/scijava/ui-behaviour</url>
 	</scm>
 	<ciManagement>
