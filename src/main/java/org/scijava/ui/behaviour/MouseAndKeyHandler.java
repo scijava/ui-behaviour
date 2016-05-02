@@ -337,7 +337,7 @@ public class MouseAndKeyHandler
 
 		for ( final BehaviourEntry< ScrollBehaviour > scroll : scrolls )
 		{
-			if ( scroll.buttons.matches( mask, pressedKeys ) )
+			if ( scroll.buttons.matches( mask, globalKeys.pressedKeys() ) )
 			{
 				scroll.behaviour.scroll( wheelRotation, isHorizontal, x, y );
 			}
@@ -379,7 +379,7 @@ public class MouseAndKeyHandler
 
 		for ( final BehaviourEntry< DragBehaviour > drag : buttonDrags )
 		{
-			if ( drag.buttons.matches( mask, pressedKeys ) )
+			if ( drag.buttons.matches( mask, globalKeys.pressedKeys() ) )
 			{
 				drag.behaviour.init( x, y );
 				activeButtonDrags.add( drag );
@@ -514,5 +514,6 @@ public class MouseAndKeyHandler
 	public void focusLost( final FocusEvent e )
 	{
 //		System.out.println( "MouseAndKeyHandler.focusLost()" );
+		pressedKeys.clear();
 	}
 }
