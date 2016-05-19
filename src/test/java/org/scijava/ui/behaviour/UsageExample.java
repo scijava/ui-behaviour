@@ -7,13 +7,6 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import org.scijava.ui.behaviour.BehaviourMap;
-import org.scijava.ui.behaviour.ClickBehaviour;
-import org.scijava.ui.behaviour.DragBehaviour;
-import org.scijava.ui.behaviour.InputTriggerAdder;
-import org.scijava.ui.behaviour.InputTriggerMap;
-import org.scijava.ui.behaviour.MouseAndKeyHandler;
-import org.scijava.ui.behaviour.ScrollBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.io.InputTriggerDescription;
 import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
@@ -105,6 +98,7 @@ public class UsageExample
 		panel.addMouseMotionListener( handler );
 		panel.addMouseWheelListener( handler );
 		panel.addKeyListener( handler );
+		panel.addFocusListener( handler );
 		final JFrame frame = new JFrame( "UsageExample" );
 		frame.add( panel );
 		frame.pack();

@@ -12,14 +12,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import org.scijava.ui.behaviour.BehaviourMap;
-import org.scijava.ui.behaviour.ClickBehaviour;
-import org.scijava.ui.behaviour.DragBehaviour;
-import org.scijava.ui.behaviour.InputTrigger;
-import org.scijava.ui.behaviour.InputTriggerMap;
-import org.scijava.ui.behaviour.MouseAndKeyHandler;
-import org.scijava.ui.behaviour.ScrollBehaviour;
-
 public class EventsInteractiveTest
 {
 	static class MyDragBehaviour implements DragBehaviour
@@ -148,6 +140,7 @@ public class EventsInteractiveTest
 		panel.addMouseMotionListener( handler );
 		panel.addMouseWheelListener( handler );
 		panel.addKeyListener( handler );
+		panel.addFocusListener( handler );
 
 		final InputTriggerMap inputMap = new InputTriggerMap();
 		final BehaviourMap behaviourMap = new BehaviourMap();
