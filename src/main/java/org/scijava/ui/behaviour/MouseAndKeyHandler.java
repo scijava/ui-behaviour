@@ -119,6 +119,7 @@ public class MouseAndKeyHandler
 		keyDrags.clear();
 		buttonClicks.clear();
 		keyClicks.clear();
+		scrolls.clear();
 
 		for ( final Entry< InputTrigger, Set< String > > entry : inputMap.getAllBindings().entrySet() )
 		{
