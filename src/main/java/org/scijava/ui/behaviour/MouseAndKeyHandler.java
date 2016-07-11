@@ -142,7 +142,7 @@ public class MouseAndKeyHandler
 					else
 						buttonDrags.add( dragEntry );
 				}
-				else if ( behaviour instanceof ClickBehaviour )
+				if ( behaviour instanceof ClickBehaviour )
 				{
 					final BehaviourEntry< ClickBehaviour > clickEntry = new BehaviourEntry<>( buttons, ( ClickBehaviour ) behaviour );
 					if ( buttons.isKeyTriggered() )
@@ -150,7 +150,7 @@ public class MouseAndKeyHandler
 					else
 						buttonClicks.add( clickEntry );
 				}
-				else if ( behaviour instanceof ScrollBehaviour )
+				if ( behaviour instanceof ScrollBehaviour )
 				{
 					final BehaviourEntry< ScrollBehaviour > scrollEntry = new BehaviourEntry<>( buttons, ( ScrollBehaviour ) behaviour );
 					scrolls.add( scrollEntry );
