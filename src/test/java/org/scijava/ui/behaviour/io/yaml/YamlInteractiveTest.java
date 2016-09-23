@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.scijava.ui.behaviour.io.InputTriggerDescription;
-import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
 
 public class YamlInteractiveTest
 {
@@ -24,14 +23,14 @@ public class YamlInteractiveTest
 			final List< InputTriggerDescription > list = YamlConfigIO.read( fileName );
 			System.out.println( list );
 		}
-		
+
 		/*
 		 * TEST WRITE
 		 */
 
 		System.out.println( "\nWriting to file " + fileName );
 
-		final ArrayList< InputTriggerDescription > keyMappings = new ArrayList< InputTriggerDescription >();
+		final ArrayList< InputTriggerDescription > keyMappings = new ArrayList<>();
 		keyMappings.add( new InputTriggerDescription( new String[] { "button1" }, "ts select vertex", "trackscheme" ) );
 		keyMappings.add( new InputTriggerDescription( new String[] { "button2" }, "ts select edge", "bdv", "trackscheme" ) );
 		keyMappings.add( new InputTriggerDescription( new String[] { "A" }, "navigate", "bdv", "trackscheme" ) );
@@ -52,25 +51,25 @@ public class YamlInteractiveTest
 		/*
 		 * TEST READ
 		 */
-		
+
 		System.out.println( "\nReading from file:" );
 		List< InputTriggerDescription > list = YamlConfigIO.read( fileName );
 		System.out.println( list );
-		
+
 		/*
 		 * TEST HETEROGENOUS DATA
 		 */
-		
+
 		System.out.println( "\nMalformed data." );
-		
+
 		final FileWriter writer = new FileWriter( fileName, false );
-		
+
 		// Write a tag with a mistake
 		writer.write( "- !mapping\n" );
 		writer.write( "acton: paste\n");
 		writer.write( "contexts: []\n" );
 		writer.write( "key: ctrl C\n");
-		
+
 		// Write a tag with a serious problem
 		writer.write( "- !mapping\n" );
 		writer.write( "action: pastecontexts: []\n" );
@@ -81,18 +80,18 @@ public class YamlInteractiveTest
 		writer.write( "action: zap2\n");
 		writer.write( "contexts: []\n" );
 		writer.write( "key: Z2\n");
-		
+
 		// Write a tag that is not handled
 		writer.write( "---\n- !display\n" );
 		writer.write( "brightness: 100\n" );
 		writer.write( "contrast: 50\n" );
 
 		writer.close();
-		
+
 		System.out.println( "\nReading from file:" );
 		list = YamlConfigIO.read( fileName );
 		System.out.println( list );
-		
+
 	}
 
 }

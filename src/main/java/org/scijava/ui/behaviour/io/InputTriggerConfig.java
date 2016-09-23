@@ -35,7 +35,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		for ( final InputTriggerDescription mapping : keyMappings )
 		{
 			final String behaviour = mapping.getAction();
-			final HashSet< String > contexts = new HashSet< String >();
+			final HashSet< String > contexts = new HashSet<>();
 			contexts.addAll( Arrays.asList( mapping.getContexts() ) );
 			final String[] triggers = mapping.getTriggers();
 			for ( final String triggerStr : triggers )
@@ -46,7 +46,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 				Set< Input > inputs = actionToInputsMap.get( input.behaviour );
 				if ( inputs == null )
 				{
-					inputs = new HashSet< >();
+					inputs = new HashSet<>();
 					actionToInputsMap.put( input.behaviour, inputs );
 				}
 				inputs.add( input );
@@ -164,7 +164,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		{
 			this.map = map;
 			this.config = config;
-			this.contexts = new HashSet< String >();
+			this.contexts = new HashSet<>();
 			this.contexts.addAll( Arrays.asList( contexts ) );
 		}
 

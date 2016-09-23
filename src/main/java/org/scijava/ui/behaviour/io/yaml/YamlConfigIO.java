@@ -123,7 +123,7 @@ public class YamlConfigIO
 	public static List< InputTriggerDescription > read( final Reader reader )
 	{
 		final Yaml yaml = getYaml();
-		final List< InputTriggerDescription > descriptions = new ArrayList< InputTriggerDescription >();
+		final List< InputTriggerDescription > descriptions = new ArrayList<>();
 
 		try
 		{

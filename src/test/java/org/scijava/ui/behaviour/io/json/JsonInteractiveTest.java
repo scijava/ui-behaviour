@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.scijava.ui.behaviour.io.InputTriggerDescription;
-import org.scijava.ui.behaviour.io.json.JsonConfigIO;
 
 public class JsonInteractiveTest
 {
@@ -23,14 +22,14 @@ public class JsonInteractiveTest
 			final List< InputTriggerDescription > list = JsonConfigIO.read( fileName );
 			System.out.println( list );
 		}
-		
+
 		/*
 		 * TEST WRITE
 		 */
 
 		System.out.println( "\nWriting to file " + fileName );
 
-		final ArrayList< InputTriggerDescription > keyMappings = new ArrayList< InputTriggerDescription >();
+		final ArrayList< InputTriggerDescription > keyMappings = new ArrayList<>();
 		keyMappings.add( new InputTriggerDescription( new String[] { "button1" }, "ts select vertex", "trackscheme" ) );
 		keyMappings.add( new InputTriggerDescription( new String[] { "button2" }, "ts select edge", "bdv", "trackscheme" ) );
 		keyMappings.add( new InputTriggerDescription( new String[] { "A" }, "navigate", "bdv", "trackscheme" ) );
@@ -51,11 +50,11 @@ public class JsonInteractiveTest
 		/*
 		 * TEST READ
 		 */
-		
+
 		System.out.println( "\nReading from file:" );
 		final List< InputTriggerDescription > list = JsonConfigIO.read( fileName );
 		System.out.println( list );
-		
+
 	}
 
 }
