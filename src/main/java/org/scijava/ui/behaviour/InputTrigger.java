@@ -103,9 +103,12 @@ public class InputTrigger
 		if ( ( mask & ( DOUBLE_CLICK_MASK | InputEvent.BUTTON1_DOWN_MASK | InputEvent.BUTTON2_DOWN_MASK | InputEvent.BUTTON3_DOWN_MASK ) ) == 0 )
 		{
 			// no mouse keys, no double-click -- pure keystroke
+			// This might still fail if for example "win" modifier is present.
+			// In that case KeyStroke.getKeyStroke( s ) == null.
 			keyStroke = KeyStroke.getKeyStroke( s );
 		}
 
+		// don't keep identical (wrt equals()) InputTrigger instance around.
 		return getCached( new InputTrigger( mask, pressedKeys, keyStroke ) );
 	}
 
@@ -121,6 +124,26 @@ public class InputTrigger
 		hashcode = value;
 	}
 
+	/**
+	 * Get the modifier mask for this trigger. The mask can have the following
+	 * bits:
+	 * <ul>
+	 * <li>{@link InputEvent#SHIFT_DOWN_MASK}</li>
+	 * <li>{@link InputEvent#CTRL_DOWN_MASK}</li>
+	 * <li>{@link InputEvent#CTRL_DOWN_MASK}</li>
+	 * <li>{@link InputEvent#META_DOWN_MASK}</li>
+	 * <li>{@link InputEvent#ALT_DOWN_MASK}</li>
+	 * <li>{@link InputEvent#ALT_GRAPH_DOWN_MASK}</li>
+	 * <li>{@link InputEvent#BUTTON1_DOWN_MASK}</li>
+	 * <li>{@link InputEvent#BUTTON2_DOWN_MASK}</li>
+	 * <li>{@link InputEvent#BUTTON3_DOWN_MASK}</li>
+	 * <li>{@link #DOUBLE_CLICK_MASK}</li>
+	 * <li>{@link #SCROLL_MASK}</li>
+	 * <li>{@link #WIN_DOWN_MASK}</li>
+	 * </ul>
+	 *
+	 * @return get the modifier mask for this trigger.
+	 */
 	public int getMask()
 	{
 		return mask;

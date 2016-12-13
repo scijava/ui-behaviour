@@ -108,10 +108,11 @@ public class MouseAndKeyHandler
 	}
 
 	/**
-	 * Build internal lists buttonDrag, keyDrags, etc from BehaviourMap(?) and
-	 * InputMap(?). The internal lists only contain entries for Behaviours that
-	 * can be actually triggered with the current InputMap, grouped by Behaviour
-	 * type, such that hopefully lookup from the event handlers is fast.
+	 * Build internal lists buttonDrag, keyDrags, etc from of {@link #inputMap}
+	 * and {@link #behaviourMap}. The internal lists only contain entries for
+	 * behaviours that can be actually triggered with the current InputMap,
+	 * grouped by behaviour type, such that hopefully lookup from the event
+	 * handlers is fast.
 	 */
 	private void updateInternalMaps()
 	{
@@ -169,7 +170,7 @@ public class MouseAndKeyHandler
 
 	/**
 	 * Which keys are currently pressed. This does not include modifier keys
-	 * Control, Shift, Alt, AltGr, Meta.
+	 * Control, Shift, Alt, AltGr, Meta, Win.
 	 */
 	private final TIntSet pressedKeys = new TIntHashSet( 5, 0.5f, -1 );
 
