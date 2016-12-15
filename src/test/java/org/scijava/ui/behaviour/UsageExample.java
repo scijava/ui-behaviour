@@ -131,9 +131,9 @@ public class UsageExample
 
 		final InputTriggerAdder adder = config.inputTriggerAdder( inputMap, "all" );
 		adder.put( "drag1" ); // put input trigger as defined in config
-		adder.put( "drag2", "button1", "shift A" ); // default triggers if not defined in config
+		adder.put( "drag2", "button1", "shift A | G" ); // default triggers if not defined in config
 		adder.put( "scroll1", "alt scroll" );
-		adder.put( "click1", "button3", "B" );
+		adder.put( "click1", "button3", "B | all" );
 
 		/*
 		 * See bdv.viewer.TriggerBehaviourBindings for chaining InputMaps and BehaviourMaps.

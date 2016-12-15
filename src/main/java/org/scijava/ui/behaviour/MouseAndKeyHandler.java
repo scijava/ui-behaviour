@@ -398,10 +398,17 @@ public class MouseAndKeyHandler
 
 		final int x = e.getX();
 		final int y = e.getY();
+		final int mask = getMask( e );
 
+		final ArrayList< BehaviourEntry< ? > > ended = new ArrayList<>();
 		for ( final BehaviourEntry< DragBehaviour > drag : activeButtonDrags )
-			drag.behaviour.end( x, y );
-		activeButtonDrags.clear();
+			if ( !drag.buttons.matchesSubset( mask, globalKeys.pressedKeys() ) )
+			{
+				drag.behaviour.end( x, y );
+				ended.add( drag );
+			}
+		activeButtonDrags.removeAll( ended );
+
 	}
 
 	@Override
@@ -490,10 +497,16 @@ public class MouseAndKeyHandler
 				e.getKeyCode() != KeyEvent.VK_ALT_GRAPH )
 		{
 			pressedKeys.remove( e.getKeyCode() );
+			final int mask = getMask( e );
 
+			final ArrayList< BehaviourEntry< ? > > ended = new ArrayList<>();
 			for ( final BehaviourEntry< DragBehaviour > drag : activeKeyDrags )
-				drag.behaviour.end( mouseX, mouseY );
-			activeKeyDrags.clear();
+				if ( !drag.buttons.matchesSubset( mask, pressedKeys ) )
+				{
+					drag.behaviour.end( mouseX, mouseY );
+					ended.add( drag );
+				}
+			activeKeyDrags.removeAll( ended );
 		}
 	}
 
