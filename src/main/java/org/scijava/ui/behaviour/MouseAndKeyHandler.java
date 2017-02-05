@@ -234,10 +234,14 @@ public class MouseAndKeyHandler
 		 * mouseClicked() when BUTTON1 was clicked (although the button is no
 		 * longer down at this point).
 		 *
-		 * ...but only if its not a MouseWheelEvent because OS X sets button
+		 * ...but only if its not a MOUSE_WHEEL because OS X sets button
 		 * modifiers if ALT or META modifiers are pressed.
+		 *
+		 * ...and also only if its not a MOUSE_RELEASED. Otherwise we will not
+		 * be able to detect drag-end because the mask would still match the
+		 * drag trigger.
 		 */
-		if ( ! ( e instanceof MouseWheelEvent ) )
+		if ( e.getID() != MouseEvent.MOUSE_WHEEL && e.getID() != MouseEvent.MOUSE_RELEASED )
 		{
 			if ( ( modifiers & InputEvent.BUTTON1_MASK ) != 0 )
 				mask |= InputEvent.BUTTON1_DOWN_MASK;
