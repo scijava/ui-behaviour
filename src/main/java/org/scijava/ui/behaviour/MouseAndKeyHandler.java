@@ -1,5 +1,6 @@
 package org.scijava.ui.behaviour;
 
+import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -14,6 +15,8 @@ import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.scijava.ui.behaviour.KeyPressedManager.KeyPressedReceiver;
 
 import gnu.trove.map.hash.TIntLongHashMap;
 import gnu.trove.set.TIntSet;
@@ -420,6 +423,8 @@ public class MouseAndKeyHandler
 	{
 //		System.out.println( "MouseAndKeyHandler.mouseEntered()" );
 		update();
+		if ( keypressManager != null )
+			keypressManager.activate( receiver );
 	}
 
 	@Override
@@ -427,6 +432,8 @@ public class MouseAndKeyHandler
 	{
 //		System.out.println( "MouseAndKeyHandler.mouseExited()" );
 		update();
+		if ( keypressManager != null )
+			keypressManager.deactivate( receiver );
 	}
 
 	@Override
@@ -461,28 +468,107 @@ public class MouseAndKeyHandler
 
 				keyPressTimes.put( e.getKeyCode(), e.getWhen() );
 			}
-			final int doubleClickMask = mask | InputTrigger.DOUBLE_CLICK_MASK;
 
-			for ( final BehaviourEntry< DragBehaviour > drag : keyDrags )
+			if ( keypressManager != null )
+				keypressManager.handleKeyPressed( receiver, mask, doubleClick, pressedKeys );
+			else
+				handleKeyPressed( mask, doubleClick, pressedKeys, false );
+		}
+	}
+
+	/**
+	 * If non-null, {@link #keyPressed(KeyEvent)} events are forwarded to the
+	 * {@link KeyPressedManager} which in turn forwards to the
+	 * {@link KeyPressedReceiver} of the component currently under the mouse.
+	 * (This requires that the other component is also registered with the
+	 * {@link KeyPressedManager}.
+	 */
+	private KeyPressedManager keypressManager = null;
+
+	/**
+	 * Represents this {@link MouseAndKeyHandler} to the {@link #keypressManager}.
+	 */
+	private KeyPressedReceiver receiver = null;
+
+	/**
+	 * @param keypressManager
+	 * @param focus
+	 *            function that ensures that the component associated to this
+	 *            {@link MouseAndKeyHandler} is focused.
+	 */
+	public void setKeypressManager(
+			final KeyPressedManager keypressManager,
+			final Runnable focus )
+	{
+		this.keypressManager = keypressManager;
+		this.receiver = new KeyPressedReceiver()
+		{
+			@Override
+			public void handleKeyPressed( final int mask, final boolean doubleClick, final TIntSet pressedKeys )
 			{
-				if ( !activeKeyDrags.contains( drag ) &&
-						( drag.buttons.matches( mask, pressedKeys ) ||
-						( doubleClick && drag.buttons.matches( doubleClickMask, pressedKeys ) ) ) )
-				{
-					drag.behaviour.init( mouseX, mouseY );
-					activeKeyDrags.add( drag );
-				}
+				if ( MouseAndKeyHandler.this.handleKeyPressed( mask, doubleClick, pressedKeys, true ) )
+					focus.run();
+				MouseAndKeyHandler.this.handleKeyPressed( mask, doubleClick, pressedKeys, false );
 			}
+		};
+	}
 
-			for ( final BehaviourEntry< ClickBehaviour > click : keyClicks )
+	/**
+	 * @param keypressManager
+	 * @param focusableOwner
+	 *            container of this {@link MouseAndKeyHandler}. If key presses
+	 *            are forwarded from the {@link KeyPressedManager} while the
+	 *            component does not have focus, then
+	 *            {@link Component#requestFocus()}.
+	 */
+	public void setKeypressManager(
+			final KeyPressedManager keypressManager,
+			final Component focusableOwner )
+	{
+		setKeypressManager( keypressManager, () -> {
+			if ( !focusableOwner.isFocusOwner() )
 			{
-				if ( click.buttons.matches( mask, pressedKeys ) ||
-						( doubleClick && click.buttons.matches( doubleClickMask, pressedKeys ) ) )
-				{
-					click.behaviour.click( mouseX, mouseY );
-				}
+//				focusableOwner.requestFocusInWindow();
+				focusableOwner.requestFocus();
+			}
+		} );
+	}
+
+	private boolean handleKeyPressed( final int mask, final boolean doubleClick, final TIntSet pressedKeys, final boolean dryRun )
+	{
+		update();
+
+		final int doubleClickMask = mask | InputTrigger.DOUBLE_CLICK_MASK;
+
+		boolean triggered = false;
+
+		for ( final BehaviourEntry< DragBehaviour > drag : keyDrags )
+		{
+			if ( !activeKeyDrags.contains( drag ) &&
+					( drag.buttons.matches( mask, pressedKeys ) ||
+					( doubleClick && drag.buttons.matches( doubleClickMask, pressedKeys ) ) ) )
+			{
+				if ( dryRun )
+					return true;
+				triggered = true;
+				drag.behaviour.init( mouseX, mouseY );
+				activeKeyDrags.add( drag );
 			}
 		}
+
+		for ( final BehaviourEntry< ClickBehaviour > click : keyClicks )
+		{
+			if ( click.buttons.matches( mask, pressedKeys ) ||
+					( doubleClick && click.buttons.matches( doubleClickMask, pressedKeys ) ) )
+			{
+				if ( dryRun )
+					return true;
+				triggered = true;
+				click.behaviour.click( mouseX, mouseY );
+			}
+		}
+
+		return triggered;
 	}
 
 	@Override
