@@ -327,8 +327,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseDragged( final MouseEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.mouseDragged()" );
-//		System.out.println( e );
+		println( "MouseAndKeyHandler.mouseDragged()" );
+//		println( e );
 		update();
 
 		final int x = e.getX();
@@ -341,7 +341,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseMoved( final MouseEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.mouseMoved()" );
+		println( "MouseAndKeyHandler.mouseMoved()" );
+//		println( e );
 		update();
 
 		mouseX = e.getX();
@@ -354,8 +355,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseWheelMoved( final MouseWheelEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.mouseWheelMoved()" );
-//		System.out.println( e );
+		println( "MouseAndKeyHandler.mouseWheelMoved()" );
+//		println( e );
 		update();
 
 		final int mask = getMask( e );
@@ -385,8 +386,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseClicked( final MouseEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.mouseClicked()" );
-//		System.out.println( e );
+		println( "MouseAndKeyHandler.mouseClicked()" );
+//		println( e );
 		update();
 
 		final int mask = getMask( e );
@@ -407,8 +408,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void mousePressed( final MouseEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.mousePressed()" );
-//		System.out.println( e );
+		println( "MouseAndKeyHandler.mousePressed()" );
+//		println( e );
 		update();
 
 		final int mask = getMask( e );
@@ -428,8 +429,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseReleased( final MouseEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.mouseReleased()" );
-//		System.out.println( e );
+		println( "MouseAndKeyHandler.mouseReleased()" );
+//		println( e );
 		update();
 
 		final int x = e.getX();
@@ -450,7 +451,7 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseEntered( final MouseEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.mouseEntered()" );
+		println( "MouseAndKeyHandler.mouseEntered()" );
 		update();
 		if ( keypressManager != null )
 			keypressManager.activate( receiver );
@@ -459,7 +460,7 @@ public class MouseAndKeyHandler
 	@Override
 	public void mouseExited( final MouseEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.mouseExited()" );
+		println( "MouseAndKeyHandler.mouseExited()" );
 		update();
 		if ( keypressManager != null )
 			keypressManager.deactivate( receiver );
@@ -468,9 +469,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void keyPressed( final KeyEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.keyPressed()" );
-//		System.out.println( e );
-		update();
+		println( "MouseAndKeyHandler.keyPressed()" );
+//		println( e );
 
 		if (	e.getKeyCode() != 0 &&
 				e.getKeyCode() != KeyEvent.VK_SHIFT &&
@@ -603,8 +603,8 @@ public class MouseAndKeyHandler
 	@Override
 	public void keyReleased( final KeyEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.keyReleased()" );
-//		System.out.println( e );
+		println( "MouseAndKeyHandler.keyReleased()" );
+//		println( e );
 		update();
 
 		if (	e.getKeyCode() != 0 &&
@@ -632,14 +632,14 @@ public class MouseAndKeyHandler
 	@Override
 	public void keyTyped( final KeyEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.keyTyped()" );
-//		System.out.println( e );
+		println( "MouseAndKeyHandler.keyTyped()" );
+//		println( e );
 	}
 
 	@Override
 	public void focusGained( final FocusEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.focusGained()" );
+		println( "MouseAndKeyHandler.focusGained()" );
 		pressedKeys.clear();
 		pressedKeys.addAll( globalKeys.pressedKeys() );
 	}
@@ -647,7 +647,44 @@ public class MouseAndKeyHandler
 	@Override
 	public void focusLost( final FocusEvent e )
 	{
-//		System.out.println( "MouseAndKeyHandler.focusLost()" );
+		println( "MouseAndKeyHandler.focusLost()" );
 		pressedKeys.clear();
+	}
+
+	private void debugMask( final InputEvent e )
+	{
+		final int modifiers = e.getModifiers();
+		final int modifiersEx = e.getModifiersEx();
+		final int mask = getMask( e );
+		println( "  modifiers:   " + binary( modifiers ) );
+		println( "  modifiersEx: " + binary( modifiersEx ) );
+		println( "  mask:        " + binary( mask ) );
+	}
+
+	private String binary( final int value )
+	{
+		return String.format("%32s", Integer.toBinaryString( value ) ).replace(' ', '0');
+	}
+
+	private boolean DEBUG = false;
+
+	private String debugPrefix = "";
+
+	private void println( final Object string )
+	{
+		if ( DEBUG )
+		{
+			System.out.println( debugPrefix + string );
+		}
+	}
+
+	public void setDebug( final boolean b )
+	{
+		DEBUG = b;
+	}
+
+	public void setDebugPrefix( final String string )
+	{
+		debugPrefix = string;
 	}
 }
