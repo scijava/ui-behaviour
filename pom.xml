@@ -80,8 +80,8 @@
 		<url>https://github.com/scijava/ui-behaviour</url>
 	</scm>
 	<ciManagement>
-		<system>Jenkins</system>
-		<url>http://jenkins.imagej.net/job/ui-behaviour	/</url>
+		<system>Travis CI</system>
+		<url>https://travis-ci.org/scijava/ui-behaviour</url>
 	</ciManagement>
 
 	<licenses> 
