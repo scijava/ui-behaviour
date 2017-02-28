@@ -10,32 +10,18 @@
 
 	<artifactId>ui-behaviour</artifactId>
 	<version>1.3.1-SNAPSHOT</version>
-	<url>http://github.com/scijava/ui-behaviour</url>
-	<inceptionYear>2015</inceptionYear>
 
 	<name>Configurable Keys</name>
 	<description>configurable key and mouse event handling</description>
-
-	<properties>
-		<scijava.jvm.version>1.8</scijava.jvm.version>
-	</properties>
-
-	<dependencies>
-		<dependency>
-			<groupId>net.sf.trove4j</groupId>
-			<artifactId>trove4j</artifactId>
-			<version>3.0.3</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.yaml</groupId>
-			<artifactId>snakeyaml</artifactId>
-			<version>1.13</version>
-		</dependency>
-	</dependencies>
+	<url>http://github.com/scijava/ui-behaviour</url>
+	<inceptionYear>2015</inceptionYear>
+	<licenses>
+		<license>
+			<name>BSD 2-Clause License</name>
+			<url>http://opensource.org/licenses/BSD-2-Clause</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<developers>
 		<developer>
@@ -66,13 +52,6 @@
 		</developer>
 	</developers>
 
-	<repositories>
-		<repository>
-			<id>imagej.public</id>
-			<url>http://maven.imagej.net/content/groups/public</url>
-		</repository>
-	</repositories>
-
 	<scm>
 		<connection>scm:git:git://github.com/scijava/ui-behaviour</connection>
 		<developerConnection>scm:git:git@github.com:scijava/ui-behaviour</developerConnection>
@@ -84,11 +63,31 @@
 		<url>https://travis-ci.org/scijava/ui-behaviour</url>
 	</ciManagement>
 
-	<licenses> 
-		<license>
-			<name>BSD 2-Clause License</name>
-			<url>http://opensource.org/licenses/BSD-2-Clause</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
+	<properties>
+		<scijava.jvm.version>1.8</scijava.jvm.version>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>imagej.public</id>
+			<url>http://maven.imagej.net/content/groups/public</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.sf.trove4j</groupId>
+			<artifactId>trove4j</artifactId>
+			<version>3.0.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>1.13</version>
+		</dependency>
+	</dependencies>
 </project>
