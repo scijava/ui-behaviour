@@ -5,20 +5,24 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>9.2.0</version>
+		<version>14.0.0</version>
 	</parent>
 
 	<artifactId>ui-behaviour</artifactId>
 	<version>1.3.1-SNAPSHOT</version>
 
-	<name>Configurable Keys</name>
-	<description>configurable key and mouse event handling</description>
+	<name>UI Behaviour</name>
+	<description>Configurable key and mouse event handling</description>
 	<url>http://github.com/scijava/ui-behaviour</url>
 	<inceptionYear>2015</inceptionYear>
+	<organization>
+		<name>SciJava</name>
+		<url>http://www.scijava.org/</url>
+	</organization>
 	<licenses>
 		<license>
-			<name>BSD 2-Clause License</name>
-			<url>http://opensource.org/licenses/BSD-2-Clause</url>
+			<name>Simplified BSD License</name>
+			<url>https://opensource.org/licenses/BSD-2-Clause</url>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
@@ -65,19 +69,36 @@
 		</contributor>
 	</contributors>
 
+	<mailingLists>
+		<mailingList>
+			<name>SciJava</name>
+			<subscribe>https://groups.google.com/group/scijava</subscribe>
+			<unsubscribe>https://groups.google.com/group/scijava</unsubscribe>
+			<post>scijava@googlegroups.com</post>
+			<archive>https://groups.google.com/group/scijava</archive>
+		</mailingList>
+	</mailingLists>
+
 	<scm>
 		<connection>scm:git:git://github.com/scijava/ui-behaviour</connection>
 		<developerConnection>scm:git:git@github.com:scijava/ui-behaviour</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://github.com/scijava/ui-behaviour</url>
 	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/scijava/ui-behaviour/issues</url>
+	</issueManagement>
 	<ciManagement>
 		<system>Travis CI</system>
 		<url>https://travis-ci.org/scijava/ui-behaviour</url>
 	</ciManagement>
 
 	<properties>
-		<scijava.jvm.version>1.8</scijava.jvm.version>
+		<package-name>org.scijava.ui.behaviour</package-name>
+		<license.licenseName>bsd_2</license.licenseName>
+		<license.copyrightOwners>Max Planck Institute of Molecular Cell Biology
+and Genetics.</license.copyrightOwners>
 	</properties>
 
 	<repositories>
