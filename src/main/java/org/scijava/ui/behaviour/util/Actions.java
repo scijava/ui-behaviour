@@ -142,8 +142,8 @@ public class Actions
 	}
 
 	/**
-	 * Create and install a new {@link Action} with the specified {@code name} that
-	 * calls the specified {@link Runnable} when triggered.
+	 * Create and install a new {@link javax.swing.Action} with the specified
+	 * {@code name} that calls the specified {@link Runnable} when triggered.
 	 *
 	 * @param runnable
 	 *            action to install.
