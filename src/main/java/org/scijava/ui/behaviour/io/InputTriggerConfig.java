@@ -279,7 +279,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		@Override
 		public boolean equals( final Object obj )
 		{
-			if ( obj == null && !( obj instanceof Input ) )
+			if ( obj == null || !( obj instanceof Input ) )
 				return false;
 			final Input i = ( Input ) obj;
 			return i.trigger.equals( trigger ) && i.behaviour.equals( behaviour ) && i.contexts.equals( contexts );
