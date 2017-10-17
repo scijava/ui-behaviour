@@ -165,8 +165,9 @@ public class UsageExample
 		adder.put( "click1", "button3", "B | all" );
 
 		/*
-		 * See bdv.viewer.TriggerBehaviourBindings for chaining InputMaps and BehaviourMaps.
-		 * (might move here in the future)
+		 * See org.scijava.ui.behaviour.util.InputActionBindings and
+		 * org.scijava.ui.behaviour.util.TriggerBehaviourBindings for chaining
+		 * InputMaps and BehaviourMaps.
 		 */
 	}
 }
