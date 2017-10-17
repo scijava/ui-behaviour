@@ -72,12 +72,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 				final InputTrigger trigger = InputTrigger.getFromString( triggerStr );
 				final Input input = new Input( trigger, behaviour, contexts );
 
-				Set< Input > inputs = actionToInputsMap.get( input.behaviour );
-				if ( inputs == null )
-				{
-					inputs = new HashSet<>();
-					actionToInputsMap.put( input.behaviour, inputs );
-				}
+				Set< Input > inputs = actionToInputsMap.computeIfAbsent( input.behaviour, k -> new HashSet<>() );
 				inputs.add( input );
 			}
 		}
@@ -317,12 +312,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 
 			for ( final String behaviourName : behaviours )
 			{
-				Set< Input > inputs = actionToInputsMap.get( behaviourName );
-				if ( inputs == null )
-				{
-					inputs = new HashSet<>();
-					actionToInputsMap.put( behaviourName, inputs );
-				}
+				Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new HashSet<>() );
 
 				boolean added = false;
 				for ( final Input input : inputs )
@@ -358,12 +348,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			final InputTrigger trigger = InputTrigger.getFromString( key.toString() );
 			final String behaviourName = map.get( key ).toString();
 
-			Set< Input > inputs = actionToInputsMap.get( behaviourName );
-			if ( inputs == null )
-			{
-				inputs = new HashSet<>();
-				actionToInputsMap.put( behaviourName, inputs );
-			}
+			Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new HashSet<>() );
 
 			boolean added = false;
 			for ( final Input input : inputs )
