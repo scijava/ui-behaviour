@@ -57,12 +57,12 @@ import org.scijava.ui.behaviour.InputTriggerMap;
 public final class TriggerBehaviourBindings
 {
 	/**
-	 * the root of the {@link InputMap} chain.
+	 * the root of the {@link InputTriggerMap} chain.
 	 */
 	private final InputTriggerMap theInputTriggerMap;
 
 	/**
-	 * the root of the {@link ActionMap} chain.
+	 * the root of the {@link BehaviourMap} chain.
 	 */
 	private final BehaviourMap theBehaviourMap;
 
@@ -91,7 +91,7 @@ public final class TriggerBehaviourBindings
 	}
 
 	/**
-	 * Remove the {@link ActionMap} with the given id from the list.
+	 * Remove the {@link BehaviourMap} with the given id from the list.
 	 */
 	public void removeBehaviourMap( final String id )
 	{
