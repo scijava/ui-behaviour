@@ -9,6 +9,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -207,7 +208,7 @@ public class VisualEditorPanel extends JPanel
 		scrollPane.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
 		add( scrollPane, BorderLayout.CENTER );
 
-		tableModel = new MyTableModel( config.actionToInputsMap );
+		tableModel = new MyTableModel( actions, config.actionToInputsMap );
 		final JTable tableBindings = new JTable( tableModel );
 		tableBindings.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
 		tableBindings.setFillsViewportHeight( true );
@@ -231,7 +232,7 @@ public class VisualEditorPanel extends JPanel
 
 				labelActionName.setText( action );
 				labelActionDescription.setText( "TODO" );
-				textFieldBinding.setText( trigger.toString() );
+				textFieldBinding.setText( trigger == null ? "" : trigger.toString() );
 				if ( contexts.isEmpty() )
 				{
 					lblContext.setText( "" );
@@ -268,24 +269,37 @@ public class VisualEditorPanel extends JPanel
 
 		private final List< Set< String > > contexts;
 
-		public MyTableModel( final Map< String, Set< Input > > actionToInputsMap )
+		public MyTableModel( final Set< String > baseActions, final Map< String, Set< Input > > actionToInputsMap )
 		{
 			this.actions = new ArrayList<>();
 			this.bindings = new ArrayList<>();
 			this.contexts = new ArrayList<>();
 
-			final List< String > sortedActions = new ArrayList<>( actionToInputsMap.keySet() );
+			final Set< String > allActions = new HashSet<>();
+			allActions.addAll( baseActions );
+			allActions.addAll( actionToInputsMap.keySet() );
+			final List< String > sortedActions = new ArrayList<>( allActions );
 			sortedActions.sort( null );
 			final InputComparator inputComparator = new InputComparator();
 			for ( final String action : sortedActions )
 			{
-				final List< Input > sortedInputs = new ArrayList<>( actionToInputsMap.get( action ) );
-				sortedInputs.sort( inputComparator );
-				for ( final Input input : sortedInputs )
+				final Set< Input > inputs = actionToInputsMap.get( action );
+				if ( null == inputs )
 				{
 					actions.add( action );
-					bindings.add( input.trigger );
-					contexts.add( input.contexts );
+					bindings.add( null );
+					contexts.add( Collections.emptySet() );
+				}
+				else
+				{
+					final List< Input > sortedInputs = new ArrayList<>( inputs );
+					sortedInputs.sort( inputComparator );
+					for ( final Input input : sortedInputs )
+					{
+						actions.add( action );
+						bindings.add( input.trigger );
+						contexts.add( input.contexts );
+					}
 				}
 			}
 		}
