@@ -33,6 +33,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig.Input;
@@ -40,6 +42,7 @@ import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
 
 public class VisualEditorPanel extends JPanel
 {
+
 	private static final long serialVersionUID = 1L;
 
 	private JTextField textFieldFilter;
@@ -232,29 +235,108 @@ public class VisualEditorPanel extends JPanel
 
 				labelActionName.setText( action );
 				labelActionDescription.setText( "TODO" );
-				textFieldBinding.setText( trigger == null ? "" : trigger.toString() );
-				if ( contexts.isEmpty() )
-				{
-					lblContext.setText( "" );
-				}
-				else
-				{
-					final StringBuilder str = new StringBuilder();
-					str.append( contexts.get( 0 ) );
-					for ( int i = 1; i < contexts.size(); i++ )
-						str.append( ", " + contexts.get( i ) );
-					txtfieldContext.setText( str.toString() );
-				}
-
+				textFieldBinding.setText( trigger == null ? "" : prettyPrintTrigger( trigger ) );
+				txtfieldContext.setText( prettyPrintContexts( contexts ) );
 			}
 		} );
-		scrollPane.setViewportView( tableBindings );
 
+		// Renderers.
+		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
+		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer() );
+		scrollPane.setViewportView( tableBindings );
 	}
 
 	/*
 	 * INNER CLASSES
 	 */
+
+	private static final class MyContextsRenderer extends DefaultTableCellRenderer implements TableCellRenderer
+	{
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public Component getTableCellRendererComponent( final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column )
+		{
+			super.getTableCellRendererComponent( table, value, isSelected, hasFocus, row, column );
+			@SuppressWarnings( "unchecked" )
+			final List< String > contexts = ( List< String > ) value;
+			setText( prettyPrintContexts( contexts ) );
+			setToolTipText( contexts.toString() );
+			return this;
+		}
+	}
+
+	private static final String prettyPrintContexts( final List< String > contexts )
+	{
+		if ( null == contexts || contexts.isEmpty() )
+		{
+			return "";
+		}
+		else
+		{
+			final StringBuilder str = new StringBuilder();
+			str.append( contexts.get( 0 ) );
+			for ( int i = 1; i < contexts.size(); i++ )
+				str.append( ", " + contexts.get( i ) );
+			return str.toString();
+		}
+	}
+
+	private static final class MyBindingsRenderer extends DefaultTableCellRenderer implements TableCellRenderer
+	{
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public Component getTableCellRendererComponent( final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column )
+		{
+			super.getTableCellRendererComponent( table, value, isSelected, hasFocus, row, column );
+			final InputTrigger input = ( InputTrigger ) value;
+			setText( null == input ? "" : prettyPrintTrigger( input ) );
+			setToolTipText( null == input ? "" : input.toString() );
+			return this;
+		}
+	}
+
+	private static final String prettyPrintTrigger( final InputTrigger input )
+	{
+		final String str = input.toString();
+		final String str2 = str
+				.replaceAll( "shift", "\u21E7" )
+				.replaceAll( "win", "\u229E" )
+				.replaceAll( "control", "\u2303" )
+				.replaceAll( "escape", "\u238B" )
+				.replaceAll( "tab", "\u21E5" )
+				.replaceAll( "caps lock", "\u21EA" )
+				.replaceAll( "shift", "\u21E7" )
+				.replaceAll( "control", "\u2303" )
+				.replaceAll( "option", "\u2325" )
+				.replaceAll( "Apple", "\uF8FF" )
+				.replaceAll( "command", "\u2318" )
+				.replaceAll( "space", "\u2423" )
+				.replaceAll( "return", "\u23CE" )
+				.replaceAll( "backspace", "\u232B" )
+				.replaceAll( "delete", "\u2326" )
+				.replaceAll( "home", "\u21F1" )
+				.replaceAll( "end", "\u21F2" )
+				.replaceAll( "page up", "\u21DE" )
+				.replaceAll( "page down", "\u21DF" )
+				.replaceAll( "up arrow", "\u2191" )
+				.replaceAll( "down arrow", "\u2193" )
+				.replaceAll( "left arrow", "\u2190" )
+				.replaceAll( "right arrow", "\u2192" )
+				.replaceAll( "clear", "\u2327" )
+				.replaceAll( "num lock", "\u21ED" )
+				.replaceAll( "enter", "\u2324" )
+				.replaceAll( "eject", "\u23CF" )
+				.replaceAll( "power", "\u233D" )
+				.replaceAll( "button1", "left mouse button" )
+				.replaceAll( "button2", "middle mouse button" )
+				.replaceAll( "button3", "right mouse button" )
+				.replaceAll( "scroll", "\u21c5" ); // double arrow. Not ideal.
+		return str2;
+	}
 
 	private static class MyTableModel extends AbstractTableModel
 	{
@@ -267,7 +349,7 @@ public class VisualEditorPanel extends JPanel
 
 		private final List< InputTrigger > bindings;
 
-		private final List< Set< String > > contexts;
+		private final List< List< String > > contexts;
 
 		public MyTableModel( final Set< String > baseActions, final Map< String, Set< Input > > actionToInputsMap )
 		{
@@ -288,7 +370,7 @@ public class VisualEditorPanel extends JPanel
 				{
 					actions.add( action );
 					bindings.add( null );
-					contexts.add( Collections.emptySet() );
+					contexts.add( Collections.emptyList() );
 				}
 				else
 				{
@@ -298,7 +380,9 @@ public class VisualEditorPanel extends JPanel
 					{
 						actions.add( action );
 						bindings.add( input.trigger );
-						contexts.add( input.contexts );
+						final List< String > cs = new ArrayList<>( input.contexts );
+						cs.sort( null );
+						contexts.add( cs );
 					}
 				}
 			}
@@ -364,7 +448,7 @@ public class VisualEditorPanel extends JPanel
 				"- !mapping" + "\n" +
 				"  action: drag1" + "\n" +
 				"  contexts: [all]" + "\n" +
-				"  triggers: [button1, G]" + "\n" +
+				"  triggers: [button1, win G]" + "\n" +
 				"- !mapping" + "\n" +
 				"  action: scroll1" + "\n" +
 				"  contexts: [all]" + "\n" +
