@@ -110,7 +110,7 @@ public class VisualEditorPanel extends JPanel
 
 		final JLabel lblName = new JLabel( "Name:" );
 		final GridBagConstraints gbc_lblName = new GridBagConstraints();
-		gbc_lblName.insets = new Insets( 0, 0, 5, 5 );
+		gbc_lblName.insets = new Insets( 5, 5, 5, 5 );
 		gbc_lblName.anchor = GridBagConstraints.WEST;
 		gbc_lblName.gridx = 0;
 		gbc_lblName.gridy = 0;
@@ -118,7 +118,7 @@ public class VisualEditorPanel extends JPanel
 
 		final JLabel labelActionName = new JLabel( "<>" );
 		final GridBagConstraints gbc_labelActionName = new GridBagConstraints();
-		gbc_labelActionName.insets = new Insets( 0, 0, 5, 5 );
+		gbc_labelActionName.insets = new Insets( 5, 5, 5, 5 );
 		gbc_labelActionName.gridx = 1;
 		gbc_labelActionName.gridy = 0;
 		panelCommandEditor.add( labelActionName, gbc_labelActionName );
@@ -126,14 +126,14 @@ public class VisualEditorPanel extends JPanel
 		final JLabel lblBinding = new JLabel( "Binding:" );
 		final GridBagConstraints gbc_lblBinding = new GridBagConstraints();
 		gbc_lblBinding.anchor = GridBagConstraints.WEST;
-		gbc_lblBinding.insets = new Insets( 0, 0, 5, 5 );
+		gbc_lblBinding.insets = new Insets( 5, 5, 5, 5 );
 		gbc_lblBinding.gridx = 2;
 		gbc_lblBinding.gridy = 0;
 		panelCommandEditor.add( lblBinding, gbc_lblBinding );
 
 		textFieldBinding = new JTextField();
 		final GridBagConstraints gbc_textFieldBinding = new GridBagConstraints();
-		gbc_textFieldBinding.insets = new Insets( 0, 0, 5, 5 );
+		gbc_textFieldBinding.insets = new Insets( 5, 5, 5, 5 );
 		gbc_textFieldBinding.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textFieldBinding.gridx = 3;
 		gbc_textFieldBinding.gridy = 0;
@@ -142,14 +142,14 @@ public class VisualEditorPanel extends JPanel
 
 		final JButton buttonSpecialChar = new JButton( "<" );
 		final GridBagConstraints gbc_buttonSpecialChar = new GridBagConstraints();
-		gbc_buttonSpecialChar.insets = new Insets( 0, 0, 5, 0 );
+		gbc_buttonSpecialChar.insets = new Insets( 5, 5, 5, 5 );
 		gbc_buttonSpecialChar.gridx = 4;
 		gbc_buttonSpecialChar.gridy = 0;
 		panelCommandEditor.add( buttonSpecialChar, gbc_buttonSpecialChar );
 
 		final JLabel lblDescription = new JLabel( "Description:" );
 		final GridBagConstraints gbc_lblDescription = new GridBagConstraints();
-		gbc_lblDescription.insets = new Insets( 0, 0, 5, 5 );
+		gbc_lblDescription.insets = new Insets( 5, 5, 5, 5 );
 		gbc_lblDescription.anchor = GridBagConstraints.WEST;
 		gbc_lblDescription.gridx = 0;
 		gbc_lblDescription.gridy = 1;
@@ -158,31 +158,31 @@ public class VisualEditorPanel extends JPanel
 		final JLabel labelActionDescription = new JLabel( "<>" );
 		final GridBagConstraints gbc_labelActionDescription = new GridBagConstraints();
 		gbc_labelActionDescription.gridheight = 2;
-		gbc_labelActionDescription.insets = new Insets( 0, 0, 0, 5 );
+		gbc_labelActionDescription.insets = new Insets( 5, 5, 5, 5 );
 		gbc_labelActionDescription.gridx = 1;
 		gbc_labelActionDescription.gridy = 1;
 		panelCommandEditor.add( labelActionDescription, gbc_labelActionDescription );
 
-		final JLabel lblContext = new JLabel( "Context:" );
+		final JLabel lblContext = new JLabel( "Contexts:" );
 		final GridBagConstraints gbc_lblContext = new GridBagConstraints();
 		gbc_lblContext.anchor = GridBagConstraints.WEST;
-		gbc_lblContext.insets = new Insets( 0, 0, 5, 5 );
+		gbc_lblContext.insets = new Insets( 5, 5, 5, 5 );
 		gbc_lblContext.gridx = 2;
 		gbc_lblContext.gridy = 1;
 		panelCommandEditor.add( lblContext, gbc_lblContext );
 
-		final JTextField txtfieldContext = new JTextField();
+		final TagPanelEditor panelContextEditor = new TagPanelEditor( contexts );
 		final GridBagConstraints gbc_comboBoxContext = new GridBagConstraints();
 		gbc_comboBoxContext.gridwidth = 2;
-		gbc_comboBoxContext.insets = new Insets( 0, 0, 5, 0 );
-		gbc_comboBoxContext.fill = GridBagConstraints.HORIZONTAL;
+		gbc_comboBoxContext.insets = new Insets( 5, 5, 5, 5 );
+		gbc_comboBoxContext.fill = GridBagConstraints.BOTH;
 		gbc_comboBoxContext.gridx = 3;
 		gbc_comboBoxContext.gridy = 1;
-		panelCommandEditor.add( txtfieldContext, gbc_comboBoxContext );
+		panelCommandEditor.add( panelContextEditor, gbc_comboBoxContext );
 
 		final JLabel lblConflicts = new JLabel( "Conflicts:" );
 		final GridBagConstraints gbc_lblConflicts = new GridBagConstraints();
-		gbc_lblConflicts.insets = new Insets( 0, 0, 0, 5 );
+		gbc_lblConflicts.insets = new Insets( 5, 5, 5, 5 );
 		gbc_lblConflicts.anchor = GridBagConstraints.WEST;
 		gbc_lblConflicts.gridx = 2;
 		gbc_lblConflicts.gridy = 2;
@@ -236,7 +236,7 @@ public class VisualEditorPanel extends JPanel
 				labelActionName.setText( action );
 				labelActionDescription.setText( "TODO" );
 				textFieldBinding.setText( trigger == null ? "" : prettyPrintTrigger( trigger ) );
-				txtfieldContext.setText( prettyPrintContexts( contexts ) );
+				panelContextEditor.setTags( contexts );
 			}
 		} );
 
@@ -305,27 +305,25 @@ public class VisualEditorPanel extends JPanel
 		final String str2 = str
 				.replaceAll( "shift", "\u21E7" )
 				.replaceAll( "win", "\u229E" )
-				.replaceAll( "control", "\u2303" )
+				.replaceAll( "ctrl", "\u2303" )
 				.replaceAll( "escape", "\u238B" )
 				.replaceAll( "tab", "\u21E5" )
-				.replaceAll( "caps lock", "\u21EA" )
-				.replaceAll( "shift", "\u21E7" )
-				.replaceAll( "control", "\u2303" )
+				.replaceAll( "caps_lock", "\u21EA" )
 				.replaceAll( "option", "\u2325" )
 				.replaceAll( "Apple", "\uF8FF" )
 				.replaceAll( "command", "\u2318" )
 				.replaceAll( "space", "\u2423" )
 				.replaceAll( "return", "\u23CE" )
-				.replaceAll( "backspace", "\u232B" )
+				.replaceAll( "back_space", "\u232B" )
 				.replaceAll( "delete", "\u2326" )
 				.replaceAll( "home", "\u21F1" )
 				.replaceAll( "end", "\u21F2" )
-				.replaceAll( "page up", "\u21DE" )
-				.replaceAll( "page down", "\u21DF" )
-				.replaceAll( "up arrow", "\u2191" )
-				.replaceAll( "down arrow", "\u2193" )
-				.replaceAll( "left arrow", "\u2190" )
-				.replaceAll( "right arrow", "\u2192" )
+				.replaceAll( "page_up", "\u21DE" )
+				.replaceAll( "page_down", "\u21DF" )
+				.replaceAll( "up", "\u2191" )
+				.replaceAll( "down", "\u2193" )
+				.replaceAll( "left", "\u2190" )
+				.replaceAll( "right", "\u2192" )
 				.replaceAll( "clear", "\u2327" )
 				.replaceAll( "num lock", "\u21ED" )
 				.replaceAll( "enter", "\u2324" )
@@ -457,6 +455,10 @@ public class VisualEditorPanel extends JPanel
 				"  action: scroll1" + "\n" +
 				"  contexts: [trackscheme, mamut]" + "\n" +
 				"  triggers: [shift D]" + "\n" +
+				"- !mapping" + "\n" +
+				"  action: destroy the world" + "\n" +
+				"  contexts: [unknown context, mamut]" + "\n" +
+				"  triggers: [control A]" + "\n" +
 				"" );
 		final List< InputTriggerDescription > triggers = YamlConfigIO.read( reader );
 		final InputTriggerConfig config = new InputTriggerConfig( triggers );
