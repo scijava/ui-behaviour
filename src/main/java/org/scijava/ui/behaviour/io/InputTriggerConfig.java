@@ -84,7 +84,6 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		return new InputTriggerAdderImp( map, this, contexts );
 	}
 
-
 	@Override
 	public KeyStrokeAdder keyStrokeAdder( final InputMap map, final String ... contexts )
 	{
@@ -297,6 +296,39 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 					triggers.add( input.trigger );
 		}
 		return triggers;
+	}
+
+	void add( final String trigger, final String behaviourName, final String context )
+	{
+		add( InputTrigger.getFromString( trigger ), behaviourName, context );
+	}
+
+	void add( final InputTrigger trigger, final String behaviourName, final String context )
+	{
+		add( trigger, behaviourName, Collections.singleton( context ) );
+	}
+
+	synchronized void add( final InputTrigger trigger, final String behaviourName, final Set< String > contexts )
+	{
+		Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new HashSet<>() );
+		for ( final Input input : inputs )
+		{
+			if ( input.trigger.equals( trigger ) )
+			{
+				/*
+				 * the trigger -> behaviour binding already exists.
+				 * just add the new context
+				 */
+				input.contexts.addAll( contexts );
+				return;
+			}
+		}
+
+		/*
+		 * the trigger -> behaviour binding does not exist.
+		 * add it
+		 */
+		inputs.add( new Input( trigger, behaviourName, contexts ) );
 	}
 
 	/*
