@@ -51,9 +51,11 @@ public class Actions
 
 	private final ActionMap actionMap;
 
-	protected final KeyStrokeAdder.Factory keyConfig;
+	private final String[] keyConfigContexts;
 
-	protected final KeyStrokeAdder keyStrokeAdder;
+	protected KeyStrokeAdder.Factory keyConfig;
+
+	protected KeyStrokeAdder keyStrokeAdder;
 
 	/**
 	 * Construct with new, empty {@link InputMap} and {@link ActionMap}. Actions
@@ -103,6 +105,7 @@ public class Actions
 		this.actionMap = actionMap;
 		this.inputMap = inputMap;
 		this.keyConfig = keyConfig;
+		this.keyConfigContexts = keyConfigContexts;
 		keyStrokeAdder = keyConfig.keyStrokeAdder( inputMap, keyConfigContexts );
 	}
 
@@ -173,5 +176,21 @@ public class Actions
 	{
 		keyStrokeAdder.put( action.name(), defaultKeyStrokes );
 		action.put( actionMap );
+	}
+
+	/**
+	 * Clears the {@link InputMap} and re-adds all ({@code String}) action keys
+	 * from {@link ActionMap} using the provided {@code keyConfig}.
+	 *
+	 * @param keyConfig
+	 *            the new keyConfig
+	 */
+	public void updateKeyConfig( final KeyStrokeAdder.Factory keyConfig )
+	{
+		this.keyConfig = keyConfig;
+		keyStrokeAdder = keyConfig.keyStrokeAdder( inputMap, keyConfigContexts );
+		inputMap.clear();
+		for ( final Object o : actionMap.keys() )
+			keyStrokeAdder.put( ( String ) o );
 	}
 }

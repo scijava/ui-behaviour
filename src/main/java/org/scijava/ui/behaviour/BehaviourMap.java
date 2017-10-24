@@ -30,9 +30,11 @@
 package org.scijava.ui.behaviour;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import java.util.Set;
 import javax.swing.ActionMap;
 
 /**
@@ -154,6 +156,11 @@ public class BehaviourMap
 			allBindings.put( entry.getKey(), entry.getValue() );
 
 		return allBindings;
+	}
+
+	public synchronized Set< String > keys()
+	{
+		return new HashSet<>( behaviours.keySet() );
 	}
 
 	public int modCount()

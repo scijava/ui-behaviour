@@ -51,9 +51,11 @@ public class Behaviours
 
 	private final BehaviourMap behaviourMap;
 
-	protected final InputTriggerAdder.Factory keyConfig;
+	private final String[] keyConfigContexts;
 
-	protected final InputTriggerAdder inputTriggerAdder;
+	protected InputTriggerAdder.Factory keyConfig;
+
+	protected InputTriggerAdder inputTriggerAdder;
 
 	/**
 	 * Construct with new, empty {@link InputTriggerMap} and
@@ -103,6 +105,7 @@ public class Behaviours
 		this.inputTriggerMap = inputTriggerMap;
 		this.behaviourMap = behaviourMap;
 		this.keyConfig = keyConfig;
+		this.keyConfigContexts = keyConfigContexts;
 		inputTriggerAdder = keyConfig.inputTriggerAdder( inputTriggerMap, keyConfigContexts );
 	}
 
@@ -152,5 +155,21 @@ public class Behaviours
 	{
 		inputTriggerAdder.put( behaviour.name(), defaultTriggers );
 		behaviour.put( behaviourMap );
+	}
+
+	/**
+	 * Clears the {@link InputTriggerMap} and re-adds all behaviour keys from
+	 * {@link BehaviourMap} using the provided {@code keyConfig}.
+	 *
+	 * @param keyConfig
+	 *            the new keyConfig
+	 */
+	public void updateKeyConfig( final InputTriggerAdder.Factory keyConfig )
+	{
+		this.keyConfig = keyConfig;
+		inputTriggerAdder = keyConfig.inputTriggerAdder( inputTriggerMap, keyConfigContexts );
+		inputTriggerMap.clear();
+		for ( final String behaviourName : behaviourMap.keys() )
+			inputTriggerAdder.put( behaviourName );
 	}
 }
