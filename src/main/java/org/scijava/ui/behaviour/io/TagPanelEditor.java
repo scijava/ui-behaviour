@@ -2,7 +2,6 @@ package org.scijava.ui.behaviour.io;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
@@ -10,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -27,6 +27,12 @@ import javax.swing.text.BadLocationException;
 public class TagPanelEditor extends JPanel
 {
 
+	@FunctionalInterface
+	public static interface TagSelectionChangeListener
+	{
+		public void tagSelectionChanged();
+	}
+
 	private static final long serialVersionUID = 1L;
 
 	private static final String COMMIT_ACTION = "commit";
@@ -41,6 +47,8 @@ public class TagPanelEditor extends JPanel
 
 	private final boolean editable;
 
+	private final HashSet< TagSelectionChangeListener > listeners;
+
 	public TagPanelEditor( final Collection< String > tags )
 	{
 		this( tags, true );
@@ -53,6 +61,7 @@ public class TagPanelEditor extends JPanel
 		this.tags.sort( null );
 		this.selectedTags = new ArrayList<>();
 		this.tagPanels = new ArrayList<>();
+		this.listeners = new HashSet<>();
 
 		setPreferredSize( new Dimension( 400, 26 ) );
 		setMinimumSize( new Dimension( 26, 26 ) );
@@ -128,6 +137,7 @@ public class TagPanelEditor extends JPanel
 
 		selectedTags.remove( index );
 		final TagPanel tagPanel = tagPanels.remove( index );
+		notifyListeners();
 		remove( tagPanel );
 		revalidate();
 		repaint();
@@ -216,7 +226,9 @@ public class TagPanelEditor extends JPanel
 
 				addTag( tag );
 				textField.setText( "" );
+				notifyListeners();
 				revalidate();
+				repaint();
 			}
 		}
 
@@ -264,8 +276,6 @@ public class TagPanelEditor extends JPanel
 			close.setOpaque( true );
 			close.setBackground( getBackground().darker().darker() );
 			close.setFont( font );
-
-			setLayout( new FlowLayout( FlowLayout.CENTER, 2, 0 ) );
 			close.addMouseListener( new java.awt.event.MouseAdapter()
 			{
 				@Override
@@ -274,11 +284,31 @@ public class TagPanelEditor extends JPanel
 					removeTag( tag );
 				}
 			} );
+
+			setLayout( new BoxLayout( this, BoxLayout.LINE_AXIS ) );
 			if ( editable )
 				add( close );
+			add( Box.createHorizontalStrut( 1 ) );
 			add( txt );
+			add( Box.createHorizontalStrut( 4 ) );
 			setOpaque( false );
 		}
+	}
+
+	private void notifyListeners()
+	{
+		for ( final TagSelectionChangeListener listener : listeners )
+			listener.tagSelectionChanged();
+	}
+
+	public void addTagSelectionChangeListener( final TagSelectionChangeListener listener )
+	{
+		listeners.add(listener);
+	}
+
+	public void removeTagSelectionChangeListener( final TagSelectionChangeListener listener )
+	{
+		listeners.remove(listener);
 	}
 
 }
