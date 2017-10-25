@@ -39,8 +39,16 @@ public class TagPanelEditor extends JPanel
 
 	private final JTextField textField;
 
+	private final boolean editable;
+
 	public TagPanelEditor( final Collection< String > tags )
 	{
+		this( tags, true );
+	}
+
+	public TagPanelEditor( final Collection< String > tags, final boolean editable )
+	{
+		this.editable = editable;
 		this.tags = new ArrayList<>( tags );
 		this.tags.sort( null );
 		this.selectedTags = new ArrayList<>();
@@ -56,27 +64,31 @@ public class TagPanelEditor extends JPanel
 		textField.setColumns( 10 );
 		textField.setBorder( null );
 		textField.setOpaque( false );
+		textField.setEditable( editable );
 
-		final Autocomplete autoComplete = new Autocomplete();
-		textField.getDocument().addDocumentListener( autoComplete );
-		textField.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), COMMIT_ACTION );
-		textField.getActionMap().put( COMMIT_ACTION, autoComplete.new CommitAction() );
-		textField.addKeyListener( new KeyAdapter()
+		if ( editable )
 		{
-			@Override
-			public void keyPressed( final KeyEvent e )
+			final Autocomplete autoComplete = new Autocomplete();
+			textField.getDocument().addDocumentListener( autoComplete );
+			textField.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), COMMIT_ACTION );
+			textField.getActionMap().put( COMMIT_ACTION, autoComplete.new CommitAction() );
+			textField.addKeyListener( new KeyAdapter()
 			{
-				/*
-				 * We have to use a key listener to deal separately with
-				 * character removal and tag removal.
-				 */
-				if ( e.getKeyCode() == KeyEvent.VK_BACK_SPACE && textField.getText().isEmpty() && !selectedTags.isEmpty() )
+				@Override
+				public void keyPressed( final KeyEvent e )
 				{
-					removeTag( selectedTags.get( selectedTags.size() - 1 ) );
-					e.consume();
+					/*
+					 * We have to use a key listener to deal separately with
+					 * character removal and tag removal.
+					 */
+					if ( e.getKeyCode() == KeyEvent.VK_BACK_SPACE && textField.getText().isEmpty() && !selectedTags.isEmpty() )
+					{
+						removeTag( selectedTags.get( selectedTags.size() - 1 ) );
+						e.consume();
+					}
 				}
-			}
-		} );
+			} );
+		}
 
 		add( textField );
 		add( Box.createHorizontalGlue() );
@@ -246,7 +258,7 @@ public class TagPanelEditor extends JPanel
 			txt.setOpaque( true );
 			if ( !valid )
 				txt.setBackground( Color.PINK );
-			txt.setBorder( new RoundBorder( getBackground().darker(), Color.WHITE, 3 ) );
+			txt.setBorder( new RoundBorder( getBackground().darker(), TagPanelEditor.this, 3 ) );
 
 			final JLabel close = new JLabel( "\u00D7" );
 			close.setOpaque( true );
@@ -262,7 +274,8 @@ public class TagPanelEditor extends JPanel
 					removeTag( tag );
 				}
 			} );
-			add( close );
+			if ( editable )
+				add( close );
 			add( txt );
 			setOpaque( false );
 		}

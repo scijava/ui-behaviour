@@ -16,12 +16,12 @@ public class RoundBorder extends LineBorder
 {
 
 	private static final long serialVersionUID = 1L;
-	private final Color backColor;
+	private final Component parent;
 
-	public RoundBorder( final Color color, final Color backColor, final int arc )
+	public RoundBorder( final Color color, final Component parent, final int arc )
 	{
 		super( color, arc );
-		this.backColor = backColor;
+		this.parent = parent;
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class RoundBorder extends LineBorder
 			final Shape inner = new RoundRectangle2D.Float( x, y, width - 1, height - 1, (int) arc, (int) arc );
 			final Shape outer = new Rectangle( x, y, width, height );
 
-			g2d.setColor( backColor );
+			g2d.setColor( parent.getBackground() );
 			final Area area = new Area(outer);
 			area.exclusiveOr( new Area(inner) );
 			g2d.fill( area );
