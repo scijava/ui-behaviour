@@ -9,6 +9,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -231,7 +232,6 @@ public class VisualEditorPanel extends JPanel
 				final String action = tableModel.actions.get( row );
 				final InputTrigger trigger = tableModel.bindings.get( row );
 				final List< String > contexts = new ArrayList<>( tableModel.contexts.get( row ) );
-				contexts.sort( null );
 
 				labelActionName.setText( action );
 				labelActionDescription.setText( "TODO" );
@@ -240,9 +240,14 @@ public class VisualEditorPanel extends JPanel
 			}
 		} );
 
+		// Listen to changes in context editor and forward to table model.
+		panelContextEditor.addTagSelectionChangeListener( () -> contextsChanged( tableBindings.getSelectedRow(), panelContextEditor.getSelectedTags() ) );
+
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
-		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer() );
+		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( contexts ) );
+		tableBindings.getSelectionModel().setSelectionInterval( 0, 0 );
+		tableBindings.setRowHeight( 30 );
 		scrollPane.setViewportView( tableBindings );
 	}
 
@@ -250,36 +255,37 @@ public class VisualEditorPanel extends JPanel
 	 * INNER CLASSES
 	 */
 
-	private static final class MyContextsRenderer extends DefaultTableCellRenderer implements TableCellRenderer
+	private void contextsChanged( final int row, final List< String > selectedContexts )
 	{
+		if ( row < 0 )
+			return;
+
+		tableModel.contexts.set( row, new ArrayList<>( selectedContexts ) );
+		tableModel.fireTableCellUpdated( row, 2 );
+	}
+
+	private static final class MyContextsRenderer extends TagPanelEditor implements TableCellRenderer
+	{
+
+		public MyContextsRenderer( final Collection< String > tags )
+		{
+			super( tags, false );
+			setBorder( null );
+		}
 
 		private static final long serialVersionUID = 1L;
 
 		@Override
 		public Component getTableCellRendererComponent( final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column )
 		{
-			super.getTableCellRendererComponent( table, value, isSelected, hasFocus, row, column );
+			setForeground( isSelected ? table.getSelectionForeground() : table.getForeground() );
+			setBackground( isSelected ? table.getSelectionBackground() : table.getBackground() );
+
 			@SuppressWarnings( "unchecked" )
 			final List< String > contexts = ( List< String > ) value;
-			setText( prettyPrintContexts( contexts ) );
+			setTags( contexts );
 			setToolTipText( contexts.toString() );
 			return this;
-		}
-	}
-
-	private static final String prettyPrintContexts( final List< String > contexts )
-	{
-		if ( null == contexts || contexts.isEmpty() )
-		{
-			return "";
-		}
-		else
-		{
-			final StringBuilder str = new StringBuilder();
-			str.append( contexts.get( 0 ) );
-			for ( int i = 1; i < contexts.size(); i++ )
-				str.append( ", " + contexts.get( i ) );
-			return str.toString();
 		}
 	}
 
@@ -471,7 +477,7 @@ public class VisualEditorPanel extends JPanel
 		actions.add( "drag1" );
 		actions.add( "scroll1" );
 		actions.add( "destroy the world" );
-		actions.add( "awake the dragons" );
+		actions.add( "ride the dragon" );
 		actions.add( "make some coffee" );
 		return actions;
 	}
