@@ -1,4 +1,4 @@
-package org.scijava.ui.behaviour.io;
+package org.scijava.ui.behaviour.io.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Box;
@@ -37,17 +38,19 @@ public class TagPanelEditor extends JPanel
 
 	private static final String COMMIT_ACTION = "commit";
 
-	private final List< String > selectedTags;
+	protected final List< String > selectedTags;
 
-	private final List< TagPanel > tagPanels;
+	protected final List< TagPanel > tagPanels;
 
-	private final List< String > tags;
+	protected final List< String > tags;
 
 	private final JTextField textField;
 
 	private final boolean editable;
 
 	private final HashSet< TagSelectionChangeListener > listeners;
+
+	private final Map< String, String > printables;
 
 	public TagPanelEditor( final Collection< String > tags )
 	{
@@ -56,7 +59,13 @@ public class TagPanelEditor extends JPanel
 
 	public TagPanelEditor( final Collection< String > tags, final boolean editable )
 	{
+		this( tags, editable, Collections.emptyMap() );
+	}
+
+	public TagPanelEditor( final Collection< String > tags, final boolean editable, final Map< String, String > printables )
+	{
 		this.editable = editable;
+		this.printables = printables;
 		this.tags = new ArrayList<>( tags );
 		this.tags.sort( null );
 		this.selectedTags = new ArrayList<>();
@@ -121,7 +130,7 @@ public class TagPanelEditor extends JPanel
 		repaint();
 	}
 
-	private void addTag( final String tag )
+	protected void addTag( final String tag )
 	{
 		final TagPanel tagp = new TagPanel( tag, this.tags.contains( tag ) );
 		selectedTags.add( tag );
@@ -257,7 +266,7 @@ public class TagPanelEditor extends JPanel
 
 	}
 
-	private final class TagPanel extends JPanel
+	final class TagPanel extends JPanel
 	{
 
 		private static final long serialVersionUID = 1L;
@@ -265,7 +274,8 @@ public class TagPanelEditor extends JPanel
 		public TagPanel( final String tag, final boolean valid )
 		{
 			final Font font = TagPanelEditor.this.getFont().deriveFont( TagPanelEditor.this.getFont().getSize2D() - 2f );
-			final JLabel txt = new JLabel( tag );
+			final String str = printables.containsKey( tag ) ? printables.get( tag ) : tag;
+			final JLabel txt = new JLabel( str );
 			txt.setFont( font );
 			txt.setOpaque( true );
 			if ( !valid )
@@ -303,12 +313,12 @@ public class TagPanelEditor extends JPanel
 
 	public void addTagSelectionChangeListener( final TagSelectionChangeListener listener )
 	{
-		listeners.add(listener);
+		listeners.add( listener );
 	}
 
 	public void removeTagSelectionChangeListener( final TagSelectionChangeListener listener )
 	{
-		listeners.remove(listener);
+		listeners.remove( listener );
 	}
 
 }

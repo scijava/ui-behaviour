@@ -1,4 +1,4 @@
-package org.scijava.ui.behaviour.io;
+package org.scijava.ui.behaviour.io.gui;
 
 import java.awt.Color;
 import java.awt.Component;

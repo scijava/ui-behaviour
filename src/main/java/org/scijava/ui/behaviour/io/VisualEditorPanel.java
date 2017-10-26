@@ -39,6 +39,8 @@ import javax.swing.table.TableCellRenderer;
 
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig.Input;
+import org.scijava.ui.behaviour.io.gui.KeyBindingsPanelEditor;
+import org.scijava.ui.behaviour.io.gui.TagPanelEditor;
 import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
 
 public class VisualEditorPanel extends JPanel
@@ -48,7 +50,7 @@ public class VisualEditorPanel extends JPanel
 
 	private JTextField textFieldFilter;
 
-	private JTextField textFieldBinding;
+	private KeyBindingsPanelEditor textFieldBinding;
 
 	private InputTriggerConfig config;
 
@@ -132,14 +134,13 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblBinding.gridy = 0;
 		panelCommandEditor.add( lblBinding, gbc_lblBinding );
 
-		textFieldBinding = new JTextField();
+		textFieldBinding = new KeyBindingsPanelEditor( true );
 		final GridBagConstraints gbc_textFieldBinding = new GridBagConstraints();
 		gbc_textFieldBinding.insets = new Insets( 5, 5, 5, 5 );
 		gbc_textFieldBinding.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textFieldBinding.gridx = 3;
 		gbc_textFieldBinding.gridy = 0;
 		panelCommandEditor.add( textFieldBinding, gbc_textFieldBinding );
-		textFieldBinding.setColumns( 10 );
 
 		final JButton buttonSpecialChar = new JButton( "<" );
 		final GridBagConstraints gbc_buttonSpecialChar = new GridBagConstraints();
@@ -235,7 +236,7 @@ public class VisualEditorPanel extends JPanel
 
 				labelActionName.setText( action );
 				labelActionDescription.setText( "TODO" );
-				textFieldBinding.setText( trigger == null ? "" : prettyPrintTrigger( trigger ) );
+//				textFieldBinding.setText( trigger == null ? "" : prettyPrintTrigger( trigger ) ); TODO
 				panelContextEditor.setTags( contexts );
 			}
 		} );
