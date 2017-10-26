@@ -34,12 +34,11 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig.Input;
-import org.scijava.ui.behaviour.io.gui.KeyBindingsPanelEditor;
+import org.scijava.ui.behaviour.io.gui.InputTriggerPanelEditor;
 import org.scijava.ui.behaviour.io.gui.TagPanelEditor;
 import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
 
@@ -50,13 +49,7 @@ public class VisualEditorPanel extends JPanel
 
 	private JTextField textFieldFilter;
 
-	private KeyBindingsPanelEditor textFieldBinding;
-
-	private InputTriggerConfig config;
-
-	private Set< String > actions;
-
-	private Set< String > contexts;
+	private InputTriggerPanelEditor textFieldBinding;
 
 	private final MyTableModel tableModel;
 
@@ -65,10 +58,6 @@ public class VisualEditorPanel extends JPanel
 	 */
 	public VisualEditorPanel( final InputTriggerConfig config, final Set< String > actions, final Set< String > contexts )
 	{
-		this.config = config;
-		this.actions = actions;
-		this.contexts = contexts;
-
 		/*
 		 * GUI
 		 */
@@ -119,7 +108,7 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblName.gridy = 0;
 		panelCommandEditor.add( lblName, gbc_lblName );
 
-		final JLabel labelActionName = new JLabel( "<>" );
+		final JLabel labelActionName = new JLabel();
 		final GridBagConstraints gbc_labelActionName = new GridBagConstraints();
 		gbc_labelActionName.insets = new Insets( 5, 5, 5, 5 );
 		gbc_labelActionName.gridx = 1;
@@ -134,7 +123,7 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblBinding.gridy = 0;
 		panelCommandEditor.add( lblBinding, gbc_lblBinding );
 
-		textFieldBinding = new KeyBindingsPanelEditor( true );
+		textFieldBinding = new InputTriggerPanelEditor( true );
 		final GridBagConstraints gbc_textFieldBinding = new GridBagConstraints();
 		gbc_textFieldBinding.insets = new Insets( 5, 5, 5, 5 );
 		gbc_textFieldBinding.fill = GridBagConstraints.HORIZONTAL;
@@ -157,7 +146,7 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblDescription.gridy = 1;
 		panelCommandEditor.add( lblDescription, gbc_lblDescription );
 
-		final JLabel labelActionDescription = new JLabel( "<>" );
+		final JLabel labelActionDescription = new JLabel();
 		final GridBagConstraints gbc_labelActionDescription = new GridBagConstraints();
 		gbc_labelActionDescription.gridheight = 2;
 		gbc_labelActionDescription.insets = new Insets( 5, 5, 5, 5 );
@@ -231,15 +220,20 @@ public class VisualEditorPanel extends JPanel
 					return;
 
 				final String action = tableModel.actions.get( row );
-				final InputTrigger trigger = tableModel.bindings.get( row );
-				final List< String > contexts = new ArrayList<>( tableModel.contexts.get( row ) );
-
 				labelActionName.setText( action );
-				labelActionDescription.setText( "TODO" );
-//				textFieldBinding.setText( trigger == null ? "" : prettyPrintTrigger( trigger ) ); TODO
+
+				final InputTrigger trigger = tableModel.bindings.get( row );
+				textFieldBinding.setInputTrigger( trigger );
+
+				final List< String > contexts = new ArrayList<>( tableModel.contexts.get( row ) );
 				panelContextEditor.setTags( contexts );
+
+				labelActionDescription.setText( "TODO" );
 			}
 		} );
+
+		// Listen to changes in the
+		textFieldBinding.addInputTriggerChangeListener( () -> keybindingsChanged( tableBindings.getSelectedRow(), textFieldBinding.getInputTrigger() ) );
 
 		// Listen to changes in context editor and forward to table model.
 		panelContextEditor.addTagSelectionChangeListener( () -> contextsChanged( tableBindings.getSelectedRow(), panelContextEditor.getSelectedTags() ) );
@@ -256,6 +250,15 @@ public class VisualEditorPanel extends JPanel
 	 * INNER CLASSES
 	 */
 
+	private void keybindingsChanged( final int row, final InputTrigger inputTrigger )
+	{
+		if ( row < 0 )
+			return;
+
+		tableModel.bindings.set( row, inputTrigger );
+		tableModel.fireTableCellUpdated( row, 1 );
+	}
+
 	private void contextsChanged( final int row, final List< String > selectedContexts )
 	{
 		if ( row < 0 )
@@ -268,13 +271,13 @@ public class VisualEditorPanel extends JPanel
 	private static final class MyContextsRenderer extends TagPanelEditor implements TableCellRenderer
 	{
 
+		private static final long serialVersionUID = 1L;
+
 		public MyContextsRenderer( final Collection< String > tags )
 		{
 			super( tags, false );
 			setBorder( null );
 		}
-
-		private static final long serialVersionUID = 1L;
 
 		@Override
 		public Component getTableCellRendererComponent( final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column )
@@ -290,57 +293,37 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
-	private static final class MyBindingsRenderer extends DefaultTableCellRenderer implements TableCellRenderer
+	private static final class MyBindingsRenderer extends InputTriggerPanelEditor implements TableCellRenderer
 	{
 
 		private static final long serialVersionUID = 1L;
 
+		public MyBindingsRenderer()
+		{
+			super( false );
+			setBorder( null );
+		}
+
 		@Override
 		public Component getTableCellRendererComponent( final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column )
 		{
-			super.getTableCellRendererComponent( table, value, isSelected, hasFocus, row, column );
+			setForeground( isSelected ? table.getSelectionForeground() : table.getForeground() );
+			setBackground( isSelected ? table.getSelectionBackground() : table.getBackground() );
+
 			final InputTrigger input = ( InputTrigger ) value;
-			setText( null == input ? "" : prettyPrintTrigger( input ) );
-			setToolTipText( null == input ? "" : input.toString() );
+			if ( null != input )
+			{
+				setInputTrigger( input );
+				final String val = input.toString();
+				setToolTipText( val );
+			}
+			else
+			{
+				setInputTrigger( InputTrigger.NOT_MAPPED );
+				setToolTipText( "No binding" );
+			}
 			return this;
 		}
-	}
-
-	private static final String prettyPrintTrigger( final InputTrigger input )
-	{
-		final String str = input.toString();
-		final String str2 = str
-				.replaceAll( "shift", "\u21E7" )
-				.replaceAll( "win", "\u229E" )
-				.replaceAll( "ctrl", "\u2303" )
-				.replaceAll( "escape", "\u238B" )
-				.replaceAll( "tab", "\u21E5" )
-				.replaceAll( "caps_lock", "\u21EA" )
-				.replaceAll( "option", "\u2325" )
-				.replaceAll( "Apple", "\uF8FF" )
-				.replaceAll( "command", "\u2318" )
-				.replaceAll( "space", "\u2423" )
-				.replaceAll( "return", "\u23CE" )
-				.replaceAll( "back_space", "\u232B" )
-				.replaceAll( "delete", "\u2326" )
-				.replaceAll( "home", "\u21F1" )
-				.replaceAll( "end", "\u21F2" )
-				.replaceAll( "page_up", "\u21DE" )
-				.replaceAll( "page_down", "\u21DF" )
-				.replaceAll( "up", "\u2191" )
-				.replaceAll( "down", "\u2193" )
-				.replaceAll( "left", "\u2190" )
-				.replaceAll( "right", "\u2192" )
-				.replaceAll( "clear", "\u2327" )
-				.replaceAll( "num lock", "\u21ED" )
-				.replaceAll( "enter", "\u2324" )
-				.replaceAll( "eject", "\u23CF" )
-				.replaceAll( "power", "\u233D" )
-				.replaceAll( "button1", "left mouse button" )
-				.replaceAll( "button2", "middle mouse button" )
-				.replaceAll( "button3", "right mouse button" )
-				.replaceAll( "scroll", "\u21c5" ); // double arrow. Not ideal.
-		return str2;
 	}
 
 	private static class MyTableModel extends AbstractTableModel
@@ -374,7 +357,7 @@ public class VisualEditorPanel extends JPanel
 				if ( null == inputs )
 				{
 					actions.add( action );
-					bindings.add( null );
+					bindings.add( InputTrigger.NOT_MAPPED );
 					contexts.add( Collections.emptyList() );
 				}
 				else
