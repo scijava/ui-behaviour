@@ -94,9 +94,9 @@ public class VisualEditorPanel extends JPanel
 		final JPanel panelCommandEditor = new JPanel();
 		panelEditor.add( panelCommandEditor, BorderLayout.CENTER );
 		final GridBagLayout gbl_panelCommandEditor = new GridBagLayout();
-		gbl_panelCommandEditor.columnWidths = new int[] { 30, 100, 30, 0, 0 };
+		gbl_panelCommandEditor.columnWidths = new int[] { 30, 100, 30, 0 };
 		gbl_panelCommandEditor.rowHeights = new int[] { 20, 20, 20 };
-		gbl_panelCommandEditor.columnWeights = new double[] { 0.0, 1.0, 0.0, 1.0, 0.0 };
+		gbl_panelCommandEditor.columnWeights = new double[] { 0.0, 1.0, 0.0, 1.0 };
 		gbl_panelCommandEditor.rowWeights = new double[] { 0.0, 0.0, 0.0 };
 		panelCommandEditor.setLayout( gbl_panelCommandEditor );
 
@@ -125,18 +125,11 @@ public class VisualEditorPanel extends JPanel
 
 		textFieldBinding = new InputTriggerPanelEditor( true );
 		final GridBagConstraints gbc_textFieldBinding = new GridBagConstraints();
-		gbc_textFieldBinding.insets = new Insets( 5, 5, 5, 5 );
+		gbc_textFieldBinding.insets = new Insets(5, 5, 5, 5);
 		gbc_textFieldBinding.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textFieldBinding.gridx = 3;
 		gbc_textFieldBinding.gridy = 0;
 		panelCommandEditor.add( textFieldBinding, gbc_textFieldBinding );
-
-		final JButton buttonSpecialChar = new JButton( "<" );
-		final GridBagConstraints gbc_buttonSpecialChar = new GridBagConstraints();
-		gbc_buttonSpecialChar.insets = new Insets( 5, 5, 5, 5 );
-		gbc_buttonSpecialChar.gridx = 4;
-		gbc_buttonSpecialChar.gridy = 0;
-		panelCommandEditor.add( buttonSpecialChar, gbc_buttonSpecialChar );
 
 		final JLabel lblDescription = new JLabel( "Description:" );
 		final GridBagConstraints gbc_lblDescription = new GridBagConstraints();
@@ -149,7 +142,7 @@ public class VisualEditorPanel extends JPanel
 		final JLabel labelActionDescription = new JLabel();
 		final GridBagConstraints gbc_labelActionDescription = new GridBagConstraints();
 		gbc_labelActionDescription.gridheight = 2;
-		gbc_labelActionDescription.insets = new Insets( 5, 5, 5, 5 );
+		gbc_labelActionDescription.insets = new Insets(5, 5, 5, 5);
 		gbc_labelActionDescription.gridx = 1;
 		gbc_labelActionDescription.gridy = 1;
 		panelCommandEditor.add( labelActionDescription, gbc_labelActionDescription );
@@ -164,8 +157,7 @@ public class VisualEditorPanel extends JPanel
 
 		final TagPanelEditor panelContextEditor = new TagPanelEditor( contexts );
 		final GridBagConstraints gbc_comboBoxContext = new GridBagConstraints();
-		gbc_comboBoxContext.gridwidth = 2;
-		gbc_comboBoxContext.insets = new Insets( 5, 5, 5, 5 );
+		gbc_comboBoxContext.insets = new Insets(5, 5, 5, 5);
 		gbc_comboBoxContext.fill = GridBagConstraints.BOTH;
 		gbc_comboBoxContext.gridx = 3;
 		gbc_comboBoxContext.gridy = 1;
@@ -173,7 +165,7 @@ public class VisualEditorPanel extends JPanel
 
 		final JLabel lblConflicts = new JLabel( "Conflicts:" );
 		final GridBagConstraints gbc_lblConflicts = new GridBagConstraints();
-		gbc_lblConflicts.insets = new Insets( 5, 5, 5, 5 );
+		gbc_lblConflicts.insets = new Insets(5, 5, 5, 5);
 		gbc_lblConflicts.anchor = GridBagConstraints.WEST;
 		gbc_lblConflicts.gridx = 2;
 		gbc_lblConflicts.gridy = 2;
@@ -181,7 +173,6 @@ public class VisualEditorPanel extends JPanel
 
 		final JLabel lblConflict = new JLabel( "TODO" );
 		final GridBagConstraints gbc_lblConflict = new GridBagConstraints();
-		gbc_lblConflict.gridwidth = 2;
 		gbc_lblConflict.gridx = 3;
 		gbc_lblConflict.gridy = 2;
 		panelCommandEditor.add( lblConflict, gbc_lblConflict );
