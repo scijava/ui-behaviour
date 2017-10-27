@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,9 +50,15 @@ public class VisualEditorPanel extends JPanel
 
 	private JTextField textFieldFilter;
 
-	private InputTriggerPanelEditor textFieldBinding;
-
 	private final MyTableModel tableModel;
+
+	private final InputTriggerPanelEditor keybindingEditor;
+
+	private final TagPanelEditor contextsEditor;
+
+	private final JLabel labelActionName;
+
+	private final JTable tableBindings;
 
 	/**
 	 * Create the panel.
@@ -77,22 +84,22 @@ public class VisualEditorPanel extends JPanel
 		panelCommandButtons.setLayout( new BoxLayout( panelCommandButtons, BoxLayout.X_AXIS ) );
 
 		final JButton btnCopyCommand = new JButton( "Copy" );
-		btnCopyCommand.setToolTipText("Duplicate action binding \nto a new, blank binding.");
+		btnCopyCommand.setToolTipText( "Duplicate action binding \nto a new, blank binding." );
 		panelCommandButtons.add( btnCopyCommand );
 
 		final JButton btnUnbindAction = new JButton( "Unbind" );
-		btnUnbindAction.setToolTipText("Remove current binding\nfor current action.");
+		btnUnbindAction.setToolTipText( "Remove current binding\nfor current action." );
 		panelCommandButtons.add( btnUnbindAction );
 
 		final JButton btnDeleteAction = new JButton( "Unbind all" );
-		btnDeleteAction.setToolTipText("Remove all bindings\nto current action.");
+		btnDeleteAction.setToolTipText( "Remove all bindings\nto current action." );
 		panelCommandButtons.add( btnDeleteAction );
 
 		final Component horizontalGlue = Box.createHorizontalGlue();
 		panelCommandButtons.add( horizontalGlue );
 
 		final JButton btnExportCsv = new JButton( "Export CSV" );
-		btnExportCsv.setToolTipText("Export all action bindings \nto a CSV file.");
+		btnExportCsv.setToolTipText( "Export all action bindings \nto a CSV file." );
 		panelCommandButtons.add( btnExportCsv );
 
 		final JPanel panelCommandEditor = new JPanel();
@@ -111,10 +118,10 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblName.gridy = 0;
 		panelCommandEditor.add( lblName, gbc_lblName );
 
-		final JLabel labelActionName = new JLabel();
+		this.labelActionName = new JLabel();
 		final GridBagConstraints gbc_labelActionName = new GridBagConstraints();
 		gbc_labelActionName.anchor = GridBagConstraints.WEST;
-		gbc_labelActionName.insets = new Insets(5, 5, 5, 5);
+		gbc_labelActionName.insets = new Insets( 5, 5, 5, 5 );
 		gbc_labelActionName.gridx = 1;
 		gbc_labelActionName.gridy = 0;
 		panelCommandEditor.add( labelActionName, gbc_labelActionName );
@@ -127,14 +134,13 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblBinding.gridy = 1;
 		panelCommandEditor.add( lblBinding, gbc_lblBinding );
 
-		textFieldBinding = new InputTriggerPanelEditor( true );
+		this.keybindingEditor = new InputTriggerPanelEditor( true );
 		final GridBagConstraints gbc_textFieldBinding = new GridBagConstraints();
-		gbc_textFieldBinding.insets = new Insets(5, 5, 5, 5);
+		gbc_textFieldBinding.insets = new Insets( 5, 5, 5, 5 );
 		gbc_textFieldBinding.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textFieldBinding.gridx = 1;
 		gbc_textFieldBinding.gridy = 1;
-		panelCommandEditor.add( textFieldBinding, gbc_textFieldBinding );
-
+		panelCommandEditor.add( keybindingEditor, gbc_textFieldBinding );
 
 		final JLabel lblContext = new JLabel( "Contexts:" );
 		final GridBagConstraints gbc_lblContext = new GridBagConstraints();
@@ -144,13 +150,13 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblContext.gridy = 2;
 		panelCommandEditor.add( lblContext, gbc_lblContext );
 
-		final TagPanelEditor panelContextEditor = new TagPanelEditor( contexts );
+		this.contextsEditor = new TagPanelEditor( contexts );
 		final GridBagConstraints gbc_comboBoxContext = new GridBagConstraints();
-		gbc_comboBoxContext.insets = new Insets(5, 5, 5, 5);
+		gbc_comboBoxContext.insets = new Insets( 5, 5, 5, 5 );
 		gbc_comboBoxContext.fill = GridBagConstraints.BOTH;
 		gbc_comboBoxContext.gridx = 1;
 		gbc_comboBoxContext.gridy = 2;
-		panelCommandEditor.add( panelContextEditor, gbc_comboBoxContext );
+		panelCommandEditor.add( contextsEditor, gbc_comboBoxContext );
 
 		final JLabel lblConflicts = new JLabel( "Conflicts:" );
 		final GridBagConstraints gbc_lblConflicts = new GridBagConstraints();
@@ -162,7 +168,7 @@ public class VisualEditorPanel extends JPanel
 
 		final JLabel lblConflict = new JLabel( "" );
 		final GridBagConstraints gbc_lblConflict = new GridBagConstraints();
-		gbc_lblConflict.insets = new Insets(5, 5, 5, 5);
+		gbc_lblConflict.insets = new Insets( 5, 5, 5, 5 );
 		gbc_lblConflict.gridx = 1;
 		gbc_lblConflict.gridy = 3;
 		panelCommandEditor.add( lblConflict, gbc_lblConflict );
@@ -170,7 +176,7 @@ public class VisualEditorPanel extends JPanel
 		final JLabel lblDescription = new JLabel( "Description:" );
 		final GridBagConstraints gbc_lblDescription = new GridBagConstraints();
 		gbc_lblDescription.fill = GridBagConstraints.VERTICAL;
-		gbc_lblDescription.insets = new Insets(5, 5, 5, 5);
+		gbc_lblDescription.insets = new Insets( 5, 5, 5, 5 );
 		gbc_lblDescription.anchor = GridBagConstraints.WEST;
 		gbc_lblDescription.gridx = 0;
 		gbc_lblDescription.gridy = 4;
@@ -179,7 +185,7 @@ public class VisualEditorPanel extends JPanel
 		final JLabel labelActionDescription = new JLabel();
 		final GridBagConstraints gbc_labelActionDescription = new GridBagConstraints();
 		gbc_labelActionDescription.fill = GridBagConstraints.VERTICAL;
-		gbc_labelActionDescription.insets = new Insets(5, 5, 5, 5);
+		gbc_labelActionDescription.insets = new Insets( 5, 5, 5, 5 );
 		gbc_labelActionDescription.gridx = 1;
 		gbc_labelActionDescription.gridy = 4;
 		panelCommandEditor.add( labelActionDescription, gbc_labelActionDescription );
@@ -201,7 +207,7 @@ public class VisualEditorPanel extends JPanel
 		add( scrollPane, BorderLayout.CENTER );
 
 		tableModel = new MyTableModel( actions, config.actionToInputsMap );
-		final JTable tableBindings = new JTable( tableModel );
+		tableBindings = new JTable( tableModel );
 		tableBindings.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
 		tableBindings.setFillsViewportHeight( true );
 		tableBindings.setAutoResizeMode( JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS );
@@ -212,27 +218,19 @@ public class VisualEditorPanel extends JPanel
 			{
 				if ( e.getValueIsAdjusting() )
 					return;
-
-				final int row = tableBindings.getSelectedRow();
-				if ( row < 0 )
-					return;
-
-				final String action = tableModel.actions.get( row );
-				labelActionName.setText( action );
-
-				final InputTrigger trigger = tableModel.bindings.get( row );
-				textFieldBinding.setInputTrigger( trigger );
-
-				final List< String > contexts = new ArrayList<>( tableModel.contexts.get( row ) );
-				panelContextEditor.setTags( contexts );
+				updateEditors();
 			}
 		} );
 
 		// Listen to changes in the
-		textFieldBinding.addInputTriggerChangeListener( () -> keybindingsChanged( tableBindings.getSelectedRow(), textFieldBinding.getInputTrigger() ) );
+		keybindingEditor.addInputTriggerChangeListener( () -> keybindingsChanged( tableBindings.getSelectedRow(), keybindingEditor.getInputTrigger() ) );
 
 		// Listen to changes in context editor and forward to table model.
-		panelContextEditor.addTagSelectionChangeListener( () -> contextsChanged( tableBindings.getSelectedRow(), panelContextEditor.getSelectedTags() ) );
+		contextsEditor.addTagSelectionChangeListener( () -> contextsChanged( tableBindings.getSelectedRow(), contextsEditor.getSelectedTags() ) );
+
+		// Button presses.
+		btnCopyCommand.addActionListener( ( e ) -> copyCommand( tableBindings.getSelectedRow() ) );
+		btnUnbindAction.addActionListener( ( e ) -> unbindCommand( tableBindings.getSelectedRow() ) );
 
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
@@ -242,9 +240,100 @@ public class VisualEditorPanel extends JPanel
 		scrollPane.setViewportView( tableBindings );
 	}
 
-	/*
-	 * INNER CLASSES
-	 */
+	private void updateEditors()
+	{
+		final int row = tableBindings.getSelectedRow();
+		if ( row < 0 )
+		{
+			labelActionName.setText( "" );
+			keybindingEditor.setInputTrigger( InputTrigger.NOT_MAPPED );
+			contextsEditor.setTags( Collections.emptyList() );
+			return;
+		}
+
+		final String action = tableModel.actions.get( row );
+		final InputTrigger trigger = tableModel.bindings.get( row );
+		final List< String > contexts = new ArrayList<>( tableModel.contexts.get( row ) );
+
+		labelActionName.setText( action );
+		keybindingEditor.setInputTrigger( trigger );
+		contextsEditor.setTags( contexts );
+	}
+
+	private void unbindCommand( final int row )
+	{
+		if ( row < 0 )
+			return;
+
+		final InputTrigger inputTrigger = tableModel.bindings.get( row );
+		if ( inputTrigger == InputTrigger.NOT_MAPPED )
+			return;
+
+		// Update model &
+		keybindingsChanged( row, InputTrigger.NOT_MAPPED );
+		contextsChanged( row, Collections.emptyList() );
+
+		// Find whether we have two lines with the same action, unbound.
+		removeDuplicates();
+	}
+
+	private void removeDuplicates()
+	{
+		final Map< String, Set< InputTrigger > > bindings = new HashMap<>();
+		final List< Integer > toRemove = new ArrayList<>();
+		for ( int row = 0; row < tableModel.getRowCount(); row++ )
+		{
+			final String action = tableModel.actions.get( row );
+			final InputTrigger trigger = tableModel.bindings.get( row );
+
+			if ( bindings.get( action ) == null )
+			{
+				final Set< InputTrigger > triggers = new HashSet<>();
+				triggers.add( trigger );
+				bindings.put( action, triggers );
+			}
+			else
+			{
+				final Set< InputTrigger > triggers = bindings.get( action );
+				final boolean notAlreadyPresent = triggers.add( trigger );
+				if ( !notAlreadyPresent )
+					toRemove.add( Integer.valueOf( row ) );
+			}
+		}
+
+		toRemove.sort( Comparator.reverseOrder() );
+		for ( final Integer rowToRemove : toRemove )
+		{
+			final int row = rowToRemove.intValue();
+			tableModel.actions.remove( row );
+			tableModel.bindings.remove( row );
+			tableModel.contexts.remove( row );
+			tableModel.fireTableRowsDeleted( row, row );
+		}
+
+		updateEditors();
+	}
+
+	private void copyCommand( final int row )
+	{
+		if ( row < 0 )
+			return;
+
+		final String action = tableModel.actions.get( row );
+		// Check whether there is already a line in the table without a binding.
+		for ( int i = 0; i < tableModel.actions.size(); i++ )
+		{
+			// Brute force.
+			if ( tableModel.actions.get( i ).equals( action ) && tableModel.bindings.get( i ) == InputTrigger.NOT_MAPPED )
+				return;
+		}
+
+		// Create one then.
+		tableModel.actions.add( row + 1, action );
+		tableModel.bindings.add( row + 1, InputTrigger.NOT_MAPPED );
+		tableModel.contexts.add( row + 1, Collections.emptyList() );
+		tableModel.fireTableRowsInserted( row, row );
+	}
 
 	private void keybindingsChanged( final int row, final InputTrigger inputTrigger )
 	{
@@ -263,6 +352,10 @@ public class VisualEditorPanel extends JPanel
 		tableModel.contexts.set( row, new ArrayList<>( selectedContexts ) );
 		tableModel.fireTableCellUpdated( row, 2 );
 	}
+
+	/*
+	 * INNER CLASSES
+	 */
 
 	private static final class MyContextsRenderer extends TagPanelEditor implements TableCellRenderer
 	{
@@ -413,6 +506,10 @@ public class VisualEditorPanel extends JPanel
 		@Override
 		public int compare( final Input o1, final Input o2 )
 		{
+			if ( o1.trigger == InputTrigger.NOT_MAPPED )
+				return 1;
+			if ( o2.trigger == InputTrigger.NOT_MAPPED )
+				return -1;
 			return o1.trigger.toString().compareTo( o2.trigger.toString() );
 		}
 
