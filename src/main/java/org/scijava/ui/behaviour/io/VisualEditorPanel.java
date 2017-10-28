@@ -7,6 +7,9 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,18 +25,22 @@ import java.util.Set;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 
@@ -47,6 +54,26 @@ public class VisualEditorPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
+
+	private static JFileChooser fileChooser = new JFileChooser();
+	static
+	{
+		fileChooser.setFileFilter( new FileFilter()
+		{
+
+			@Override
+			public String getDescription()
+			{
+				return "CSV files";
+			}
+
+			@Override
+			public boolean accept( final File f )
+			{
+				return f.isFile() && f.getName().toLowerCase().endsWith( ".csv" );
+			}
+		} );
+	}
 
 	private JTextField textFieldFilter;
 
@@ -233,7 +260,8 @@ public class VisualEditorPanel extends JPanel
 		// Button presses.
 		btnCopyCommand.addActionListener( ( e ) -> copyCommand( tableBindings.getSelectedRow() ) );
 		btnUnbindAction.addActionListener( ( e ) -> unbindCommand( tableBindings.getSelectedRow() ) );
-		btnDeleteAction.addActionListener( (e)-> unbindAllCommand(tableBindings.getSelectedRow()) );
+		btnDeleteAction.addActionListener( ( e ) -> unbindAllCommand( tableBindings.getSelectedRow() ) );
+		btnExportCsv.addActionListener( ( e ) -> exportToCsv() );
 
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
@@ -243,15 +271,75 @@ public class VisualEditorPanel extends JPanel
 		scrollPane.setViewportView( tableBindings );
 	}
 
+	private final static String CSV_SEPARATOR = ",";
+
+	private void exportToCsv()
+	{
+		final int userSignal = fileChooser.showSaveDialog( this );
+		if ( userSignal != JFileChooser.APPROVE_OPTION )
+			return;
+
+		final File file = fileChooser.getSelectedFile();
+		if ( file.exists() )
+		{
+			if ( !file.canWrite() )
+			{
+				JOptionPane.showMessageDialog( fileChooser, "Cannot write on existing file " + file.getAbsolutePath(), "File error", JOptionPane.ERROR_MESSAGE );
+				return;
+			}
+			final int doOverwrite = JOptionPane.showConfirmDialog( fileChooser, "The file already exists. Do you want to overwrite it?", "Overwrite?", JOptionPane.YES_NO_OPTION );
+			if ( doOverwrite != JOptionPane.YES_OPTION )
+				return;
+		}
+
+
+		final StringBuilder sb = new StringBuilder();
+		sb.append( MyTableModel.TABLE_HEADERS[0] );
+		sb.append( CSV_SEPARATOR + '\t' );
+		sb.append( MyTableModel.TABLE_HEADERS[1] );
+		sb.append( CSV_SEPARATOR + '\t' );
+		sb.append( MyTableModel.TABLE_HEADERS[2] );
+		sb.append( '\n' );
+
+		for ( int i = 0; i < tableModel.actions.size(); i++ )
+		{
+			sb.append( tableModel.actions.get( i ) );
+			sb.append( CSV_SEPARATOR + '\t' );
+			sb.append( tableModel.bindings.get( i ).toString() );
+			sb.append( CSV_SEPARATOR + '\t' );
+			final List< String > contexts = tableModel.contexts.get( i );
+			if (!contexts.isEmpty())
+			{
+				sb.append( contexts.get( 0 ) );
+				for ( int j = 1; j < contexts.size(); j++ )
+					sb.append( " - " + contexts.get( j ) );
+			}
+			sb.append( '\n' );
+		}
+
+		try (final PrintWriter pw = new PrintWriter( file ))
+		{
+
+			pw.write( sb.toString() );
+			pw.close();
+		}
+		catch ( final FileNotFoundException e )
+		{
+			JOptionPane.showMessageDialog( fileChooser, "Error writing file:\n" + e.getMessage(), "Error writing file.", JOptionPane.ERROR_MESSAGE );
+			e.printStackTrace();
+		}
+
+	}
+
 	private void unbindAllCommand( final int row )
 	{
-		if (row < 0)
+		if ( row < 0 )
 			return;
 
 		final String action = tableModel.actions.get( row );
 		for ( int i = 0; i < tableModel.actions.size(); i++ )
 		{
-			if (tableModel.actions.get( i ).equals( action ))
+			if ( tableModel.actions.get( i ).equals( action ) )
 			{
 				tableModel.bindings.set( i, InputTrigger.NOT_MAPPED );
 				tableModel.contexts.set( i, Collections.emptyList() );
@@ -609,6 +697,7 @@ public class VisualEditorPanel extends JPanel
 				{
 					final JFrame frame = new JFrame( "Behaviour Key bindings editor" );
 					final VisualEditorPanel editorPanel = new VisualEditorPanel( getDemoConfig(), getDemoActions(), getDemoContexts() );
+					SwingUtilities.updateComponentTreeUI(VisualEditorPanel.fileChooser);
 					frame.getContentPane().add( editorPanel );
 					frame.pack();
 					frame.setVisible( true );
