@@ -218,7 +218,9 @@ public class VisualEditorPanel extends JPanel
 			{
 				if ( e.getValueIsAdjusting() )
 					return;
+				removeDuplicates();
 				updateEditors();
+
 			}
 		} );
 
