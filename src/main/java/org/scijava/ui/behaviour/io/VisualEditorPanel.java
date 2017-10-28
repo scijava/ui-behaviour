@@ -233,6 +233,7 @@ public class VisualEditorPanel extends JPanel
 		// Button presses.
 		btnCopyCommand.addActionListener( ( e ) -> copyCommand( tableBindings.getSelectedRow() ) );
 		btnUnbindAction.addActionListener( ( e ) -> unbindCommand( tableBindings.getSelectedRow() ) );
+		btnDeleteAction.addActionListener( (e)-> unbindAllCommand(tableBindings.getSelectedRow()) );
 
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
@@ -240,6 +241,24 @@ public class VisualEditorPanel extends JPanel
 		tableBindings.getSelectionModel().setSelectionInterval( 0, 0 );
 		tableBindings.setRowHeight( 30 );
 		scrollPane.setViewportView( tableBindings );
+	}
+
+	private void unbindAllCommand( final int row )
+	{
+		if (row < 0)
+			return;
+
+		final String action = tableModel.actions.get( row );
+		for ( int i = 0; i < tableModel.actions.size(); i++ )
+		{
+			if (tableModel.actions.get( i ).equals( action ))
+			{
+				tableModel.bindings.set( i, InputTrigger.NOT_MAPPED );
+				tableModel.contexts.set( i, Collections.emptyList() );
+			}
+		}
+		removeDuplicates();
+		tableModel.fireTableRowsUpdated( row, row );
 	}
 
 	private void updateEditors()
