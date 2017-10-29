@@ -102,6 +102,7 @@ public class InputTriggerPanelEditor extends JPanel
 	public void setInputTrigger( final InputTrigger trigger )
 	{
 		this.trigger = trigger;
+		this.lastValidInputTrigger = trigger;
 		this.invalidTriggerStr = null;
 		regenKeyPanels();
 	}
