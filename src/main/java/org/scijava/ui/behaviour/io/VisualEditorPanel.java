@@ -90,7 +90,7 @@ public class VisualEditorPanel extends JPanel
 
 	private final TagPanelEditor contextsEditor;
 
-	private final JLabel labelActionName;
+	private final JLabel labelCommandName;
 
 	private final JTable tableBindings;
 
@@ -105,16 +105,26 @@ public class VisualEditorPanel extends JPanel
 	private JTextArea textAreaDescription;
 
 	/**
-	 * Create the panel.
+	 * Creates a visual editor for an {@link InputTriggerConfig}. The config
+	 * object is directly modified when the user clicks the 'Apply' button.
+	 * 
+	 * @param config
+	 *            the {@link InputTriggerConfig} object to modify.
+	 * @param commandDescriptions
+	 *            The commands available. They are specified as a map from
+	 *            command name to their description. Use <code>null</code> as
+	 *            value to not specify a description.
+	 * @param contexts
+	 *            The contexts available.
 	 */
-	public VisualEditorPanel( final InputTriggerConfig config, final Map< String, String > actionDescriptions, final Set< String > contexts )
+	public VisualEditorPanel( final InputTriggerConfig config, final Map< String, String > commandDescriptions, final Set< String > contexts )
 	{
 		/*
 		 * GUI
 		 */
 
 		this.config = config;
-		this.actionDescriptions = actionDescriptions;
+		this.actionDescriptions = commandDescriptions;
 		this.contexts = contexts;
 		setLayout( new BorderLayout( 0, 0 ) );
 
@@ -126,7 +136,7 @@ public class VisualEditorPanel extends JPanel
 		panelFilter.add( horizontalStrut );
 
 		final JLabel lblFilter = new JLabel( "Filter:" );
-		lblFilter.setToolTipText( "Fiter on action names. Accept regular expressions." );
+		lblFilter.setToolTipText( "Fiter on command names. Accept regular expressions." );
 		lblFilter.setAlignmentX( Component.CENTER_ALIGNMENT );
 		panelFilter.add( lblFilter );
 
@@ -167,22 +177,22 @@ public class VisualEditorPanel extends JPanel
 		panelCommandButtons.setLayout( new BoxLayout( panelCommandButtons, BoxLayout.X_AXIS ) );
 
 		final JButton btnCopyCommand = new JButton( "Copy" );
-		btnCopyCommand.setToolTipText( "Duplicate action binding \nto a new, blank binding." );
+		btnCopyCommand.setToolTipText( "Duplicate command binding to a new, blank binding." );
 		panelCommandButtons.add( btnCopyCommand );
 
 		final JButton btnUnbindAction = new JButton( "Unbind" );
-		btnUnbindAction.setToolTipText( "Remove current binding\nfor current action." );
+		btnUnbindAction.setToolTipText( "Remove current binding for selected command." );
 		panelCommandButtons.add( btnUnbindAction );
 
 		final JButton btnDeleteAction = new JButton( "Unbind all" );
-		btnDeleteAction.setToolTipText( "Remove all bindings\nto current action." );
+		btnDeleteAction.setToolTipText( "Remove all bindings to selected command." );
 		panelCommandButtons.add( btnDeleteAction );
 
 		final Component horizontalGlue = Box.createHorizontalGlue();
 		panelCommandButtons.add( horizontalGlue );
 
 		final JButton btnExportCsv = new JButton( "Export CSV" );
-		btnExportCsv.setToolTipText( "Export all action bindings \nto a CSV file." );
+		btnExportCsv.setToolTipText( "Export all command bindings to a CSV file." );
 		panelCommandButtons.add( btnExportCsv );
 
 		final JPanel panelCommandEditor = new JPanel();
@@ -202,13 +212,13 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblName.gridy = 0;
 		panelCommandEditor.add( lblName, gbc_lblName );
 
-		this.labelActionName = new JLabel();
+		this.labelCommandName = new JLabel();
 		final GridBagConstraints gbc_labelActionName = new GridBagConstraints();
 		gbc_labelActionName.anchor = GridBagConstraints.WEST;
 		gbc_labelActionName.insets = new Insets( 5, 5, 5, 0 );
 		gbc_labelActionName.gridx = 1;
 		gbc_labelActionName.gridy = 0;
-		panelCommandEditor.add( labelActionName, gbc_labelActionName );
+		panelCommandEditor.add( labelCommandName, gbc_labelActionName );
 
 		final JLabel lblBinding = new JLabel( "Binding:" );
 		final GridBagConstraints gbc_lblBinding = new GridBagConstraints();
@@ -354,13 +364,13 @@ public class VisualEditorPanel extends JPanel
 			return;
 
 		final ArrayList< String > conflicts = new ArrayList<>();
-		for ( int i = 0; i < tableModel.actions.size(); i++ )
+		for ( int i = 0; i < tableModel.commands.size(); i++ )
 		{
 			if ( i == modelRow )
 				continue;
 
 			if ( tableModel.bindings.get( i ).equals( inputTrigger ) )
-				conflicts.add( tableModel.actions.get( i ) );
+				conflicts.add( tableModel.commands.get( i ) );
 		}
 
 		if ( !conflicts.isEmpty() )
@@ -376,13 +386,13 @@ public class VisualEditorPanel extends JPanel
 	{
 		final HashMap< String, Set< Input > > actionToInputsMap = config.actionToInputsMap;
 		actionToInputsMap.clear();
-		for ( int i = 0; i < tableModel.actions.size(); i++ )
+		for ( int i = 0; i < tableModel.commands.size(); i++ )
 		{
 			final InputTrigger inputTrigger = tableModel.bindings.get( i );
 			if ( inputTrigger == InputTrigger.NOT_MAPPED )
 				continue;
 
-			final String action = tableModel.actions.get( i );
+			final String action = tableModel.commands.get( i );
 			final Set< String > cs = new HashSet<>( tableModel.contexts.get( i ) );
 			final Input input = new Input( inputTrigger, action, cs );
 			Set< Input > inputs = actionToInputsMap.get( action );
@@ -413,7 +423,7 @@ public class VisualEditorPanel extends JPanel
 		RowFilter< MyTableModel, Integer > rf = null;
 		try
 		{
-			final int[] indices = new int[ tableModel.actions.size() ];
+			final int[] indices = new int[ tableModel.commands.size() ];
 			for ( int i = 0; i < indices.length; i++ )
 				indices[ i ] = i;
 			rf = RowFilter.regexFilter( textFieldFilter.getText(), 0 );
@@ -454,9 +464,9 @@ public class VisualEditorPanel extends JPanel
 		sb.append( MyTableModel.TABLE_HEADERS[ 2 ] );
 		sb.append( '\n' );
 
-		for ( int i = 0; i < tableModel.actions.size(); i++ )
+		for ( int i = 0; i < tableModel.commands.size(); i++ )
 		{
-			sb.append( tableModel.actions.get( i ) );
+			sb.append( tableModel.commands.get( i ) );
 			sb.append( CSV_SEPARATOR + '\t' );
 			sb.append( tableModel.bindings.get( i ).toString() );
 			sb.append( CSV_SEPARATOR + '\t' );
@@ -491,10 +501,10 @@ public class VisualEditorPanel extends JPanel
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
-		final String action = tableModel.actions.get( modelRow );
-		for ( int i = 0; i < tableModel.actions.size(); i++ )
+		final String action = tableModel.commands.get( modelRow );
+		for ( int i = 0; i < tableModel.commands.size(); i++ )
 		{
-			if ( tableModel.actions.get( i ).equals( action ) )
+			if ( tableModel.commands.get( i ).equals( action ) )
 			{
 				tableModel.bindings.set( i, InputTrigger.NOT_MAPPED );
 				tableModel.contexts.set( i, Collections.emptyList() );
@@ -509,19 +519,19 @@ public class VisualEditorPanel extends JPanel
 		final int viewRow = tableBindings.getSelectedRow();
 		if ( viewRow < 0 )
 		{
-			labelActionName.setText( "" );
+			labelCommandName.setText( "" );
 			keybindingEditor.setInputTrigger( InputTrigger.NOT_MAPPED );
 			contextsEditor.setTags( Collections.emptyList() );
 			return;
 		}
 
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
-		final String action = tableModel.actions.get( modelRow );
+		final String action = tableModel.commands.get( modelRow );
 		final InputTrigger trigger = tableModel.bindings.get( modelRow );
 		final List< String > contexts = new ArrayList<>( tableModel.contexts.get( modelRow ) );
 		final String description = actionDescriptions.get( action );
 
-		labelActionName.setText( action );
+		labelCommandName.setText( action );
 		keybindingEditor.setInputTrigger( trigger );
 		contextsEditor.setTags( contexts );
 		textAreaDescription.setText( ( null == description ) ? "" : description );
@@ -555,7 +565,7 @@ public class VisualEditorPanel extends JPanel
 		final List< Integer > toRemove = new ArrayList<>();
 		for ( int row = 0; row < tableModel.getRowCount(); row++ )
 		{
-			final String action = tableModel.actions.get( row );
+			final String action = tableModel.commands.get( row );
 			final InputTrigger trigger = tableModel.bindings.get( row );
 
 			if ( bindings.get( action ) == null )
@@ -577,7 +587,7 @@ public class VisualEditorPanel extends JPanel
 		for ( final Integer rowToRemove : toRemove )
 		{
 			final int row = rowToRemove.intValue();
-			tableModel.actions.remove( row );
+			tableModel.commands.remove( row );
 			tableModel.bindings.remove( row );
 			tableModel.contexts.remove( row );
 			tableModel.fireTableRowsDeleted( row, row );
@@ -593,17 +603,17 @@ public class VisualEditorPanel extends JPanel
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
-		final String action = tableModel.actions.get( modelRow );
+		final String action = tableModel.commands.get( modelRow );
 		// Check whether there is already a line in the table without a binding.
-		for ( int i = 0; i < tableModel.actions.size(); i++ )
+		for ( int i = 0; i < tableModel.commands.size(); i++ )
 		{
 			// Brute force.
-			if ( tableModel.actions.get( i ).equals( action ) && tableModel.bindings.get( i ) == InputTrigger.NOT_MAPPED )
+			if ( tableModel.commands.get( i ).equals( action ) && tableModel.bindings.get( i ) == InputTrigger.NOT_MAPPED )
 				return;
 		}
 
 		// Create one then.
-		tableModel.actions.add( modelRow + 1, action );
+		tableModel.commands.add( modelRow + 1, action );
 		tableModel.bindings.add( modelRow + 1, InputTrigger.NOT_MAPPED );
 		tableModel.contexts.add( modelRow + 1, Collections.emptyList() );
 		tableModel.fireTableRowsInserted( modelRow, modelRow );
@@ -699,32 +709,32 @@ public class VisualEditorPanel extends JPanel
 
 		private static final long serialVersionUID = 1L;
 
-		private static final String[] TABLE_HEADERS = new String[] { "Action", "Binding", "Contexts" };
+		private static final String[] TABLE_HEADERS = new String[] { "Command", "Binding", "Contexts" };
 
-		private final List< String > actions;
+		private final List< String > commands;
 
 		private final List< InputTrigger > bindings;
 
 		private final List< List< String > > contexts;
 
-		public MyTableModel( final Set< String > baseActions, final Map< String, Set< Input > > actionToInputsMap )
+		public MyTableModel( final Set< String > baseCommands, final Map< String, Set< Input > > actionToInputsMap )
 		{
-			this.actions = new ArrayList<>();
+			this.commands = new ArrayList<>();
 			this.bindings = new ArrayList<>();
 			this.contexts = new ArrayList<>();
 
-			final Set< String > allActions = new HashSet<>();
-			allActions.addAll( baseActions );
-			allActions.addAll( actionToInputsMap.keySet() );
-			final List< String > sortedActions = new ArrayList<>( allActions );
-			sortedActions.sort( null );
+			final Set< String > allCommands = new HashSet<>();
+			allCommands.addAll( baseCommands );
+			allCommands.addAll( actionToInputsMap.keySet() );
+			final List< String > sortedCommands = new ArrayList<>( allCommands );
+			sortedCommands.sort( null );
 			final InputComparator inputComparator = new InputComparator();
-			for ( final String action : sortedActions )
+			for ( final String command : sortedCommands )
 			{
-				final Set< Input > inputs = actionToInputsMap.get( action );
+				final Set< Input > inputs = actionToInputsMap.get( command );
 				if ( null == inputs )
 				{
-					actions.add( action );
+					commands.add( command );
 					bindings.add( InputTrigger.NOT_MAPPED );
 					contexts.add( Collections.emptyList() );
 				}
@@ -734,7 +744,7 @@ public class VisualEditorPanel extends JPanel
 					sortedInputs.sort( inputComparator );
 					for ( final Input input : sortedInputs )
 					{
-						actions.add( action );
+						commands.add( command );
 						bindings.add( input.trigger );
 						final List< String > cs = new ArrayList<>( input.contexts );
 						cs.sort( null );
@@ -747,7 +757,7 @@ public class VisualEditorPanel extends JPanel
 		@Override
 		public int getRowCount()
 		{
-			return actions.size();
+			return commands.size();
 		}
 
 		@Override
@@ -762,7 +772,7 @@ public class VisualEditorPanel extends JPanel
 			switch ( columnIndex )
 			{
 			case 0:
-				return actions.get( rowIndex );
+				return commands.get( rowIndex );
 			case 1:
 				return bindings.get( rowIndex );
 			case 2:
@@ -866,6 +876,8 @@ public class VisualEditorPanel extends JPanel
 
 	/**
 	 * Launch the application.
+	 * 
+	 * @param args
 	 *
 	 * @throws UnsupportedLookAndFeelException
 	 * @throws IllegalAccessException
