@@ -1,9 +1,11 @@
 package org.scijava.ui.behaviour.io;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -92,6 +94,8 @@ public class VisualEditorPanel extends JPanel
 	private final Set< String > actions;
 
 	private final Set< String > contexts;
+
+	private final JLabel lblConflict;
 
 	/**
 	 * Create the panel.
@@ -202,9 +206,13 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblConflicts.gridy = 3;
 		panelCommandEditor.add( lblConflicts, gbc_lblConflicts );
 
-		final JLabel lblConflict = new JLabel( "" );
+		lblConflict = new JLabel( "" );
+		lblConflict.setToolTipText( "Conflicts with other commands." );
+		lblConflict.setForeground( Color.PINK.darker() );
+		lblConflict.setFont( getFont().deriveFont( Font.BOLD ) );
 		final GridBagConstraints gbc_lblConflict = new GridBagConstraints();
 		gbc_lblConflict.insets = new Insets( 5, 5, 5, 5 );
+		gbc_lblConflict.anchor = GridBagConstraints.WEST;
 		gbc_lblConflict.gridx = 1;
 		gbc_lblConflict.gridy = 3;
 		panelCommandEditor.add( lblConflict, gbc_lblConflict );
@@ -258,7 +266,6 @@ public class VisualEditorPanel extends JPanel
 					return;
 				removeDuplicates();
 				updateEditors();
-
 			}
 		} );
 
@@ -278,6 +285,32 @@ public class VisualEditorPanel extends JPanel
 
 		configToModel();
 		scrollPane.setViewportView( tableBindings );
+	}
+
+	private void lookForConflicts(final int row)
+	{
+		lblConflict.setText( "" );
+		final InputTrigger inputTrigger = tableModel.bindings.get( row );
+		if (inputTrigger == InputTrigger.NOT_MAPPED)
+			return;
+
+		final ArrayList< String > conflicts = new ArrayList<>();
+		for ( int i = 0; i < tableModel.actions.size(); i++ )
+		{
+			if (i == row)
+				continue;
+
+			if (tableModel.bindings.get( i ).equals( inputTrigger ))
+				conflicts.add( tableModel.actions.get( i ) );
+		}
+
+		if (!conflicts.isEmpty())
+		{
+			final StringBuilder str = new StringBuilder( conflicts.get( 0 ) );
+			for ( int i = 1; i < conflicts.size(); i++ )
+				str.append( ", " + conflicts.get( i ) );
+			lblConflict.setText( str.toString() );
+		}
 	}
 
 	private void modelToConfig()
@@ -409,6 +442,7 @@ public class VisualEditorPanel extends JPanel
 		labelActionName.setText( action );
 		keybindingEditor.setInputTrigger( trigger );
 		contextsEditor.setTags( contexts );
+		lookForConflicts( row );
 	}
 
 	private void unbindCommand( final int row )
@@ -493,6 +527,7 @@ public class VisualEditorPanel extends JPanel
 
 		tableModel.bindings.set( row, inputTrigger );
 		tableModel.fireTableCellUpdated( row, 1 );
+		lookForConflicts( row );
 	}
 
 	private void contextsChanged( final int row, final List< String > selectedContexts )
