@@ -49,6 +49,8 @@ public class InputTriggerPanelEditor extends JPanel
 
 	private InputTrigger trigger = InputTrigger.NOT_MAPPED;
 
+	private InputTrigger lastValidInputTrigger = InputTrigger.NOT_MAPPED;
+
 	private String invalidTriggerStr = null;
 
 	public InputTriggerPanelEditor( final boolean editable )
@@ -109,6 +111,11 @@ public class InputTriggerPanelEditor extends JPanel
 		return trigger;
 	}
 
+	public InputTrigger getLastValidInputTrigger()
+	{
+		return lastValidInputTrigger;
+	}
+
 	private void checkAndAppendKey( final String key )
 	{
 		final String trimmed = key.trim();
@@ -120,7 +127,7 @@ public class InputTriggerPanelEditor extends JPanel
 
 			final String str = ( null == trigger || trigger == InputTrigger.NOT_MAPPED )
 					? trimmed
-					: trigger.toString() + " " + trimmed;
+							: trigger.toString() + " " + trimmed;
 
 			this.trigger = null;
 			this.invalidTriggerStr = str.trim();
@@ -144,13 +151,14 @@ public class InputTriggerPanelEditor extends JPanel
 			// Try to append the key to the trigger.
 			final String str = ( null == trigger )
 					? invalidTriggerStr + " " + properCapKey
-					: ( trigger == InputTrigger.NOT_MAPPED )
+							: ( trigger == InputTrigger.NOT_MAPPED )
 							? properCapKey
-							: trigger.toString() + " " + properCapKey;
+									: trigger.toString() + " " + properCapKey;
 
 			try
 			{
 				this.trigger = InputTrigger.getFromString( str );
+				this.lastValidInputTrigger = trigger;
 				this.invalidTriggerStr = null;
 			}
 			catch ( final IllegalArgumentException iae )
@@ -194,6 +202,7 @@ public class InputTriggerPanelEditor extends JPanel
 			this.trigger = str.isEmpty()
 					? InputTrigger.NOT_MAPPED
 					: InputTrigger.getFromString( str );
+			this.lastValidInputTrigger = trigger;
 			this.invalidTriggerStr = null;
 		}
 		catch ( final IllegalArgumentException iae )
@@ -240,6 +249,7 @@ public class InputTriggerPanelEditor extends JPanel
 		if ( tokens.length == 0 )
 		{
 			trigger = InputTrigger.NOT_MAPPED;
+			lastValidInputTrigger = trigger;
 			invalidTriggerStr = null;
 		}
 		else
@@ -339,9 +349,9 @@ public class InputTriggerPanelEditor extends JPanel
 
 		private class CompletionTask implements Runnable
 		{
-			private String completion;
+			private final String completion;
 
-			private int position;
+			private final int position;
 
 			CompletionTask( final String completion, final int position )
 			{

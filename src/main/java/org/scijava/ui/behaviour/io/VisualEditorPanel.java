@@ -334,7 +334,10 @@ public class VisualEditorPanel extends JPanel
 		} );
 
 		// Listen to changes in the
-		keybindingEditor.addInputTriggerChangeListener( () -> keybindingsChanged( keybindingEditor.getInputTrigger() ) );
+		keybindingEditor.addInputTriggerChangeListener( () -> keybindingsChanged(
+				keybindingEditor.getInputTrigger() == null
+						? keybindingEditor.getLastValidInputTrigger()
+						: keybindingEditor.getInputTrigger() ) );
 
 		// Listen to changes in context editor and forward to table model.
 		contextsEditor.addTagSelectionChangeListener( () -> contextsChanged( contextsEditor.getSelectedTags() ) );
