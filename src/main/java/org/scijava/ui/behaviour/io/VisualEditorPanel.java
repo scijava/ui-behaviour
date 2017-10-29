@@ -34,6 +34,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
@@ -91,23 +92,25 @@ public class VisualEditorPanel extends JPanel
 
 	private final InputTriggerConfig config;
 
-	private final Set< String > actions;
+	private final Map< String, String > actionDescriptions;
 
 	private final Set< String > contexts;
 
 	private final JLabel lblConflict;
 
+	private JTextArea textAreaDescription;
+
 	/**
 	 * Create the panel.
 	 */
-	public VisualEditorPanel( final InputTriggerConfig config, final Set< String > actions, final Set< String > contexts )
+	public VisualEditorPanel( final InputTriggerConfig config, final Map< String, String > actionDescriptions, final Set< String > contexts )
 	{
 		/*
 		 * GUI
 		 */
 
 		this.config = config;
-		this.actions = actions;
+		this.actionDescriptions = actionDescriptions;
 		this.contexts = contexts;
 		setLayout( new BorderLayout( 0, 0 ) );
 
@@ -145,9 +148,10 @@ public class VisualEditorPanel extends JPanel
 		final JPanel panelCommandEditor = new JPanel();
 		panelEditor.add( panelCommandEditor, BorderLayout.CENTER );
 		final GridBagLayout gbl_panelCommandEditor = new GridBagLayout();
+		gbl_panelCommandEditor.rowHeights = new int[] { 0, 0, 0, 0, 60 };
 		gbl_panelCommandEditor.columnWidths = new int[] { 30, 100 };
 		gbl_panelCommandEditor.columnWeights = new double[] { 0.0, 1.0 };
-		gbl_panelCommandEditor.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 1.0 };
+		gbl_panelCommandEditor.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0 };
 		panelCommandEditor.setLayout( gbl_panelCommandEditor );
 
 		final JLabel lblName = new JLabel( "Name:" );
@@ -161,7 +165,7 @@ public class VisualEditorPanel extends JPanel
 		this.labelActionName = new JLabel();
 		final GridBagConstraints gbc_labelActionName = new GridBagConstraints();
 		gbc_labelActionName.anchor = GridBagConstraints.WEST;
-		gbc_labelActionName.insets = new Insets( 5, 5, 5, 5 );
+		gbc_labelActionName.insets = new Insets( 5, 5, 5, 0 );
 		gbc_labelActionName.gridx = 1;
 		gbc_labelActionName.gridy = 0;
 		panelCommandEditor.add( labelActionName, gbc_labelActionName );
@@ -211,7 +215,7 @@ public class VisualEditorPanel extends JPanel
 		lblConflict.setForeground( Color.PINK.darker() );
 		lblConflict.setFont( getFont().deriveFont( Font.BOLD ) );
 		final GridBagConstraints gbc_lblConflict = new GridBagConstraints();
-		gbc_lblConflict.insets = new Insets( 5, 5, 5, 5 );
+		gbc_lblConflict.insets = new Insets( 5, 5, 5, 0 );
 		gbc_lblConflict.anchor = GridBagConstraints.WEST;
 		gbc_lblConflict.gridx = 1;
 		gbc_lblConflict.gridy = 3;
@@ -219,20 +223,30 @@ public class VisualEditorPanel extends JPanel
 
 		final JLabel lblDescription = new JLabel( "Description:" );
 		final GridBagConstraints gbc_lblDescription = new GridBagConstraints();
-		gbc_lblDescription.fill = GridBagConstraints.VERTICAL;
 		gbc_lblDescription.insets = new Insets( 5, 5, 5, 5 );
-		gbc_lblDescription.anchor = GridBagConstraints.WEST;
+		gbc_lblDescription.anchor = GridBagConstraints.NORTHWEST;
 		gbc_lblDescription.gridx = 0;
 		gbc_lblDescription.gridy = 4;
 		panelCommandEditor.add( lblDescription, gbc_lblDescription );
 
-		final JLabel labelActionDescription = new JLabel();
-		final GridBagConstraints gbc_labelActionDescription = new GridBagConstraints();
-		gbc_labelActionDescription.fill = GridBagConstraints.VERTICAL;
-		gbc_labelActionDescription.insets = new Insets( 5, 5, 5, 5 );
-		gbc_labelActionDescription.gridx = 1;
-		gbc_labelActionDescription.gridy = 4;
-		panelCommandEditor.add( labelActionDescription, gbc_labelActionDescription );
+		final JScrollPane scrollPaneDescription = new JScrollPane();
+		scrollPaneDescription.setOpaque( false );
+		scrollPaneDescription.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
+		final GridBagConstraints gbc_scrollPaneDescription = new GridBagConstraints();
+		gbc_scrollPaneDescription.insets = new Insets( 5, 5, 5, 5 );
+		gbc_scrollPaneDescription.fill = GridBagConstraints.BOTH;
+		gbc_scrollPaneDescription.gridx = 1;
+		gbc_scrollPaneDescription.gridy = 4;
+		panelCommandEditor.add( scrollPaneDescription, gbc_scrollPaneDescription );
+
+		textAreaDescription = new JTextArea();
+		textAreaDescription.setRows(3);
+		textAreaDescription.setFont( getFont().deriveFont( getFont().getSize2D() - 1f ) );
+		textAreaDescription.setOpaque( false );
+		textAreaDescription.setWrapStyleWord( true );
+		textAreaDescription.setEditable( false );
+		textAreaDescription.setLineWrap( true );
+		scrollPaneDescription.setViewportView( textAreaDescription );
 
 		final JPanel panelButtons = new JPanel();
 		panelEditor.add( panelButtons, BorderLayout.SOUTH );
@@ -280,31 +294,31 @@ public class VisualEditorPanel extends JPanel
 		btnUnbindAction.addActionListener( ( e ) -> unbindCommand( tableBindings.getSelectedRow() ) );
 		btnDeleteAction.addActionListener( ( e ) -> unbindAllCommand( tableBindings.getSelectedRow() ) );
 		btnExportCsv.addActionListener( ( e ) -> exportToCsv() );
-		btnRestore.addActionListener( (e) -> configToModel() );
-		btnApply.addActionListener( (e) -> modelToConfig() );
+		btnRestore.addActionListener( ( e ) -> configToModel() );
+		btnApply.addActionListener( ( e ) -> modelToConfig() );
 
 		configToModel();
 		scrollPane.setViewportView( tableBindings );
 	}
 
-	private void lookForConflicts(final int row)
+	private void lookForConflicts( final int row )
 	{
 		lblConflict.setText( "" );
 		final InputTrigger inputTrigger = tableModel.bindings.get( row );
-		if (inputTrigger == InputTrigger.NOT_MAPPED)
+		if ( inputTrigger == InputTrigger.NOT_MAPPED )
 			return;
 
 		final ArrayList< String > conflicts = new ArrayList<>();
 		for ( int i = 0; i < tableModel.actions.size(); i++ )
 		{
-			if (i == row)
+			if ( i == row )
 				continue;
 
-			if (tableModel.bindings.get( i ).equals( inputTrigger ))
+			if ( tableModel.bindings.get( i ).equals( inputTrigger ) )
 				conflicts.add( tableModel.actions.get( i ) );
 		}
 
-		if (!conflicts.isEmpty())
+		if ( !conflicts.isEmpty() )
 		{
 			final StringBuilder str = new StringBuilder( conflicts.get( 0 ) );
 			for ( int i = 1; i < conflicts.size(); i++ )
@@ -320,14 +334,14 @@ public class VisualEditorPanel extends JPanel
 		for ( int i = 0; i < tableModel.actions.size(); i++ )
 		{
 			final InputTrigger inputTrigger = tableModel.bindings.get( i );
-			if (inputTrigger == InputTrigger.NOT_MAPPED)
+			if ( inputTrigger == InputTrigger.NOT_MAPPED )
 				continue;
 
 			final String action = tableModel.actions.get( i );
-			final Set< String > cs = new HashSet<>(tableModel.contexts.get( i ) );
+			final Set< String > cs = new HashSet<>( tableModel.contexts.get( i ) );
 			final Input input = new Input( inputTrigger, action, cs );
 			Set< Input > inputs = actionToInputsMap.get( action );
-			if (null == inputs)
+			if ( null == inputs )
 			{
 				inputs = new HashSet<>();
 				actionToInputsMap.put( action, inputs );
@@ -338,7 +352,7 @@ public class VisualEditorPanel extends JPanel
 
 	private void configToModel()
 	{
-		tableModel = new MyTableModel( actions, config.actionToInputsMap );
+		tableModel = new MyTableModel( actionDescriptions.keySet(), config.actionToInputsMap );
 		tableBindings.setModel( tableModel );
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
@@ -367,13 +381,12 @@ public class VisualEditorPanel extends JPanel
 				return;
 		}
 
-
 		final StringBuilder sb = new StringBuilder();
-		sb.append( MyTableModel.TABLE_HEADERS[0] );
+		sb.append( MyTableModel.TABLE_HEADERS[ 0 ] );
 		sb.append( CSV_SEPARATOR + '\t' );
-		sb.append( MyTableModel.TABLE_HEADERS[1] );
+		sb.append( MyTableModel.TABLE_HEADERS[ 1 ] );
 		sb.append( CSV_SEPARATOR + '\t' );
-		sb.append( MyTableModel.TABLE_HEADERS[2] );
+		sb.append( MyTableModel.TABLE_HEADERS[ 2 ] );
 		sb.append( '\n' );
 
 		for ( int i = 0; i < tableModel.actions.size(); i++ )
@@ -383,7 +396,7 @@ public class VisualEditorPanel extends JPanel
 			sb.append( tableModel.bindings.get( i ).toString() );
 			sb.append( CSV_SEPARATOR + '\t' );
 			final List< String > contexts = tableModel.contexts.get( i );
-			if (!contexts.isEmpty())
+			if ( !contexts.isEmpty() )
 			{
 				sb.append( contexts.get( 0 ) );
 				for ( int j = 1; j < contexts.size(); j++ )
@@ -438,10 +451,14 @@ public class VisualEditorPanel extends JPanel
 		final String action = tableModel.actions.get( row );
 		final InputTrigger trigger = tableModel.bindings.get( row );
 		final List< String > contexts = new ArrayList<>( tableModel.contexts.get( row ) );
+		final String description = actionDescriptions.get( action );
 
 		labelActionName.setText( action );
 		keybindingEditor.setInputTrigger( trigger );
 		contextsEditor.setTags( contexts );
+		textAreaDescription.setText( ( null == description ) ? "" : description );
+		textAreaDescription.setCaretPosition( 0 );
+
 		lookForConflicts( row );
 	}
 
@@ -734,14 +751,18 @@ public class VisualEditorPanel extends JPanel
 		return config;
 	}
 
-	private static Set< String > getDemoActions()
+	private static Map< String, String > getDemoActions()
 	{
-		final Set< String > actions = new HashSet<>();
-		actions.add( "drag1" );
-		actions.add( "scroll1" );
-		actions.add( "destroy the world" );
-		actions.add( "ride the dragon" );
-		actions.add( "make some coffee" );
+		final Map< String, String > actions = new HashMap<>();
+		actions.put( "drag1", "Move an item around the editor." );
+		actions.put( "scroll1", null );
+		actions.put( "destroy the world", "Make a disgusting coffee for breakfast. \n"
+				+ "For this one, you are by yourself. Good luck and know that we are with you. This is a long line. Hopefully long engouh.\n"
+				+ "Hey, what about we add:\n"
+				+ "tabulation1\ttabulation2\n"
+				+ "lalallala\ttrollololo." );
+		actions.put( "ride the dragon", "Go to work by bike." );
+		actions.put( "make some coffee", null );
 		return actions;
 	}
 
@@ -774,7 +795,7 @@ public class VisualEditorPanel extends JPanel
 				{
 					final JFrame frame = new JFrame( "Behaviour Key bindings editor" );
 					final VisualEditorPanel editorPanel = new VisualEditorPanel( getDemoConfig(), getDemoActions(), getDemoContexts() );
-					SwingUtilities.updateComponentTreeUI(VisualEditorPanel.fileChooser);
+					SwingUtilities.updateComponentTreeUI( VisualEditorPanel.fileChooser );
 					frame.getContentPane().add( editorPanel );
 					frame.pack();
 					frame.setVisible( true );
