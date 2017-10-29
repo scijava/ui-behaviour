@@ -37,15 +37,19 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableRowSorter;
 
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig.Input;
@@ -114,9 +118,45 @@ public class VisualEditorPanel extends JPanel
 		this.contexts = contexts;
 		setLayout( new BorderLayout( 0, 0 ) );
 
+		final JPanel panelFilter = new JPanel();
+		add( panelFilter, BorderLayout.NORTH );
+		panelFilter.setLayout( new BoxLayout( panelFilter, BoxLayout.X_AXIS ) );
+
+		final Component horizontalStrut = Box.createHorizontalStrut( 5 );
+		panelFilter.add( horizontalStrut );
+
+		final JLabel lblFilter = new JLabel( "Filter:" );
+		lblFilter.setToolTipText( "Fiter on action names. Accept regular expressions." );
+		lblFilter.setAlignmentX( Component.CENTER_ALIGNMENT );
+		panelFilter.add( lblFilter );
+
+		final Component horizontalStrut_1 = Box.createHorizontalStrut( 5 );
+		panelFilter.add( horizontalStrut_1 );
+
 		textFieldFilter = new JTextField();
-		add( textFieldFilter, BorderLayout.NORTH );
+		panelFilter.add( textFieldFilter );
 		textFieldFilter.setColumns( 10 );
+		textFieldFilter.getDocument().addDocumentListener( new DocumentListener()
+		{
+
+			@Override
+			public void removeUpdate( final DocumentEvent e )
+			{
+				filterRows();
+			}
+
+			@Override
+			public void insertUpdate( final DocumentEvent e )
+			{
+				filterRows();
+			}
+
+			@Override
+			public void changedUpdate( final DocumentEvent e )
+			{
+				filterRows();
+			}
+		} );
 
 		final JPanel panelEditor = new JPanel();
 		add( panelEditor, BorderLayout.SOUTH );
@@ -240,7 +280,7 @@ public class VisualEditorPanel extends JPanel
 		panelCommandEditor.add( scrollPaneDescription, gbc_scrollPaneDescription );
 
 		textAreaDescription = new JTextArea();
-		textAreaDescription.setRows(3);
+		textAreaDescription.setRows( 3 );
 		textAreaDescription.setFont( getFont().deriveFont( getFont().getSize2D() - 1f ) );
 		textAreaDescription.setOpaque( false );
 		textAreaDescription.setWrapStyleWord( true );
@@ -284,15 +324,15 @@ public class VisualEditorPanel extends JPanel
 		} );
 
 		// Listen to changes in the
-		keybindingEditor.addInputTriggerChangeListener( () -> keybindingsChanged( tableBindings.getSelectedRow(), keybindingEditor.getInputTrigger() ) );
+		keybindingEditor.addInputTriggerChangeListener( () -> keybindingsChanged( keybindingEditor.getInputTrigger() ) );
 
 		// Listen to changes in context editor and forward to table model.
-		contextsEditor.addTagSelectionChangeListener( () -> contextsChanged( tableBindings.getSelectedRow(), contextsEditor.getSelectedTags() ) );
+		contextsEditor.addTagSelectionChangeListener( () -> contextsChanged( contextsEditor.getSelectedTags() ) );
 
 		// Button presses.
-		btnCopyCommand.addActionListener( ( e ) -> copyCommand( tableBindings.getSelectedRow() ) );
-		btnUnbindAction.addActionListener( ( e ) -> unbindCommand( tableBindings.getSelectedRow() ) );
-		btnDeleteAction.addActionListener( ( e ) -> unbindAllCommand( tableBindings.getSelectedRow() ) );
+		btnCopyCommand.addActionListener( ( e ) -> copyCommand() );
+		btnUnbindAction.addActionListener( ( e ) -> unbindCommand() );
+		btnDeleteAction.addActionListener( ( e ) -> unbindAllCommand() );
 		btnExportCsv.addActionListener( ( e ) -> exportToCsv() );
 		btnRestore.addActionListener( ( e ) -> configToModel() );
 		btnApply.addActionListener( ( e ) -> modelToConfig() );
@@ -301,17 +341,22 @@ public class VisualEditorPanel extends JPanel
 		scrollPane.setViewportView( tableBindings );
 	}
 
-	private void lookForConflicts( final int row )
+	private void lookForConflicts()
 	{
+		final int viewRow = tableBindings.getSelectedRow();
+		if ( viewRow < 0 )
+			return;
+		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
+
 		lblConflict.setText( "" );
-		final InputTrigger inputTrigger = tableModel.bindings.get( row );
+		final InputTrigger inputTrigger = tableModel.bindings.get( modelRow );
 		if ( inputTrigger == InputTrigger.NOT_MAPPED )
 			return;
 
 		final ArrayList< String > conflicts = new ArrayList<>();
 		for ( int i = 0; i < tableModel.actions.size(); i++ )
 		{
-			if ( i == row )
+			if ( i == modelRow )
 				continue;
 
 			if ( tableModel.bindings.get( i ).equals( inputTrigger ) )
@@ -358,6 +403,26 @@ public class VisualEditorPanel extends JPanel
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
 		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( contexts ) );
 		tableBindings.getSelectionModel().setSelectionInterval( 0, 0 );
+	}
+
+	private void filterRows()
+	{
+		final TableRowSorter< MyTableModel > tableRowSorter = new TableRowSorter<>( tableModel );
+		tableRowSorter.setComparator( 1, new InputTriggerComparator() );
+		tableBindings.setRowSorter( tableRowSorter );
+		RowFilter< MyTableModel, Integer > rf = null;
+		try
+		{
+			final int[] indices = new int[ tableModel.actions.size() ];
+			for ( int i = 0; i < indices.length; i++ )
+				indices[ i ] = i;
+			rf = RowFilter.regexFilter( textFieldFilter.getText(), 0 );
+		}
+		catch ( final java.util.regex.PatternSyntaxException pse )
+		{
+			return;
+		}
+		tableRowSorter.setRowFilter( rf );
 	}
 
 	private final static String CSV_SEPARATOR = ",";
@@ -419,12 +484,14 @@ public class VisualEditorPanel extends JPanel
 
 	}
 
-	private void unbindAllCommand( final int row )
+	private void unbindAllCommand()
 	{
-		if ( row < 0 )
+		final int viewRow = tableBindings.getSelectedRow();
+		if ( viewRow < 0 )
 			return;
+		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
-		final String action = tableModel.actions.get( row );
+		final String action = tableModel.actions.get( modelRow );
 		for ( int i = 0; i < tableModel.actions.size(); i++ )
 		{
 			if ( tableModel.actions.get( i ).equals( action ) )
@@ -434,13 +501,13 @@ public class VisualEditorPanel extends JPanel
 			}
 		}
 		removeDuplicates();
-		tableModel.fireTableRowsUpdated( row, row );
+		tableModel.fireTableRowsUpdated( modelRow, modelRow );
 	}
 
 	private void updateEditors()
 	{
-		final int row = tableBindings.getSelectedRow();
-		if ( row < 0 )
+		final int viewRow = tableBindings.getSelectedRow();
+		if ( viewRow < 0 )
 		{
 			labelActionName.setText( "" );
 			keybindingEditor.setInputTrigger( InputTrigger.NOT_MAPPED );
@@ -448,9 +515,10 @@ public class VisualEditorPanel extends JPanel
 			return;
 		}
 
-		final String action = tableModel.actions.get( row );
-		final InputTrigger trigger = tableModel.bindings.get( row );
-		final List< String > contexts = new ArrayList<>( tableModel.contexts.get( row ) );
+		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
+		final String action = tableModel.actions.get( modelRow );
+		final InputTrigger trigger = tableModel.bindings.get( modelRow );
+		final List< String > contexts = new ArrayList<>( tableModel.contexts.get( modelRow ) );
 		final String description = actionDescriptions.get( action );
 
 		labelActionName.setText( action );
@@ -459,21 +527,23 @@ public class VisualEditorPanel extends JPanel
 		textAreaDescription.setText( ( null == description ) ? "" : description );
 		textAreaDescription.setCaretPosition( 0 );
 
-		lookForConflicts( row );
+		lookForConflicts();
 	}
 
-	private void unbindCommand( final int row )
+	private void unbindCommand()
 	{
-		if ( row < 0 )
+		final int viewRow = tableBindings.getSelectedRow();
+		if ( viewRow < 0 )
 			return;
+		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
-		final InputTrigger inputTrigger = tableModel.bindings.get( row );
+		final InputTrigger inputTrigger = tableModel.bindings.get( modelRow );
 		if ( inputTrigger == InputTrigger.NOT_MAPPED )
 			return;
 
 		// Update model &
-		keybindingsChanged( row, InputTrigger.NOT_MAPPED );
-		contextsChanged( row, Collections.emptyList() );
+		keybindingsChanged( InputTrigger.NOT_MAPPED );
+		contextsChanged( Collections.emptyList() );
 
 		// Find whether we have two lines with the same action, unbound.
 		removeDuplicates();
@@ -516,12 +586,14 @@ public class VisualEditorPanel extends JPanel
 		updateEditors();
 	}
 
-	private void copyCommand( final int row )
+	private void copyCommand()
 	{
-		if ( row < 0 )
+		final int viewRow = tableBindings.getSelectedRow();
+		if ( viewRow < 0 )
 			return;
+		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
-		final String action = tableModel.actions.get( row );
+		final String action = tableModel.actions.get( modelRow );
 		// Check whether there is already a line in the table without a binding.
 		for ( int i = 0; i < tableModel.actions.size(); i++ )
 		{
@@ -531,29 +603,33 @@ public class VisualEditorPanel extends JPanel
 		}
 
 		// Create one then.
-		tableModel.actions.add( row + 1, action );
-		tableModel.bindings.add( row + 1, InputTrigger.NOT_MAPPED );
-		tableModel.contexts.add( row + 1, Collections.emptyList() );
-		tableModel.fireTableRowsInserted( row, row );
+		tableModel.actions.add( modelRow + 1, action );
+		tableModel.bindings.add( modelRow + 1, InputTrigger.NOT_MAPPED );
+		tableModel.contexts.add( modelRow + 1, Collections.emptyList() );
+		tableModel.fireTableRowsInserted( modelRow, modelRow );
 	}
 
-	private void keybindingsChanged( final int row, final InputTrigger inputTrigger )
+	private void keybindingsChanged( final InputTrigger inputTrigger )
 	{
-		if ( row < 0 )
+		final int viewRow = tableBindings.getSelectedRow();
+		if ( viewRow < 0 )
 			return;
+		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
-		tableModel.bindings.set( row, inputTrigger );
-		tableModel.fireTableCellUpdated( row, 1 );
-		lookForConflicts( row );
+		tableModel.bindings.set( modelRow, inputTrigger );
+		tableModel.fireTableCellUpdated( modelRow, 1 );
+		lookForConflicts();
 	}
 
-	private void contextsChanged( final int row, final List< String > selectedContexts )
+	private void contextsChanged( final List< String > selectedContexts )
 	{
-		if ( row < 0 )
+		final int viewRow = tableBindings.getSelectedRow();
+		if ( viewRow < 0 )
 			return;
+		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
-		tableModel.contexts.set( row, new ArrayList<>( selectedContexts ) );
-		tableModel.fireTableCellUpdated( row, 2 );
+		tableModel.contexts.set( modelRow, new ArrayList<>( selectedContexts ) );
+		tableModel.fireTableCellUpdated( modelRow, 2 );
 	}
 
 	/*
@@ -715,7 +791,20 @@ public class VisualEditorPanel extends JPanel
 				return -1;
 			return o1.trigger.toString().compareTo( o2.trigger.toString() );
 		}
+	}
 
+	private static final class InputTriggerComparator implements Comparator< InputTrigger >
+	{
+
+		@Override
+		public int compare( final InputTrigger o1, final InputTrigger o2 )
+		{
+			if ( o1 == InputTrigger.NOT_MAPPED )
+				return 1;
+			if ( o2 == InputTrigger.NOT_MAPPED )
+				return -1;
+			return o1.toString().compareTo( o2.toString() );
+		}
 	}
 
 	/*
