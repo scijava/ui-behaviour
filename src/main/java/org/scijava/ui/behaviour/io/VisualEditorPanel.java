@@ -77,7 +77,7 @@ public class VisualEditorPanel extends JPanel
 
 	private JTextField textFieldFilter;
 
-	private final MyTableModel tableModel;
+	private MyTableModel tableModel;
 
 	private final InputTriggerPanelEditor keybindingEditor;
 
@@ -86,6 +86,12 @@ public class VisualEditorPanel extends JPanel
 	private final JLabel labelActionName;
 
 	private final JTable tableBindings;
+
+	private final InputTriggerConfig config;
+
+	private final Set< String > actions;
+
+	private final Set< String > contexts;
 
 	/**
 	 * Create the panel.
@@ -96,6 +102,9 @@ public class VisualEditorPanel extends JPanel
 		 * GUI
 		 */
 
+		this.config = config;
+		this.actions = actions;
+		this.contexts = contexts;
 		setLayout( new BorderLayout( 0, 0 ) );
 
 		textFieldFilter = new JTextField();
@@ -223,9 +232,11 @@ public class VisualEditorPanel extends JPanel
 		flowLayout.setAlignment( FlowLayout.TRAILING );
 
 		final JButton btnRestore = new JButton( "Restore" );
+		btnRestore.setToolTipText( "Re-read the key bindings from the config." );
 		panelButtons.add( btnRestore );
 
 		final JButton btnApply = new JButton( "Apply" );
+		btnApply.setToolTipText( "Write these key bindings in the config." );
 		panelButtons.add( btnApply );
 
 		final JScrollPane scrollPane = new JScrollPane();
@@ -233,11 +244,11 @@ public class VisualEditorPanel extends JPanel
 		scrollPane.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
 		add( scrollPane, BorderLayout.CENTER );
 
-		tableModel = new MyTableModel( actions, config.actionToInputsMap );
-		tableBindings = new JTable( tableModel );
+		tableBindings = new JTable();
 		tableBindings.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
 		tableBindings.setFillsViewportHeight( true );
 		tableBindings.setAutoResizeMode( JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS );
+		tableBindings.setRowHeight( 30 );
 		tableBindings.getSelectionModel().addListSelectionListener( new ListSelectionListener()
 		{
 			@Override
@@ -262,13 +273,44 @@ public class VisualEditorPanel extends JPanel
 		btnUnbindAction.addActionListener( ( e ) -> unbindCommand( tableBindings.getSelectedRow() ) );
 		btnDeleteAction.addActionListener( ( e ) -> unbindAllCommand( tableBindings.getSelectedRow() ) );
 		btnExportCsv.addActionListener( ( e ) -> exportToCsv() );
+		btnRestore.addActionListener( (e) -> configToModel() );
+		btnApply.addActionListener( (e) -> modelToConfig() );
 
+		configToModel();
+		scrollPane.setViewportView( tableBindings );
+	}
+
+	private void modelToConfig()
+	{
+		final HashMap< String, Set< Input > > actionToInputsMap = config.actionToInputsMap;
+		actionToInputsMap.clear();
+		for ( int i = 0; i < tableModel.actions.size(); i++ )
+		{
+			final InputTrigger inputTrigger = tableModel.bindings.get( i );
+			if (inputTrigger == InputTrigger.NOT_MAPPED)
+				continue;
+
+			final String action = tableModel.actions.get( i );
+			final Set< String > cs = new HashSet<>(tableModel.contexts.get( i ) );
+			final Input input = new Input( inputTrigger, action, cs );
+			Set< Input > inputs = actionToInputsMap.get( action );
+			if (null == inputs)
+			{
+				inputs = new HashSet<>();
+				actionToInputsMap.put( action, inputs );
+			}
+			inputs.add( input );
+		}
+	}
+
+	private void configToModel()
+	{
+		tableModel = new MyTableModel( actions, config.actionToInputsMap );
+		tableBindings.setModel( tableModel );
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
 		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( contexts ) );
 		tableBindings.getSelectionModel().setSelectionInterval( 0, 0 );
-		tableBindings.setRowHeight( 30 );
-		scrollPane.setViewportView( tableBindings );
 	}
 
 	private final static String CSV_SEPARATOR = ",";
