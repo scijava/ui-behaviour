@@ -107,7 +107,7 @@ public class VisualEditorPanel extends JPanel
 	/**
 	 * Creates a visual editor for an {@link InputTriggerConfig}. The config
 	 * object is directly modified when the user clicks the 'Apply' button.
-	 * 
+	 *
 	 * @param config
 	 *            the {@link InputTriggerConfig} object to modify.
 	 * @param commandDescriptions
@@ -514,7 +514,6 @@ public class VisualEditorPanel extends JPanel
 			}
 		}
 		removeDuplicates();
-		tableModel.fireTableRowsUpdated( modelRow, modelRow );
 	}
 
 	private void updateEditors()
@@ -879,7 +878,7 @@ public class VisualEditorPanel extends JPanel
 
 	/**
 	 * Launch the application.
-	 * 
+	 *
 	 * @param args
 	 *
 	 * @throws UnsupportedLookAndFeelException
