@@ -333,7 +333,7 @@ public class VisualEditorPanel extends JPanel
 			}
 		} );
 
-		// Listen to changes in the
+		// Listen to changes in the keybinding editor and forward to table model.
 		keybindingEditor.addInputTriggerChangeListener( () -> keybindingsChanged(
 				keybindingEditor.getInputTrigger() == null
 						? keybindingEditor.getLastValidInputTrigger()
