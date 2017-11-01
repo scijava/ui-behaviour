@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
@@ -533,10 +534,15 @@ public class InputTriggerPanelEditor extends JPanel
 		TRIGGER_SYMBOLS.put( "ctrl", "\u2303" );
 		TRIGGER_SYMBOLS.put( "alt", "\u2387" );
 		TRIGGER_SYMBOLS.put( "shift", "\u21e7" );
-		TRIGGER_SYMBOLS.put( "meta", "\u25c6" );
+		TRIGGER_SYMBOLS.put( "meta", isMac() ? "\u2318" : "\u25c6" );
 		TRIGGER_SYMBOLS.put( "win", "\u2756" );
 		// Vertical bar is special
 		TRIGGER_SYMBOLS.put( "|", "    |    " );
 	}
 
+	private static boolean isMac()
+	{
+		final String OS = System.getProperty( "os.name", "generic" ).toLowerCase( Locale.ENGLISH );
+		return ( OS.indexOf( "mac" ) >= 0 ) || ( OS.indexOf( "darwin" ) >= 0 );
+	}
 }
