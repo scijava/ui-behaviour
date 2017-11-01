@@ -150,6 +150,9 @@ public class InputTriggerPanelEditor extends JPanel
 
 		if ( null != properCapKey )
 		{
+			// Some tags are replaced for constructing the trigger, e.g., "cmd" is replaces by "meta"
+			properCapKey = INPUT_TRIGGER_SYNTAX_TAG_REMAP.getOrDefault( properCapKey, properCapKey );
+
 			// Try to append the key to the trigger.
 			final String str = ( null == trigger )
 					? invalidTriggerStr + " " + properCapKey
@@ -418,6 +421,8 @@ public class InputTriggerPanelEditor extends JPanel
 	private static final List< String > INPUT_TRIGGER_SYNTAX_TAGS = new ArrayList<>();
 	private static final List< String > INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS;
 	private static final Map< String, String > TRIGGER_SYMBOLS = new HashMap<>();
+	private static final Map<String, String> INPUT_TRIGGER_SYNTAX_TAG_REMAP = new HashMap<>();
+
 	static
 	{
 		for ( int i = 0; i < 26; i++ )
@@ -481,6 +486,8 @@ public class InputTriggerPanelEditor extends JPanel
 						"altGraph",
 						"shift",
 						"meta",
+						"command",
+						"cmd",
 						"win",
 						"double-click",
 						"button1",
@@ -493,6 +500,10 @@ public class InputTriggerPanelEditor extends JPanel
 		INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS = new ArrayList<>(INPUT_TRIGGER_SYNTAX_TAGS.size());
 		for ( final String tag : INPUT_TRIGGER_SYNTAX_TAGS )
 			INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS.add( tag.toLowerCase() );
+
+		INPUT_TRIGGER_SYNTAX_TAG_REMAP.put( "cmd", "meta" );
+		INPUT_TRIGGER_SYNTAX_TAG_REMAP.put( "command", "meta" );
+		INPUT_TRIGGER_SYNTAX_TAG_REMAP.put( "windows", "win" );
 
 		TRIGGER_SYMBOLS.put( "ENTER", "\u23CE" );
 		TRIGGER_SYMBOLS.put( "BACK_SPACE", "\u232B" );
