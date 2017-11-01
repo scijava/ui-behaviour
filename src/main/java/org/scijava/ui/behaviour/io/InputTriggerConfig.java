@@ -32,8 +32,9 @@ package org.scijava.ui.behaviour.io;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import javax.swing.InputMap;
@@ -45,16 +46,16 @@ import org.scijava.ui.behaviour.KeyStrokeAdder;
 
 public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeAdder.Factory
 {
-	final HashMap< String, Set< Input > > actionToInputsMap;
+	final LinkedHashMap< String, Set< Input > > actionToInputsMap;
 
 	public InputTriggerConfig()
 	{
-		actionToInputsMap = new HashMap<>();
+		actionToInputsMap = new LinkedHashMap<>();
 	}
 
 	public InputTriggerConfig( final Collection< InputTriggerDescription > keyMappings ) throws IllegalArgumentException
 	{
-		actionToInputsMap = new HashMap<>();
+		actionToInputsMap = new LinkedHashMap<>();
 
 		if ( keyMappings == null )
 			return;
@@ -70,7 +71,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 				final InputTrigger trigger = InputTrigger.getFromString( triggerStr );
 				final Input input = new Input( trigger, behaviour, contexts );
 
-				Set< Input > inputs = actionToInputsMap.computeIfAbsent( input.behaviour, k -> new HashSet<>() );
+				Set< Input > inputs = actionToInputsMap.computeIfAbsent( input.behaviour, k -> new LinkedHashSet<>() );
 				inputs.add( input );
 			}
 		}
@@ -292,10 +293,10 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		}
 	}
 
-	Set< InputTrigger > getInputs( final String behaviourName, final Set< String > contexts )
+	public Set< InputTrigger > getInputs( final String behaviourName, final Set< String > contexts )
 	{
 		final Set< Input > inputs = actionToInputsMap.get( behaviourName );
-		final Set< InputTrigger > triggers = new HashSet<>();
+		final Set< InputTrigger > triggers = new LinkedHashSet<>();
 		if ( inputs != null )
 		{
 			for ( final Input input : inputs )
@@ -317,7 +318,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 
 	synchronized void add( final InputTrigger trigger, final String behaviourName, final Set< String > contexts )
 	{
-		Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new HashSet<>() );
+		Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
 		for ( final Input input : inputs )
 		{
 			if ( input.trigger.equals( trigger ) )
@@ -351,7 +352,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 
 			for ( final String behaviourName : behaviours )
 			{
-				Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new HashSet<>() );
+				Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
 
 				boolean added = false;
 				for ( final Input input : inputs )
@@ -387,7 +388,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			final InputTrigger trigger = InputTrigger.getFromString( key.toString() );
 			final String behaviourName = map.get( key ).toString();
 
-			Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new HashSet<>() );
+			Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
 
 			boolean added = false;
 			for ( final Input input : inputs )
