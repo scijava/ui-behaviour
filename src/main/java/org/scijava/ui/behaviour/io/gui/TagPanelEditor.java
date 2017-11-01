@@ -243,9 +243,9 @@ public class TagPanelEditor extends JPanel
 
 		private class CompletionTask implements Runnable
 		{
-			private String completion;
+			private final String completion;
 
-			private int position;
+			private final int position;
 
 			CompletionTask( final String completion, final int position )
 			{
@@ -268,42 +268,56 @@ public class TagPanelEditor extends JPanel
 
 	final class TagPanel extends JPanel
 	{
-
 		private static final long serialVersionUID = 1L;
 
 		public TagPanel( final String tag, final boolean valid )
 		{
+			final Color bg = valid ? getBackground() : Color.PINK;
 			final Font font = TagPanelEditor.this.getFont().deriveFont( TagPanelEditor.this.getFont().getSize2D() - 2f );
+
+			final JPanel content = new JPanel();
+			content.setLayout( new BoxLayout( content, BoxLayout.LINE_AXIS ) );
+			content.setOpaque( true );
+			content.setBackground( bg );
+			content.setBorder( new RoundBorder( bg.darker(), TagPanelEditor.this, 1 ) );
+
+			if ( editable )
+			{
+				final JLabel close = new JLabel( "\u00D7" );
+				close.setFont( font );
+				close.setOpaque( false );
+				close.addMouseListener( new java.awt.event.MouseAdapter()
+				{
+					@Override
+					public void mousePressed( final java.awt.event.MouseEvent evt )
+					{
+						removeTag( tag );
+					}
+				} );
+				content.add( close );
+				content.add( createHorizontalStrutWithMaxHeight1( 2 ) );
+			}
+
 			final String str = printables.containsKey( tag ) ? printables.get( tag ) : tag;
 			final JLabel txt = new JLabel( str );
 			txt.setFont( font );
-			txt.setOpaque( true );
-			if ( !valid )
-				txt.setBackground( Color.PINK );
-			txt.setBorder( new RoundBorder( getBackground().darker(), TagPanelEditor.this, 3 ) );
-
-			final JLabel close = new JLabel( "\u00D7" );
-			close.setOpaque( true );
-			close.setBackground( getBackground().darker().darker() );
-			close.setFont( font );
-			close.addMouseListener( new java.awt.event.MouseAdapter()
-			{
-				@Override
-				public void mousePressed( final java.awt.event.MouseEvent evt )
-				{
-					removeTag( tag );
-				}
-			} );
+			txt.setOpaque( false );
+			content.add( txt );
 
 			setLayout( new BoxLayout( this, BoxLayout.LINE_AXIS ) );
-			if ( editable )
-				add( close );
 			add( Box.createHorizontalStrut( 1 ) );
-			add( txt );
+			add( content );
 			add( Box.createHorizontalStrut( 4 ) );
 			setOpaque( false );
 		}
 	}
+
+	private static Box.Filler createHorizontalStrutWithMaxHeight1( final int width )
+	{
+		return new Box.Filler( new Dimension( width, 0 ), new Dimension( width, 0 ),
+				new Dimension( width, 1 ) );
+	}
+
 
 	private void notifyListeners()
 	{
