@@ -136,7 +136,7 @@ public class VisualEditorPanel extends JPanel
 		panelFilter.add( horizontalStrut );
 
 		final JLabel lblFilter = new JLabel( "Filter:" );
-		lblFilter.setToolTipText( "Fiter on command names. Accept regular expressions." );
+		lblFilter.setToolTipText( "Filter on command names. Accept regular expressions." );
 		lblFilter.setAlignmentX( Component.CENTER_ALIGNMENT );
 		panelFilter.add( lblFilter );
 
