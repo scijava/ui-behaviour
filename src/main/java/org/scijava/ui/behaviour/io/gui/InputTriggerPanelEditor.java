@@ -3,6 +3,7 @@ package org.scijava.ui.behaviour.io.gui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -77,6 +78,8 @@ public class InputTriggerPanelEditor extends JPanel
 			textField.getDocument().addDocumentListener( autoComplete );
 			textField.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), COMMIT_ACTION );
 			textField.getInputMap().put( KeyStroke.getKeyStroke( ' ' ), COMMIT_ACTION );
+			textField.setFocusTraversalKeys( KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.emptySet() );
+			textField.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, 0 ), COMMIT_ACTION );
 			textField.getActionMap().put( COMMIT_ACTION, autoComplete.new CommitAction() );
 			textField.addKeyListener( new KeyAdapter()
 			{
@@ -346,6 +349,11 @@ public class InputTriggerPanelEditor extends JPanel
 			public void actionPerformed( final ActionEvent ev )
 			{
 				final String key = textField.getText().trim();
+				if ( key.isEmpty() )
+				{
+					KeyboardFocusManager.getCurrentKeyboardFocusManager().focusNextComponent();
+					return;
+				}
 				checkAndAppendKey( key );
 				textField.setText( "" );
 				notifyListeners();
