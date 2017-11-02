@@ -3,7 +3,6 @@ package org.scijava.ui.behaviour.io;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -13,7 +12,6 @@ import java.awt.KeyboardFocusManager;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,12 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -40,9 +36,6 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -51,19 +44,18 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
-
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig.Input;
 import org.scijava.ui.behaviour.io.gui.InputTriggerPanelEditor;
 import org.scijava.ui.behaviour.io.gui.TagPanelEditor;
-import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
 
 public class VisualEditorPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
 
-	private static JFileChooser fileChooser = new JFileChooser();
+	static JFileChooser fileChooser = new JFileChooser();
+
 	static
 	{
 		fileChooser.setFileFilter( new FileFilter()
@@ -834,97 +826,4 @@ public class VisualEditorPanel extends JPanel
 			return o1.toString().compareTo( o2.toString() );
 		}
 	}
-
-	/*
-	 * DEMO METHODS.
-	 */
-
-	private static InputTriggerConfig getDemoConfig()
-	{
-		final StringReader reader = new StringReader( "---\n" +
-				"- !mapping" + "\n" +
-				"  action: fluke" + "\n" +
-				"  contexts: [all]" + "\n" +
-				"  triggers: [F]" + "\n" +
-				"- !mapping" + "\n" +
-				"  action: drag1" + "\n" +
-				"  contexts: [all]" + "\n" +
-				"  triggers: [button1, win G]" + "\n" +
-				"- !mapping" + "\n" +
-				"  action: scroll1" + "\n" +
-				"  contexts: [all]" + "\n" +
-				"  triggers: [scroll]" + "\n" +
-				"- !mapping" + "\n" +
-				"  action: scroll1" + "\n" +
-				"  contexts: [trackscheme, mamut]" + "\n" +
-				"  triggers: [shift D]" + "\n" +
-				"- !mapping" + "\n" +
-				"  action: destroy the world" + "\n" +
-				"  contexts: [unknown context, mamut]" + "\n" +
-				"  triggers: [control A]" + "\n" +
-				"" );
-		final List< InputTriggerDescription > triggers = YamlConfigIO.read( reader );
-		final InputTriggerConfig config = new InputTriggerConfig( triggers );
-		return config;
-	}
-
-	private static Map< String, String > getDemoActions()
-	{
-		final Map< String, String > actions = new HashMap<>();
-		actions.put( "drag1", "Move an item around the editor." );
-		actions.put( "scroll1", null );
-		actions.put( "destroy the world", "Make a disgusting coffee for breakfast. \n"
-				+ "For this one, you are by yourself. Good luck and know that we are with you. This is a long line. Hopefully long engouh.\n"
-				+ "Hey, what about we add:\n"
-				+ "tabulation1\ttabulation2\n"
-				+ "lalallala\ttrollololo." );
-		actions.put( "ride the dragon", "Go to work by bike." );
-		actions.put( "make some coffee", null );
-		return actions;
-	}
-
-	private static Set< String > getDemoContexts()
-	{
-		final Set< String > contexts = new HashSet<>();
-		contexts.add( "all" );
-		contexts.add( "mamut" );
-		contexts.add( "trackscheme" );
-		return contexts;
-	}
-
-	/**
-	 * Launch the application.
-	 *
-	 * @param args
-	 *
-	 * @throws UnsupportedLookAndFeelException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws ClassNotFoundException
-	 */
-	public static void main( final String[] args ) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException
-	{
-		UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-		EventQueue.invokeLater( new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				try
-				{
-					final JFrame frame = new JFrame( "Behaviour Key bindings editor" );
-					final VisualEditorPanel editorPanel = new VisualEditorPanel( getDemoConfig(), getDemoActions(), getDemoContexts() );
-					SwingUtilities.updateComponentTreeUI( VisualEditorPanel.fileChooser );
-					frame.getContentPane().add( editorPanel );
-					frame.pack();
-					frame.setVisible( true );
-				}
-				catch ( final Exception e )
-				{
-					e.printStackTrace();
-				}
-			}
-		} );
-	}
-
 }
