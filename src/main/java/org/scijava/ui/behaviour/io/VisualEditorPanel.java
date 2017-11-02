@@ -301,6 +301,7 @@ public class VisualEditorPanel extends JPanel
 		textAreaDescription.setWrapStyleWord( true );
 		textAreaDescription.setEditable( false );
 		textAreaDescription.setLineWrap( true );
+		textAreaDescription.setFocusable( false );
 		scrollPaneDescription.setViewportView( textAreaDescription );
 
 		panelButtons = new JPanel();
