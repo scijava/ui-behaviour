@@ -105,6 +105,10 @@ public class VisualEditorPanel extends JPanel
 
 	private JTextArea textAreaDescription;
 
+	private final JPanel panelEditor;
+
+	private final JPanel panelButtons;
+
 	/**
 	 * Creates a visual editor for an {@link InputTriggerConfig}. The config
 	 * object is directly modified when the user clicks the 'Apply' button.
@@ -169,7 +173,7 @@ public class VisualEditorPanel extends JPanel
 			}
 		} );
 
-		final JPanel panelEditor = new JPanel();
+		panelEditor = new JPanel();
 		add( panelEditor, BorderLayout.SOUTH );
 		panelEditor.setLayout( new BorderLayout( 0, 0 ) );
 
@@ -299,7 +303,7 @@ public class VisualEditorPanel extends JPanel
 		textAreaDescription.setLineWrap( true );
 		scrollPaneDescription.setViewportView( textAreaDescription );
 
-		final JPanel panelButtons = new JPanel();
+		panelButtons = new JPanel();
 		panelEditor.add( panelButtons, BorderLayout.SOUTH );
 		final FlowLayout flowLayout = ( FlowLayout ) panelButtons.getLayout();
 		flowLayout.setAlignment( FlowLayout.TRAILING );
@@ -388,7 +392,14 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
-	private void modelToConfig()
+	public void setButtonPanelVisible( boolean visible )
+	{
+		panelEditor.remove( panelButtons );
+		if ( visible )
+			panelEditor.add( panelButtons, BorderLayout.SOUTH );
+	}
+
+	public void modelToConfig()
 	{
 		final HashMap< String, Set< Input > > actionToInputsMap = config.actionToInputsMap;
 		actionToInputsMap.clear();
@@ -411,7 +422,7 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
-	private void configToModel()
+	public void configToModel()
 	{
 		tableModel = new MyTableModel( actionDescriptions.keySet(), config.actionToInputsMap );
 		tableBindings.setModel( tableModel );
