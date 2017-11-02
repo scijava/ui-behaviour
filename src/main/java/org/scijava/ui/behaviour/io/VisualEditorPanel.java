@@ -402,8 +402,7 @@ public class VisualEditorPanel extends JPanel
 
 	public void modelToConfig()
 	{
-		final HashMap< String, Set< Input > > actionToInputsMap = config.actionToInputsMap;
-		actionToInputsMap.clear();
+		config.clear();
 		for ( int i = 0; i < tableModel.commands.size(); i++ )
 		{
 			final InputTrigger inputTrigger = tableModel.bindings.get( i );
@@ -412,14 +411,16 @@ public class VisualEditorPanel extends JPanel
 
 			final String action = tableModel.commands.get( i );
 			final Set< String > cs = new HashSet<>( tableModel.contexts.get( i ) );
-			final Input input = new Input( inputTrigger, action, cs );
-			Set< Input > inputs = actionToInputsMap.get( action );
-			if ( null == inputs )
-			{
-				inputs = new HashSet<>();
-				actionToInputsMap.put( action, inputs );
-			}
-			inputs.add( input );
+			config.add( inputTrigger, action, cs );
+		}
+
+		// fill in InputTrigger.NOT_MAPPED for any action that doesn't have any input
+		for ( String context : contexts )
+		{
+			final Set< String > cs = Collections.singleton( context );
+			for ( String action : actionDescriptions.keySet() )
+				if ( config.getInputs( action, cs ).isEmpty() )
+					config.add( InputTrigger.NOT_MAPPED, action, cs );
 		}
 	}
 
