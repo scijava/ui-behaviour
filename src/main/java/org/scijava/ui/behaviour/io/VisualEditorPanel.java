@@ -9,6 +9,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -332,6 +333,8 @@ public class VisualEditorPanel extends JPanel
 				updateEditors();
 			}
 		} );
+		tableBindings.setFocusTraversalKeys( KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null );
+		tableBindings.setFocusTraversalKeys( KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null );
 
 		// Listen to changes in the keybinding editor and forward to table model.
 		keybindingEditor.addInputTriggerChangeListener( () -> keybindingsChanged(
