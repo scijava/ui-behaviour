@@ -532,6 +532,7 @@ public class VisualEditorPanel extends JPanel
 			labelCommandName.setText( "" );
 			keybindingEditor.setInputTrigger( InputTrigger.NOT_MAPPED );
 			contextsEditor.setTags( Collections.emptyList() );
+			textAreaDescription.setText( "" );
 			return;
 		}
 
