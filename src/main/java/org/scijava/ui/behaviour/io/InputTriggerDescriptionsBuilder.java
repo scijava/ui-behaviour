@@ -32,10 +32,12 @@ package org.scijava.ui.behaviour.io;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import java.util.stream.Collectors;
 import javax.swing.InputMap;
 
 import org.scijava.ui.behaviour.InputTriggerMap;
@@ -96,6 +98,20 @@ public class InputTriggerDescriptionsBuilder
 		}
 
 		return descs;
+	}
+
+	public Set< String > getContexts()
+	{
+		final Set< String > contexts = new LinkedHashSet<>();
+		for ( final Entry< String, Set< Input > > entry : config.actionToInputsMap.entrySet() )
+			for ( final Input input : entry.getValue() )
+				contexts.addAll( input.contexts );
+		return contexts;
+	}
+
+	public Set< String > getBehaviourNames()
+	{
+		return new LinkedHashSet<>( config.actionToInputsMap.keySet() );
 	}
 
 	public void addMap( final InputTriggerMap map, final String context )

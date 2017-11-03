@@ -3,6 +3,7 @@ package org.scijava.ui.behaviour.io.gui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -12,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
@@ -76,6 +78,8 @@ public class InputTriggerPanelEditor extends JPanel
 			textField.getDocument().addDocumentListener( autoComplete );
 			textField.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), COMMIT_ACTION );
 			textField.getInputMap().put( KeyStroke.getKeyStroke( ' ' ), COMMIT_ACTION );
+			textField.setFocusTraversalKeys( KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.emptySet() );
+			textField.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, 0 ), COMMIT_ACTION );
 			textField.getActionMap().put( COMMIT_ACTION, autoComplete.new CommitAction() );
 			textField.addKeyListener( new KeyAdapter()
 			{
@@ -149,6 +153,9 @@ public class InputTriggerPanelEditor extends JPanel
 
 		if ( null != properCapKey )
 		{
+			// Some tags are replaced for constructing the trigger, e.g., "cmd" is replaces by "meta"
+			properCapKey = INPUT_TRIGGER_SYNTAX_TAG_REMAP.getOrDefault( properCapKey, properCapKey );
+
 			// Try to append the key to the trigger.
 			final String str = ( null == trigger )
 					? invalidTriggerStr + " " + properCapKey
@@ -342,6 +349,11 @@ public class InputTriggerPanelEditor extends JPanel
 			public void actionPerformed( final ActionEvent ev )
 			{
 				final String key = textField.getText().trim();
+				if ( key.isEmpty() )
+				{
+					KeyboardFocusManager.getCurrentKeyboardFocusManager().focusNextComponent();
+					return;
+				}
 				checkAndAppendKey( key );
 				textField.setText( "" );
 				notifyListeners();
@@ -417,6 +429,8 @@ public class InputTriggerPanelEditor extends JPanel
 	private static final List< String > INPUT_TRIGGER_SYNTAX_TAGS = new ArrayList<>();
 	private static final List< String > INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS;
 	private static final Map< String, String > TRIGGER_SYMBOLS = new HashMap<>();
+	private static final Map<String, String> INPUT_TRIGGER_SYNTAX_TAG_REMAP = new HashMap<>();
+
 	static
 	{
 		for ( int i = 0; i < 26; i++ )
@@ -480,6 +494,8 @@ public class InputTriggerPanelEditor extends JPanel
 						"altGraph",
 						"shift",
 						"meta",
+						"command",
+						"cmd",
 						"win",
 						"double-click",
 						"button1",
@@ -492,6 +508,10 @@ public class InputTriggerPanelEditor extends JPanel
 		INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS = new ArrayList<>(INPUT_TRIGGER_SYNTAX_TAGS.size());
 		for ( final String tag : INPUT_TRIGGER_SYNTAX_TAGS )
 			INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS.add( tag.toLowerCase() );
+
+		INPUT_TRIGGER_SYNTAX_TAG_REMAP.put( "cmd", "meta" );
+		INPUT_TRIGGER_SYNTAX_TAG_REMAP.put( "command", "meta" );
+		INPUT_TRIGGER_SYNTAX_TAG_REMAP.put( "windows", "win" );
 
 		TRIGGER_SYMBOLS.put( "ENTER", "\u23CE" );
 		TRIGGER_SYMBOLS.put( "BACK_SPACE", "\u232B" );
@@ -533,10 +553,15 @@ public class InputTriggerPanelEditor extends JPanel
 		TRIGGER_SYMBOLS.put( "ctrl", "\u2303" );
 		TRIGGER_SYMBOLS.put( "alt", "\u2387" );
 		TRIGGER_SYMBOLS.put( "shift", "\u21e7" );
-		TRIGGER_SYMBOLS.put( "meta", "\u25c6" );
+		TRIGGER_SYMBOLS.put( "meta", isMac() ? "\u2318" : "\u25c6" );
 		TRIGGER_SYMBOLS.put( "win", "\u2756" );
 		// Vertical bar is special
 		TRIGGER_SYMBOLS.put( "|", "    |    " );
 	}
 
+	private static boolean isMac()
+	{
+		final String OS = System.getProperty( "os.name", "generic" ).toLowerCase( Locale.ENGLISH );
+		return ( OS.indexOf( "mac" ) >= 0 ) || ( OS.indexOf( "darwin" ) >= 0 );
+	}
 }

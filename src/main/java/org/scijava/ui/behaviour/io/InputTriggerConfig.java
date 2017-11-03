@@ -306,6 +306,11 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		return triggers;
 	}
 
+	void clear()
+	{
+		actionToInputsMap.clear();
+	}
+
 	void add( final String trigger, final String behaviourName, final String context )
 	{
 		add( InputTrigger.getFromString( trigger ), behaviourName, context );
