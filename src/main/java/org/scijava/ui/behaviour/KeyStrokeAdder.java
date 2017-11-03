@@ -39,7 +39,10 @@ public interface KeyStrokeAdder
 		public KeyStrokeAdder keyStrokeAdder( InputMap map, final String ... contexts );
 	}
 
+	@Deprecated
 	public void put( final String actionName, final KeyStroke... defaultKeyStrokes );
+
+	public void put( final String actionName, final InputTrigger... defaultKeyStrokes );
 
 	public void put( final String actionName, final String... defaultKeyStrokes );
 

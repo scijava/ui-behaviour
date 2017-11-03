@@ -230,12 +230,54 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		}
 
 		@Override
+		public void put( final String actionName, final InputTrigger... defaultKeyStrokes )
+		{
+			final Set< InputTrigger > triggers = config.getInputs( actionName, contexts );
+			if ( triggers.contains( InputTrigger.NOT_MAPPED ) )
+				return;
+
+			boolean configKeyAdded = false;
+			for ( final InputTrigger trigger : triggers )
+			{
+				if ( trigger.isKeyStroke() )
+				{
+					map.put( trigger.getKeyStroke(), actionName );
+					configKeyAdded = true;
+				}
+			}
+			if ( configKeyAdded )
+				return;
+
+			if ( defaultKeyStrokes.length > 0 )
+			{
+				if ( defaultKeyStrokes[ 0 ].equals( InputTrigger.NOT_MAPPED ) )
+				{
+					config.add( InputTrigger.NOT_MAPPED, actionName, contexts );
+					return;
+				}
+
+				for ( final InputTrigger trigger : triggers )
+				{
+					if ( trigger.isKeyStroke() )
+					{
+						config.add( trigger, actionName, contexts );
+						map.put( trigger.getKeyStroke(), actionName );
+						configKeyAdded = true;
+					}
+				}
+			}
+
+			if ( !configKeyAdded )
+				System.err.println( "Could not assign KeyStroke for \"" + actionName + "\". Nothing defined in InputTriggerConfig, and no default given." );
+		}
+
+		@Override
 		public void put( final String actionName, final String... defaultKeyStrokes )
 		{
-			final KeyStroke[] keyStrokes = new KeyStroke[ defaultKeyStrokes.length ];
+			final InputTrigger[] keyStrokes = new InputTrigger[ defaultKeyStrokes.length ];
 			int i = 0;
 			for ( final String s : defaultKeyStrokes )
-				keyStrokes[ i++ ] = KeyStroke.getKeyStroke( s );
+				keyStrokes[ i++ ] = InputTrigger.getFromString( s );
 			put( actionName, keyStrokes );
 		}
 
