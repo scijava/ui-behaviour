@@ -111,7 +111,7 @@ public class InputTriggerDescriptionsBuilder
 
 	public Set< String > getBehaviourNames()
 	{
-		return config.actionToInputsMap.keySet();
+		return new LinkedHashSet<>( config.actionToInputsMap.keySet() );
 	}
 
 	public void addMap( final InputTriggerMap map, final String context )
