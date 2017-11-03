@@ -195,22 +195,30 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			if ( !triggers.isEmpty() )
 			{
 				if ( triggers.contains( InputTrigger.NOT_MAPPED ) )
+				{
+					record( InputTrigger.NOT_MAPPED, behaviourName );
 					return;
+				}
 
 				for ( final InputTrigger trigger : triggers )
+				{
+					record( trigger, behaviourName );
 					map.put( trigger, behaviourName );
+				}
 			}
 			else if ( defaultTriggers.length > 0 )
 			{
 				if ( defaultTriggers[ 0 ].equals( InputTrigger.NOT_MAPPED ) )
 				{
 					config.add( InputTrigger.NOT_MAPPED, behaviourName, contexts );
+					record( InputTrigger.NOT_MAPPED, behaviourName );
 					return;
 				}
 
 				for ( final InputTrigger trigger : defaultTriggers )
 				{
 					config.add( trigger, behaviourName, contexts );
+					record( trigger, behaviourName );
 					map.put( trigger, behaviourName );
 				}
 			}
@@ -235,7 +243,31 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		{
 			put( behaviourName, new InputTrigger[ 0 ] );
 		}
+
+		private void record( final InputTrigger trigger, final String behaviourName )
+		{
+			if ( DEBUG )
+			{
+				final StackTraceElement[] trace = new Throwable().getStackTrace();
+				int i = 3;
+				for ( ; i < trace.length - 1; ++i )
+				{
+					switch ( trace[ i ].toString() )
+					{
+					case "org.scijava.ui.behaviour.util.Behaviours.behaviour(Behaviours.java:150)":
+					case "org.scijava.ui.behaviour.util.Behaviours.namedBehaviour(Behaviours.java:156)":
+						continue;
+					default:
+						break;
+					}
+					break;
+				}
+				System.out.println( trace[ i ] + "  {{  (b)  " + trigger + " --> " + behaviourName + "  }}" );
+			}
+		}
 	}
+
+	private final static boolean DEBUG = true;
 
 	public static class KeyStrokeAdderImp implements KeyStrokeAdder
 	{
@@ -271,13 +303,17 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		{
 			final Set< InputTrigger > triggers = config.getInputs( actionName, contexts );
 			if ( triggers.contains( InputTrigger.NOT_MAPPED ) )
+			{
+				record( InputTrigger.NOT_MAPPED, actionName );
 				return;
+			}
 
 			boolean configKeyAdded = false;
 			for ( final InputTrigger trigger : triggers )
 			{
 				if ( trigger.isKeyStroke() )
 				{
+					record( trigger, actionName );
 					map.put( trigger.getKeyStroke(), actionName );
 					configKeyAdded = true;
 				}
@@ -290,6 +326,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 				for ( final KeyStroke keyStroke : defaultKeyStrokes )
 				{
 					config.add( InputTrigger.getFromString( keyStroke.toString() ), actionName, contexts );
+					record( InputTrigger.getFromString( keyStroke.toString() ), actionName );
 					map.put( keyStroke, actionName );
 				}
 			}
@@ -304,13 +341,17 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		{
 			final Set< InputTrigger > triggers = config.getInputs( actionName, contexts );
 			if ( triggers.contains( InputTrigger.NOT_MAPPED ) )
+			{
+				record( InputTrigger.NOT_MAPPED, actionName );
 				return;
+			}
 
 			boolean configKeyAdded = false;
 			for ( final InputTrigger trigger : triggers )
 			{
 				if ( trigger.isKeyStroke() )
 				{
+					record( trigger, actionName );
 					map.put( trigger.getKeyStroke(), actionName );
 					configKeyAdded = true;
 				}
@@ -323,6 +364,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 				if ( defaultKeyStrokes[ 0 ].equals( InputTrigger.NOT_MAPPED ) )
 				{
 					config.add( InputTrigger.NOT_MAPPED, actionName, contexts );
+					record( InputTrigger.NOT_MAPPED, actionName );
 					return;
 				}
 
@@ -331,6 +373,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 					if ( trigger.isKeyStroke() )
 					{
 						config.add( trigger, actionName, contexts );
+						record( trigger, actionName );
 						map.put( trigger.getKeyStroke(), actionName );
 						configKeyAdded = true;
 					}
@@ -355,6 +398,28 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		public void put( final String actionName )
 		{
 			put( actionName, new KeyStroke[ 0 ] );
+		}
+
+		private void record( final InputTrigger trigger, final String actionName )
+		{
+			if ( DEBUG )
+			{
+				final StackTraceElement[] trace = new Throwable().getStackTrace();
+				int i = 3;
+				for ( ; i < trace.length - 1; ++i )
+				{
+					switch ( trace[ i ].toString() )
+					{
+					case "org.scijava.ui.behaviour.util.Actions.namedAction(Actions.java:177)":
+					case "org.scijava.ui.behaviour.util.Actions.runnableAction(Actions.java:162)":
+						continue;
+					default:
+						break;
+					}
+					break;
+				}
+				System.out.println( trace[ i ] + "  {{  (a)  " + trigger + " --> " + actionName + "  }}" );
+			}
 		}
 	}
 
