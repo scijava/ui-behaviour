@@ -18,10 +18,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -44,8 +46,10 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
+
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig.Input;
+import org.scijava.ui.behaviour.io.gui.CommandDescriptionBuilder;
 import org.scijava.ui.behaviour.io.gui.InputTriggerPanelEditor;
 import org.scijava.ui.behaviour.io.gui.TagPanelEditor;
 
@@ -89,7 +93,7 @@ public class VisualEditorPanel extends JPanel
 
 	private final InputTriggerConfig config;
 
-	private final Map< String, String > actionDescriptions;
+	private final Map< String, Map< String, String > > actionDescriptions;
 
 	private final Set< String > contexts;
 
@@ -108,21 +112,28 @@ public class VisualEditorPanel extends JPanel
 	 * @param config
 	 *            the {@link InputTriggerConfig} object to modify.
 	 * @param commandDescriptions
-	 *            The commands available. They are specified as a map from
-	 *            command name to their description. Use <code>null</code> as
-	 *            value to not specify a description.
-	 * @param contexts
-	 *            The contexts available.
+	 *            The commands available. They are specified as a map from map
+	 *            of commands -> map of contexts -> description of what the
+	 *            command do in a context. Use <code>null</code> as value to not
+	 *            specify a description.
+	 * @see CommandDescriptionBuilder
 	 */
-	public VisualEditorPanel( final InputTriggerConfig config, final Map< String, String > commandDescriptions, final Set< String > contexts )
+	public VisualEditorPanel( final InputTriggerConfig config, final Map< String, Map< String, String > > commandDescriptions )
 	{
+
+		this.config = config;
+		this.actionDescriptions = commandDescriptions;
+		this.contexts = new HashSet<>();
+		for ( final String command : commandDescriptions.keySet() )
+		{
+			final Map< String, String > contextMap = commandDescriptions.get( command );
+			contexts.addAll( contextMap.keySet() );
+		}
+
 		/*
 		 * GUI
 		 */
 
-		this.config = config;
-		this.actionDescriptions = commandDescriptions;
-		this.contexts = contexts;
 		setLayout( new BorderLayout( 0, 0 ) );
 
 		final JPanel panelFilter = new JPanel();
@@ -333,7 +344,8 @@ public class VisualEditorPanel extends JPanel
 		tableBindings.setFocusTraversalKeys( KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null );
 		tableBindings.setFocusTraversalKeys( KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null );
 
-		// Listen to changes in the keybinding editor and forward to table model.
+		// Listen to changes in the keybinding editor and forward to table
+		// model.
 		keybindingEditor.addInputTriggerChangeListener( () -> keybindingsChanged(
 				keybindingEditor.getInputTrigger() == null
 						? keybindingEditor.getLastValidInputTrigger()
@@ -385,7 +397,7 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
-	public void setButtonPanelVisible( boolean visible )
+	public void setButtonPanelVisible( final boolean visible )
 	{
 		panelEditor.remove( panelButtons );
 		if ( visible )
@@ -406,11 +418,12 @@ public class VisualEditorPanel extends JPanel
 			config.add( inputTrigger, action, cs );
 		}
 
-		// fill in InputTrigger.NOT_MAPPED for any action that doesn't have any input
-		for ( String context : contexts )
+		// fill in InputTrigger.NOT_MAPPED for any action that doesn't have any
+		// input
+		for ( final String context : contexts )
 		{
 			final Set< String > cs = Collections.singleton( context );
-			for ( String action : actionDescriptions.keySet() )
+			for ( final String action : actionDescriptions.keySet() )
 				if ( config.getInputs( action, cs ).isEmpty() )
 					config.add( InputTrigger.NOT_MAPPED, action, cs );
 		}
@@ -540,12 +553,32 @@ public class VisualEditorPanel extends JPanel
 		final String action = tableModel.commands.get( modelRow );
 		final InputTrigger trigger = tableModel.bindings.get( modelRow );
 		final List< String > contexts = new ArrayList<>( tableModel.contexts.get( modelRow ) );
-		final String description = actionDescriptions.get( action );
+
+		final Map< String, String > contextMap = actionDescriptions.get( action );
+		final String description;
+		if ( null == contextMap || contextMap.isEmpty() )
+			description = "";
+		else if ( contextMap.size() == 1 )
+			description = contextMap.get( contextMap.keySet().iterator().next() );
+		else
+		{
+			final StringBuilder str = new StringBuilder();
+			final Iterator< String > cs = contextMap.keySet().iterator();
+			while ( cs.hasNext() )
+			{
+				final String c = cs.next();
+				final String d = contextMap.get( c );
+				if ( d != null )
+					str.append( "\n\nIn " + c + ":\n" + d );
+			}
+			str.delete( 0, 2 );
+			description = str.toString();
+		}
 
 		labelCommandName.setText( action );
 		keybindingEditor.setInputTrigger( trigger );
 		contextsEditor.setTags( contexts );
-		textAreaDescription.setText( ( null == description ) ? "" : description );
+		textAreaDescription.setText( description );
 		textAreaDescription.setCaretPosition( 0 );
 
 		lookForConflicts();

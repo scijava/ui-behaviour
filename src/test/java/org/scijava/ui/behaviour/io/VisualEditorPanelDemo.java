@@ -2,15 +2,15 @@ package org.scijava.ui.behaviour.io;
 
 import java.awt.EventQueue;
 import java.io.StringReader;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+
+import org.scijava.ui.behaviour.io.gui.CommandDescriptionBuilder;
 import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
 
 public class VisualEditorPanelDemo
@@ -48,28 +48,21 @@ public class VisualEditorPanelDemo
 		return config;
 	}
 
-	private static Map< String, String > getDemoActions()
+	private static Map< String, Map< String, String > > getDemoCommands()
 	{
-		final Map< String, String > actions = new HashMap<>();
-		actions.put( "drag1", "Move an item around the editor." );
-		actions.put( "scroll1", null );
-		actions.put( "destroy the world", "Make a disgusting coffee for breakfast. \n"
-				+ "For this one, you are by yourself. Good luck and know that we are with you. This is a long line. Hopefully long engouh.\n"
-				+ "Hey, what about we add:\n"
-				+ "tabulation1\ttabulation2\n"
-				+ "lalallala\ttrollololo." );
-		actions.put( "ride the dragon", "Go to work by bike." );
-		actions.put( "make some coffee", null );
-		return actions;
-	}
-
-	private static Set< String > getDemoContexts()
-	{
-		final Set< String > contexts = new HashSet<>();
-		contexts.add( "all" );
-		contexts.add( "mamut" );
-		contexts.add( "trackscheme" );
-		return contexts;
+		return new CommandDescriptionBuilder()
+				.addCommand( "drag1", "mamut", "Move an item around the editor." )
+				.addCommand( "drag1", "trackscheme", "Move an item around the editor." )
+				.addCommand( "scroll1", "mamut", null )
+				.addCommand( "destroy the world", "all", "Make a disgusting coffee for breakfast. \n"
+						+ "For this one, you are by yourself. Good luck and know that we are with you. This is a long line. Hopefully long engouh.\n"
+						+ "Hey, what about we add:\n"
+						+ "tabulation1\ttabulation2\n"
+						+ "lalallala\ttrollololo." )
+				.addCommand( "ride the dragon", "all", "Go to work by bike." )
+				.addCommand( "make some coffee", "mamut", null )
+				.addCommand( "make some coffee", "trackscheme", "Make a decent coffee." )
+				.get();
 	}
 
 	/**
@@ -93,7 +86,7 @@ public class VisualEditorPanelDemo
 				try
 				{
 					final JFrame frame = new JFrame( "Behaviour Key bindings editor" );
-					final VisualEditorPanel editorPanel = new VisualEditorPanel( getDemoConfig(), getDemoActions(), getDemoContexts() );
+					final VisualEditorPanel editorPanel = new VisualEditorPanel( getDemoConfig(), getDemoCommands() );
 					SwingUtilities.updateComponentTreeUI( VisualEditorPanel.fileChooser );
 					frame.getContentPane().add( editorPanel );
 					frame.pack();
