@@ -133,6 +133,14 @@ public class TagPanelEditor extends JPanel
 		repaint();
 	}
 
+	public void setAcceptableTags( final Collection< String > acceptableTags )
+	{
+		tags.clear();
+		tags.addAll( acceptableTags );
+		tags.sort( null );
+		repaint();
+	}
+
 	protected void addTag( final String tag )
 	{
 		final TagPanel tagp = new TagPanel( tag, this.tags.contains( tag ) );
