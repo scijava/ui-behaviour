@@ -431,7 +431,7 @@ public class VisualEditorPanel extends JPanel
 
 	public void configToModel()
 	{
-		tableModel = new MyTableModel( actionDescriptions.keySet(), config.actionToInputsMap );
+		tableModel = new MyTableModel( actionDescriptions, config.actionToInputsMap );
 		tableBindings.setModel( tableModel );
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
@@ -531,7 +531,8 @@ public class VisualEditorPanel extends JPanel
 			if ( tableModel.commands.get( i ).equals( action ) )
 			{
 				tableModel.bindings.set( i, InputTrigger.NOT_MAPPED );
-				tableModel.contexts.set( i, Collections.emptyList() );
+				final List< String > cs = new ArrayList<>( actionDescriptions.get( action ).keySet() );
+				tableModel.contexts.set( i, cs );
 			}
 		}
 		removeDuplicates();
@@ -554,9 +555,11 @@ public class VisualEditorPanel extends JPanel
 		final InputTrigger trigger = tableModel.bindings.get( modelRow );
 		final List< String > contexts = new ArrayList<>( tableModel.contexts.get( modelRow ) );
 
-		final Map< String, String > contextMap = actionDescriptions.get( action );
+		Map< String, String > contextMap = actionDescriptions.get( action );
+		if ( null == contextMap )
+			contextMap = Collections.emptyMap();
 		final String description;
-		if ( null == contextMap || contextMap.isEmpty() )
+		if ( contextMap.isEmpty() )
 			description = "";
 		else if ( contextMap.size() == 1 )
 			description = contextMap.get( contextMap.keySet().iterator().next() );
@@ -577,6 +580,7 @@ public class VisualEditorPanel extends JPanel
 
 		labelCommandName.setText( action );
 		keybindingEditor.setInputTrigger( trigger );
+		contextsEditor.setAcceptableTags( contextMap.keySet() );
 		contextsEditor.setTags( contexts );
 		textAreaDescription.setText( description );
 		textAreaDescription.setCaretPosition( 0 );
@@ -648,18 +652,21 @@ public class VisualEditorPanel extends JPanel
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
 		final String action = tableModel.commands.get( modelRow );
+		final List< String > cs = tableModel.contexts.get( modelRow );
 		// Check whether there is already a line in the table without a binding.
 		for ( int i = 0; i < tableModel.commands.size(); i++ )
 		{
 			// Brute force.
-			if ( tableModel.commands.get( i ).equals( action ) && tableModel.bindings.get( i ) == InputTrigger.NOT_MAPPED )
+			if ( tableModel.commands.get( i ).equals( action )
+					&& new HashSet<>( cs ).equals( new HashSet<>( tableModel.contexts.get( i ) ) )
+					&& tableModel.bindings.get( i ) == InputTrigger.NOT_MAPPED )
 				return;
 		}
 
 		// Create one then.
 		tableModel.commands.add( modelRow + 1, action );
 		tableModel.bindings.add( modelRow + 1, InputTrigger.NOT_MAPPED );
-		tableModel.contexts.add( modelRow + 1, Collections.emptyList() );
+		tableModel.contexts.add( modelRow + 1, cs );
 		tableModel.fireTableRowsInserted( modelRow, modelRow );
 	}
 
@@ -690,7 +697,7 @@ public class VisualEditorPanel extends JPanel
 	 * INNER CLASSES
 	 */
 
-	private static final class MyContextsRenderer extends TagPanelEditor implements TableCellRenderer
+	private final class MyContextsRenderer extends TagPanelEditor implements TableCellRenderer
 	{
 
 		private static final long serialVersionUID = 1L;
@@ -706,6 +713,12 @@ public class VisualEditorPanel extends JPanel
 		{
 			setForeground( isSelected ? table.getSelectionForeground() : table.getForeground() );
 			setBackground( isSelected ? table.getSelectionBackground() : table.getBackground() );
+			final int modelRow = tableBindings.convertRowIndexToModel( row );
+			final String command = tableModel.commands.get( modelRow );
+			Map< String, String > contextMap = actionDescriptions.get( command );
+			if ( null == contextMap )
+				contextMap = Collections.emptyMap();
+			setAcceptableTags( contextMap.keySet() );
 
 			@SuppressWarnings( "unchecked" )
 			final List< String > contexts = ( List< String > ) value;
@@ -761,31 +774,40 @@ public class VisualEditorPanel extends JPanel
 
 		private final List< List< String > > contexts;
 
-		public MyTableModel( final Set< String > baseCommands, final Map< String, Set< Input > > actionToInputsMap )
+		public MyTableModel( final Map< String, Map< String, String > > actionDescriptions, final Map< String, Set< Input > > actionToInputsMap )
 		{
 			this.commands = new ArrayList<>();
 			this.bindings = new ArrayList<>();
 			this.contexts = new ArrayList<>();
 
 			final Set< String > allCommands = new HashSet<>();
-			allCommands.addAll( baseCommands );
+			allCommands.addAll( actionDescriptions.keySet() );
 			allCommands.addAll( actionToInputsMap.keySet() );
 			final List< String > sortedCommands = new ArrayList<>( allCommands );
 			sortedCommands.sort( null );
 			final InputComparator inputComparator = new InputComparator();
 			for ( final String command : sortedCommands )
 			{
+				Map< String, String > contextMap = actionDescriptions.get( command );
+				if ( null == contextMap )
+					contextMap = Collections.emptyMap();
+
 				final Set< Input > inputs = actionToInputsMap.get( command );
 				if ( null == inputs )
 				{
+					// Not found in the config. Add command with due contexts.
 					commands.add( command );
 					bindings.add( InputTrigger.NOT_MAPPED );
-					contexts.add( Collections.emptyList() );
+					final List< String > cs = new ArrayList<>( contextMap.keySet() );
+					cs.sort( null );
+					contexts.add( cs );
 				}
 				else
 				{
+					// Found in the config. 
 					final List< Input > sortedInputs = new ArrayList<>( inputs );
 					sortedInputs.sort( inputComparator );
+					final Set< String > usedContexts = new HashSet<>();
 					for ( final Input input : sortedInputs )
 					{
 						commands.add( command );
@@ -793,6 +815,21 @@ public class VisualEditorPanel extends JPanel
 						final List< String > cs = new ArrayList<>( input.contexts );
 						cs.sort( null );
 						contexts.add( cs );
+						usedContexts.addAll( cs );
+					}
+					/*
+					 * Check that we have exhausted known contexts. If not, push
+					 * missing ones.
+					 */
+					final Set< String > missingContexts = new HashSet<>( contextMap.keySet() );
+					missingContexts.removeAll( usedContexts );
+					if ( !missingContexts.isEmpty() )
+					{
+						final List< String > sortedMissingContexts = new ArrayList<>( missingContexts );
+						sortedMissingContexts.sort( null );
+						commands.add( command );
+						bindings.add( InputTrigger.NOT_MAPPED );
+						contexts.add( sortedMissingContexts );
 					}
 				}
 			}
