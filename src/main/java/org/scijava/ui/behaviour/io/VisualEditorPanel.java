@@ -531,8 +531,13 @@ public class VisualEditorPanel extends JPanel
 			if ( tableModel.commands.get( i ).equals( action ) )
 			{
 				tableModel.bindings.set( i, InputTrigger.NOT_MAPPED );
-				final List< String > cs = new ArrayList<>( actionDescriptions.get( action ).keySet() );
+				Map< String, String > contextMap = actionDescriptions.get( action );
+				if ( null == contextMap )
+					contextMap = Collections.emptyMap();
+				final List< String > cs = new ArrayList<>( contextMap.keySet() );
+				cs.sort( null );
 				tableModel.contexts.set( i, cs );
+				tableModel.fireTableRowsUpdated( i, i );
 			}
 		}
 		removeDuplicates();
@@ -599,9 +604,15 @@ public class VisualEditorPanel extends JPanel
 		if ( inputTrigger == InputTrigger.NOT_MAPPED )
 			return;
 
-		// Update model &
+		// Update model.
 		keybindingsChanged( InputTrigger.NOT_MAPPED );
-		contextsChanged( Collections.emptyList() );
+		final String command = tableModel.commands.get( modelRow );
+		Map< String, String > contextMap = actionDescriptions.get( command );
+		if ( null == contextMap )
+			contextMap = Collections.emptyMap();
+		final List< String > cs = new ArrayList<>( contextMap.keySet() );
+		cs.sort( null );
+		contextsChanged( cs );
 
 		// Find whether we have two lines with the same action, unbound.
 		removeDuplicates();
