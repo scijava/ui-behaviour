@@ -702,6 +702,29 @@ public class VisualEditorPanel extends JPanel
 
 		tableModel.contexts.set( modelRow, new ArrayList<>( selectedContexts ) );
 		tableModel.fireTableCellUpdated( modelRow, 2 );
+
+		// Check whether we have lost some contexts known for this command.
+		final String command = tableModel.commands.get( modelRow );
+		Map< String, String > contextMap = actionDescriptions.get( command );
+		if ( null == contextMap )
+			contextMap = Collections.emptyMap();
+		final Set< String > missingContexts = new HashSet<>( contextMap.keySet() );
+		// Brute force
+		for ( int i = 0; i < tableModel.commands.size(); i++ )
+		{
+			if ( command.equals( tableModel.commands.get( i ) ) )
+				missingContexts.removeAll( tableModel.contexts.get( i ) );
+		}
+		// Recreate missing contexts as unbound line.
+		if ( !missingContexts.isEmpty() )
+		{
+			final List< String > cs = new ArrayList<>( missingContexts );
+			cs.sort( null );
+			tableModel.commands.add( modelRow + 1, command );
+			tableModel.bindings.add( modelRow + 1, InputTrigger.NOT_MAPPED );
+			tableModel.contexts.add( modelRow + 1, cs );
+			tableModel.fireTableRowsInserted( modelRow + 1, modelRow + 1 );
+		}
 	}
 
 	/*
@@ -733,6 +756,8 @@ public class VisualEditorPanel extends JPanel
 
 			@SuppressWarnings( "unchecked" )
 			final List< String > contexts = ( List< String > ) value;
+			if ( contexts.isEmpty() )
+				setBackground( Color.PINK );
 			setTags( contexts );
 			setToolTipText( contexts.toString() );
 			return this;
