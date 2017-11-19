@@ -591,8 +591,6 @@ public class VisualEditorPanel extends JPanel
 		final String description;
 		if ( contextMap.isEmpty() )
 			description = "";
-		else if ( contextMap.size() == 1 )
-			description = contextMap.get( contextMap.keySet().iterator().next() );
 		else
 		{
 			final StringBuilder str = new StringBuilder();
@@ -603,6 +601,8 @@ public class VisualEditorPanel extends JPanel
 				final String d = contextMap.get( c );
 				if ( d != null )
 					str.append( "\n\nIn " + c + ":\n" + d );
+				else
+					str.append( "\n\nIn " + c + " - no description." );
 			}
 			str.delete( 0, 2 );
 			description = str.toString();
