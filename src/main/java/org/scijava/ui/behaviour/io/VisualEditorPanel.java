@@ -79,6 +79,19 @@ public class VisualEditorPanel extends JPanel
 		} );
 	}
 
+	/**
+	 * Interface for listeners notified when settings are changed in the visual
+	 * editor.
+	 */
+	@FunctionalInterface
+	public static interface ConfigChangeListener
+	{
+		/**
+		 * Called when settings are changed in the visual editor.
+		 */
+		public void configChanged();
+	}
+
 	private JTextField textFieldFilter;
 
 	private MyTableModel tableModel;
@@ -105,6 +118,8 @@ public class VisualEditorPanel extends JPanel
 
 	private final JPanel panelButtons;
 
+	private final HashSet< ConfigChangeListener > listeners;
+
 	/**
 	 * Creates a visual editor for an {@link InputTriggerConfig}. The config
 	 * object is directly modified when the user clicks the 'Apply' button.
@@ -129,6 +144,7 @@ public class VisualEditorPanel extends JPanel
 			final Map< String, String > contextMap = commandDescriptions.get( command );
 			contexts.addAll( contextMap.keySet() );
 		}
+		this.listeners = new HashSet<>();
 
 		/*
 		 * GUI
@@ -443,6 +459,9 @@ public class VisualEditorPanel extends JPanel
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
 		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( contexts ) );
 		tableBindings.getSelectionModel().setSelectionInterval( 0, 0 );
+
+		// Notify listeners.
+		notifyListeners();
 	}
 
 	private void filterRows()
@@ -658,7 +677,12 @@ public class VisualEditorPanel extends JPanel
 			tableModel.fireTableRowsDeleted( row, row );
 		}
 
+		// Notify listeners.
+		if ( !toRemove.isEmpty() )
+			notifyListeners();
+
 		updateEditors();
+
 	}
 
 	private void copyCommand()
@@ -685,6 +709,9 @@ public class VisualEditorPanel extends JPanel
 		tableModel.bindings.add( modelRow + 1, InputTrigger.NOT_MAPPED );
 		tableModel.contexts.add( modelRow + 1, cs );
 		tableModel.fireTableRowsInserted( modelRow, modelRow );
+
+		// Notify listeners.
+		notifyListeners();
 	}
 
 	private void keybindingsChanged( final InputTrigger inputTrigger )
@@ -697,6 +724,9 @@ public class VisualEditorPanel extends JPanel
 		tableModel.bindings.set( modelRow, inputTrigger );
 		tableModel.fireTableCellUpdated( modelRow, 1 );
 		lookForConflicts();
+
+		// Notify listeners.
+		notifyListeners();
 	}
 
 	private void contextsChanged( final List< String > selectedContexts )
@@ -731,6 +761,25 @@ public class VisualEditorPanel extends JPanel
 			tableModel.contexts.add( modelRow + 1, cs );
 			tableModel.fireTableRowsInserted( modelRow + 1, modelRow + 1 );
 		}
+
+		// Notify listeners.
+		notifyListeners();
+	}
+
+	private void notifyListeners()
+	{
+		for ( final ConfigChangeListener listener : listeners )
+			listener.configChanged();
+	}
+
+	public void addConfigChangeListener( final ConfigChangeListener listener )
+	{
+		listeners.add( listener );
+	}
+
+	public void removeConfigChangeListener( final ConfigChangeListener listener )
+	{
+		listeners.remove( listener );
 	}
 
 	/*
