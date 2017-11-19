@@ -404,6 +404,12 @@ public class VisualEditorPanel extends JPanel
 			panelEditor.add( panelButtons, BorderLayout.SOUTH );
 	}
 
+	// TODO Change method name to 'apply()'. API breaking change.
+	/**
+	 * Copies the settings in this editor to the {@link InputTriggerConfig}
+	 * specified at construction. The {@link InputTriggerConfig} is cleared
+	 * before copying.
+	 */
 	public void modelToConfig()
 	{
 		config.clear();
