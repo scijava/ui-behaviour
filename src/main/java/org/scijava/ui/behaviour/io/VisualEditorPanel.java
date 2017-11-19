@@ -120,6 +120,10 @@ public class VisualEditorPanel extends JPanel
 
 	private final HashSet< ConfigChangeListener > listeners;
 
+	private final JButton btnApply;
+
+	private final JButton btnRestore;
+
 	/**
 	 * Creates a visual editor for an {@link InputTriggerConfig}. The config
 	 * object is directly modified when the user clicks the 'Apply' button.
@@ -328,11 +332,11 @@ public class VisualEditorPanel extends JPanel
 		final FlowLayout flowLayout = ( FlowLayout ) panelButtons.getLayout();
 		flowLayout.setAlignment( FlowLayout.TRAILING );
 
-		final JButton btnRestore = new JButton( "Restore" );
+		this.btnRestore = new JButton( "Restore" );
 		btnRestore.setToolTipText( "Re-read the key bindings from the config." );
 		panelButtons.add( btnRestore );
 
-		final JButton btnApply = new JButton( "Apply" );
+		this.btnApply = new JButton( "Apply" );
 		btnApply.setToolTipText( "Write these key bindings in the config." );
 		panelButtons.add( btnApply );
 
@@ -377,6 +381,17 @@ public class VisualEditorPanel extends JPanel
 		btnExportCsv.addActionListener( ( e ) -> exportToCsv() );
 		btnRestore.addActionListener( ( e ) -> configToModel() );
 		btnApply.addActionListener( ( e ) -> modelToConfig() );
+
+		// Buttons re-enabling when model and config are out of sync.
+		addConfigChangeListener( new ConfigChangeListener()
+		{
+			@Override
+			public void configChanged()
+			{
+				btnApply.setEnabled( true );
+				btnRestore.setEnabled( true );
+			}
+		} );
 
 		configToModel();
 		scrollPane.setViewportView( tableBindings );
@@ -449,6 +464,9 @@ public class VisualEditorPanel extends JPanel
 				if ( config.getInputs( action, cs ).isEmpty() )
 					config.add( InputTrigger.NOT_MAPPED, action, cs );
 		}
+
+		btnApply.setEnabled( false );
+		btnRestore.setEnabled( false );
 	}
 
 	public void configToModel()
@@ -462,6 +480,9 @@ public class VisualEditorPanel extends JPanel
 
 		// Notify listeners.
 		notifyListeners();
+
+		btnApply.setEnabled( false );
+		btnRestore.setEnabled( false );
 	}
 
 	private void filterRows()
