@@ -646,10 +646,6 @@ public class VisualEditorPanel extends JPanel
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
-		final InputTrigger inputTrigger = tableModel.bindings.get( modelRow );
-		if ( inputTrigger == InputTrigger.NOT_MAPPED )
-			return;
-
 		// Update model.
 		keybindingsChanged( InputTrigger.NOT_MAPPED );
 		final String command = tableModel.commands.get( modelRow );
@@ -666,13 +662,22 @@ public class VisualEditorPanel extends JPanel
 
 	private void removeDuplicates()
 	{
+		// Map of the command to the set of triggers in the table.
 		final Map< String, Set< InputTrigger > > bindings = new HashMap<>();
+		// Map of the command to the row the NOT_MAPPED trigger is in the table.
+		final Map< String, Set< Integer > > notMappedBindings = new HashMap<>();
+
+		/*
+		 * First round: Simply remove duplicates whatever the bindings are.
+		 */
+
 		final List< Integer > toRemove = new ArrayList<>();
 		for ( int row = 0; row < tableModel.getRowCount(); row++ )
 		{
 			final String action = tableModel.commands.get( row );
 			final InputTrigger trigger = tableModel.bindings.get( row );
 
+			// Detect duplicate.
 			if ( bindings.get( action ) == null )
 			{
 				final Set< InputTrigger > triggers = new HashSet<>();
@@ -686,7 +691,35 @@ public class VisualEditorPanel extends JPanel
 				if ( !notAlreadyPresent )
 					toRemove.add( Integer.valueOf( row ) );
 			}
+
+			// Detect NOT_MAPPED.
+			if (trigger == InputTrigger.NOT_MAPPED)
+			{
+				if ( notMappedBindings.get( action ) == null )
+				{
+					final Set< Integer > notMapped = new HashSet<>();
+					notMapped.add( Integer.valueOf( row ) );
+					notMappedBindings.put( action, notMapped );
+				}
+				else
+				{
+					notMappedBindings.get( action ).add( Integer.valueOf( row ) );
+				}
+			}
 		}
+
+		/*
+		 * Second pass: We want to remove NOT_MAPPED rows for action that have
+		 * an otherwise trigger.
+		 */
+		for ( final String action : notMappedBindings.keySet() )
+			if ( bindings.get( action ).size() > 1 )
+				for ( final Integer row : notMappedBindings.get( action ) )
+					toRemove.add( row );
+
+		/*
+		 * Remove.
+		 */
 
 		toRemove.sort( Comparator.reverseOrder() );
 		for ( final Integer rowToRemove : toRemove )
@@ -916,7 +949,7 @@ public class VisualEditorPanel extends JPanel
 				}
 				else
 				{
-					// Found in the config. 
+					// Found in the config.
 					final List< Input > sortedInputs = new ArrayList<>( inputs );
 					sortedInputs.sort( inputComparator );
 					final Set< String > usedContexts = new HashSet<>();
