@@ -655,31 +655,9 @@ public class VisualEditorPanel extends JPanel
 		if ( viewRow < 0 )
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
-		final MyTableRow removedRow = tableModel.rows.remove( modelRow );
-
-		final Set< String > contextsStillPresent = new HashSet<>();
-		for ( final MyTableRow row : tableModel.rows )
-			if ( row.getName().equals( removedRow.getName() ) )
-				contextsStillPresent.addAll( row.getContexts() );
-
-		final Set< String > contextsToAddBack = new HashSet<>( removedRow.getContexts() );
-		contextsToAddBack.removeAll( contextsStillPresent );
-
-		if ( !contextsToAddBack.isEmpty() )
-		{
-			final MyTableRow newRow = new MyTableRow( removedRow.getName(), InputTrigger.NOT_MAPPED, new ArrayList<>( contextsToAddBack ) );
-			tableModel.rows.add( modelRow, newRow );
-			tableModel.fireTableRowsUpdated( modelRow, modelRow );
-		}
-		else
-		{
+		tableModel.rows.remove( modelRow );
+		if ( !tableModel.addMissingRows() )
 			tableModel.fireTableRowsDeleted( modelRow, modelRow );
-		}
-
-		tableModel.mergeRows();
-
-		final int rowToSelect = Math.min( tableBindings.convertRowIndexToView( modelRow ), tableModel.getRowCount() - 1);
-		tableBindings.getSelectionModel().setSelectionInterval( rowToSelect, rowToSelect );
 	}
 
 	private void unbindAllCommand()
@@ -688,36 +666,16 @@ public class VisualEditorPanel extends JPanel
 		if ( viewRow < 0 )
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
-		final MyTableRow removedRow = tableModel.rows.remove( modelRow );
-		final HashSet< String > contextsToAddBack = new HashSet<>( removedRow.getContexts() );
-
+		final String removeName = tableModel.rows.get( modelRow ).getName();
 		final Iterator< MyTableRow > iter = tableModel.rows.iterator();
 		while( iter.hasNext() )
 		{
 			final MyTableRow row = iter.next();
-			if ( row.getName().equals( removedRow.getName() ) )
-			{
-				contextsToAddBack.addAll( row.getContexts() );
+			if ( row.getName().equals( removeName ) )
 				iter.remove();
-			}
 		}
-
-		final Set< String > contextsStillPresent = new HashSet<>();
-		for ( final MyTableRow row : tableModel.rows )
-			if ( row.getName().equals( removedRow.getName() ) )
-				contextsStillPresent.addAll( row.getContexts() );
-
-		contextsToAddBack.removeAll( contextsStillPresent );
-		if ( !contextsToAddBack.isEmpty() )
-		{
-			final MyTableRow newRow = new MyTableRow( removedRow.getName(), InputTrigger.NOT_MAPPED, new ArrayList<>( contextsToAddBack ) );
-			tableModel.rows.add( modelRow, newRow );
-		}
-
-		tableModel.mergeRows();
-
-		final int rowToSelect = Math.min( tableBindings.convertRowIndexToView( modelRow ), tableModel.getRowCount() - 1 );
-		tableBindings.getSelectionModel().setSelectionInterval( rowToSelect, rowToSelect );
+		if ( !tableModel.addMissingRows() )
+			tableModel.fireTableDataChanged();
 	}
 
 	private void copyCommand()
@@ -772,6 +730,7 @@ public class VisualEditorPanel extends JPanel
 			rowToSelect = tableBindings.convertRowIndexToView( modelRow );
 		else
 			rowToSelect = tableBindings.convertRowIndexToView( modelRowToSelect );
+		blockRemoveNotMapped = true;
 		tableBindings.getSelectionModel().setSelectionInterval( rowToSelect, rowToSelect );
 
 		// Notify listeners.
