@@ -10,8 +10,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,13 +21,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -49,6 +47,7 @@ import javax.swing.table.TableRowSorter;
 
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig.Input;
+import org.scijava.ui.behaviour.io.gui.Command;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptionBuilder;
 import org.scijava.ui.behaviour.io.gui.InputTriggerPanelEditor;
 import org.scijava.ui.behaviour.io.gui.TagPanelEditor;
@@ -81,7 +80,7 @@ public class VisualEditorPanel extends JPanel
 
 	/**
 	 * Interface for listeners notified when settings are changed in the visual
-	 * editor.
+	 * editor.``
 	 */
 	@FunctionalInterface
 	public static interface ConfigChangeListener
@@ -106,9 +105,13 @@ public class VisualEditorPanel extends JPanel
 
 	private final InputTriggerConfig config;
 
-	private final Map< String, Map< String, String > > actionDescriptions;
+	private final Set< Command > commands;
 
-	private final Set< String > contexts;
+	private final Map< String, Set< String > > commandNameToAcceptableContexts;
+
+	private final Map< Command, String > actionDescriptions;
+
+	private final Set< String > contexts; // TODO: do we need it?
 
 	private final JLabel lblConflict;
 
@@ -137,17 +140,16 @@ public class VisualEditorPanel extends JPanel
 	 *            specify a description.
 	 * @see CommandDescriptionBuilder
 	 */
-	public VisualEditorPanel( final InputTriggerConfig config, final Map< String, Map< String, String > > commandDescriptions )
+	public VisualEditorPanel( final InputTriggerConfig config, final Map< Command, String > commandDescriptions )
 	{
 
 		this.config = config;
 		this.actionDescriptions = commandDescriptions;
-		this.contexts = new HashSet<>();
-		for ( final String command : commandDescriptions.keySet() )
-		{
-			final Map< String, String > contextMap = commandDescriptions.get( command );
-			contexts.addAll( contextMap.keySet() );
-		}
+		this.commands = commandDescriptions.keySet();
+		commandNameToAcceptableContexts = new HashMap<>();
+		for ( final Command command : commands )
+			commandNameToAcceptableContexts.computeIfAbsent( command.getName(), k -> new HashSet<>() ).add( command.getContext() );
+		this.contexts = commands.stream().map( c -> c.getContext() ).collect( Collectors.toSet() ); // TODO: do we need it?
 		this.listeners = new HashSet<>();
 
 		/*
@@ -357,7 +359,6 @@ public class VisualEditorPanel extends JPanel
 			{
 				if ( e.getValueIsAdjusting() )
 					return;
-				removeDuplicates();
 				updateEditors();
 			}
 		} );
@@ -399,6 +400,10 @@ public class VisualEditorPanel extends JPanel
 
 	private void lookForConflicts()
 	{
+		lblConflict.setText( "" );
+
+		// TODO: revise
+		/*
 		final int viewRow = tableBindings.getSelectedRow();
 		if ( viewRow < 0 )
 			return;
@@ -426,6 +431,7 @@ public class VisualEditorPanel extends JPanel
 				str.append( ", " + conflicts.get( i ) );
 			lblConflict.setText( str.toString() );
 		}
+		*/
 	}
 
 	public void setButtonPanelVisible( final boolean visible )
@@ -444,25 +450,24 @@ public class VisualEditorPanel extends JPanel
 	public void modelToConfig()
 	{
 		config.clear();
-		for ( int i = 0; i < tableModel.commands.size(); i++ )
+		for ( final MyTableRow row : tableModel.rows )
 		{
-			final InputTrigger inputTrigger = tableModel.bindings.get( i );
+			final InputTrigger inputTrigger = row.getTrigger();
 			if ( inputTrigger == InputTrigger.NOT_MAPPED )
 				continue;
 
-			final String action = tableModel.commands.get( i );
-			final Set< String > cs = new HashSet<>( tableModel.contexts.get( i ) );
+			final String action = row.getName();
+			final Set< String > cs = new HashSet<>( row.getContexts() );
 			config.add( inputTrigger, action, cs );
 		}
 
-		// fill in InputTrigger.NOT_MAPPED for any action that doesn't have any
-		// input
-		for ( final String context : contexts )
+		// fill in InputTrigger.NOT_MAPPED for any action that doesn't have any input
+		for ( final Command command : commands )
 		{
-			final Set< String > cs = Collections.singleton( context );
-			for ( final String action : actionDescriptions.keySet() )
-				if ( config.getInputs( action, cs ).isEmpty() )
-					config.add( InputTrigger.NOT_MAPPED, action, cs );
+			final String action = command.getName();
+			final Set< String > cs = Collections.singleton( command.getContext() );
+			if ( config.getInputs( action, cs ).isEmpty() )
+				config.add( InputTrigger.NOT_MAPPED, action, cs );
 		}
 
 		btnApply.setEnabled( false );
@@ -471,7 +476,7 @@ public class VisualEditorPanel extends JPanel
 
 	public void configToModel()
 	{
-		tableModel = new MyTableModel( actionDescriptions, config.actionToInputsMap );
+		tableModel = new MyTableModel( commands, config.actionToInputsMap );
 		tableBindings.setModel( tableModel );
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
@@ -493,7 +498,7 @@ public class VisualEditorPanel extends JPanel
 		RowFilter< MyTableModel, Integer > rf = null;
 		try
 		{
-			final int[] indices = new int[ tableModel.commands.size() ];
+			final int[] indices = new int[ tableModel.getRowCount() ];
 			for ( int i = 0; i < indices.length; i++ )
 				indices[ i ] = i;
 			rf = RowFilter.regexFilter( textFieldFilter.getText(), 0 );
@@ -509,6 +514,7 @@ public class VisualEditorPanel extends JPanel
 
 	private void exportToCsv()
 	{
+		/*
 		final int userSignal = fileChooser.showSaveDialog( this );
 		if ( userSignal != JFileChooser.APPROVE_OPTION )
 			return;
@@ -561,32 +567,7 @@ public class VisualEditorPanel extends JPanel
 			JOptionPane.showMessageDialog( fileChooser, "Error writing file:\n" + e.getMessage(), "Error writing file.", JOptionPane.ERROR_MESSAGE );
 			e.printStackTrace();
 		}
-
-	}
-
-	private void unbindAllCommand()
-	{
-		final int viewRow = tableBindings.getSelectedRow();
-		if ( viewRow < 0 )
-			return;
-		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
-
-		final String action = tableModel.commands.get( modelRow );
-		for ( int i = 0; i < tableModel.commands.size(); i++ )
-		{
-			if ( tableModel.commands.get( i ).equals( action ) )
-			{
-				tableModel.bindings.set( i, InputTrigger.NOT_MAPPED );
-				Map< String, String > contextMap = actionDescriptions.get( action );
-				if ( null == contextMap )
-					contextMap = Collections.emptyMap();
-				final List< String > cs = new ArrayList<>( contextMap.keySet() );
-				cs.sort( null );
-				tableModel.contexts.set( i, cs );
-				tableModel.fireTableRowsUpdated( i, i );
-			}
-		}
-		removeDuplicates();
+		 */
 	}
 
 	private void updateEditors()
@@ -602,28 +583,27 @@ public class VisualEditorPanel extends JPanel
 		}
 
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
-		final String action = tableModel.commands.get( modelRow );
-		final InputTrigger trigger = tableModel.bindings.get( modelRow );
-		final List< String > contexts = new ArrayList<>( tableModel.contexts.get( modelRow ) );
+		final MyTableRow row = tableModel.rows.get( modelRow );
+		final String action = row.getName();
+		final InputTrigger trigger = row.getTrigger();
+		final List< String > contexts = new ArrayList<>( row.getContexts() );
 
-		Map< String, String > contextMap = actionDescriptions.get( action );
-		if ( null == contextMap )
-			contextMap = Collections.emptyMap();
 		final String description;
-		if ( contextMap.isEmpty() )
+		final Set< String > acceptableContexts = commandNameToAcceptableContexts.get( action );
+		if ( acceptableContexts.isEmpty() )
+		{
 			description = "";
+		}
 		else
 		{
 			final StringBuilder str = new StringBuilder();
-			final Iterator< String > cs = contextMap.keySet().iterator();
-			while ( cs.hasNext() )
+			for ( final String context : acceptableContexts )
 			{
-				final String c = cs.next();
-				final String d = contextMap.get( c );
+				final String d = actionDescriptions.get( new Command( action, context ) );
 				if ( d != null )
-					str.append( "\n\nIn " + c + ":\n" + d );
+					str.append( "\n\nIn " + context + ":\n" + d );
 				else
-					str.append( "\n\nIn " + c + " - no description." );
+					str.append( "\n\nIn " + context + " - no description." );
 			}
 			str.delete( 0, 2 );
 			description = str.toString();
@@ -631,7 +611,7 @@ public class VisualEditorPanel extends JPanel
 
 		labelCommandName.setText( action );
 		keybindingEditor.setInputTrigger( trigger );
-		contextsEditor.setAcceptableTags( contextMap.keySet() );
+		contextsEditor.setAcceptableTags( acceptableContexts );
 		contextsEditor.setTags( contexts );
 		textAreaDescription.setText( description );
 		textAreaDescription.setCaretPosition( 0 );
@@ -645,98 +625,69 @@ public class VisualEditorPanel extends JPanel
 		if ( viewRow < 0 )
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
+		final MyTableRow removedRow = tableModel.rows.remove( modelRow );
 
-		// Update model.
-		keybindingsChanged( InputTrigger.NOT_MAPPED );
-		final String command = tableModel.commands.get( modelRow );
-		Map< String, String > contextMap = actionDescriptions.get( command );
-		if ( null == contextMap )
-			contextMap = Collections.emptyMap();
-		final List< String > cs = new ArrayList<>( contextMap.keySet() );
-		cs.sort( null );
-		contextsChanged( cs );
+		final Set< String > contextsStillPresent = new HashSet<>();
+		for ( final MyTableRow row : tableModel.rows )
+			if ( row.getName().equals( removedRow.getName() ) )
+				contextsStillPresent.addAll( row.getContexts() );
 
-		// Find whether we have two lines with the same action, unbound.
-		removeDuplicates();
+		final Set< String > contextsToAddBack = new HashSet<>( removedRow.getContexts() );
+		contextsToAddBack.removeAll( contextsStillPresent );
+
+		if ( !contextsToAddBack.isEmpty() )
+		{
+			final MyTableRow newRow = new MyTableRow( removedRow.getName(), InputTrigger.NOT_MAPPED, new ArrayList<>( contextsToAddBack ) );
+			tableModel.rows.add( modelRow, newRow );
+//			tableModel.fireTableRowsUpdated( modelRow, modelRow );
+//		}
+//		else
+//		{
+//			tableModel.fireTableRowsDeleted( modelRow, modelRow );
+		}
+
+		tableModel.mergeRows();
+
+		final int rowToSelect = Math.min( tableBindings.convertRowIndexToView( modelRow ), tableModel.getRowCount() - 1);
+		tableBindings.getSelectionModel().setSelectionInterval( rowToSelect, rowToSelect );
 	}
 
-	private void removeDuplicates()
+	private void unbindAllCommand()
 	{
-		// Map of the command to the set of triggers in the table.
-		final Map< String, Set< InputTrigger > > bindings = new HashMap<>();
-		// Map of the command to the row the NOT_MAPPED trigger is in the table.
-		final Map< String, Set< Integer > > notMappedBindings = new HashMap<>();
+		final int viewRow = tableBindings.getSelectedRow();
+		if ( viewRow < 0 )
+			return;
+		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
+		final MyTableRow removedRow = tableModel.rows.remove( modelRow );
+		final HashSet< String > contextsToAddBack = new HashSet<>( removedRow.getContexts() );
 
-		/*
-		 * First round: Simply remove duplicates whatever the bindings are.
-		 */
-
-		final List< Integer > toRemove = new ArrayList<>();
-		for ( int row = 0; row < tableModel.getRowCount(); row++ )
+		final Iterator< MyTableRow > iter = tableModel.rows.iterator();
+		while( iter.hasNext() )
 		{
-			final String action = tableModel.commands.get( row );
-			final InputTrigger trigger = tableModel.bindings.get( row );
-
-			// Detect duplicate.
-			if ( bindings.get( action ) == null )
+			final MyTableRow row = iter.next();
+			if ( row.getName().equals( removedRow.getName() ) )
 			{
-				final Set< InputTrigger > triggers = new HashSet<>();
-				triggers.add( trigger );
-				bindings.put( action, triggers );
-			}
-			else
-			{
-				final Set< InputTrigger > triggers = bindings.get( action );
-				final boolean notAlreadyPresent = triggers.add( trigger );
-				if ( !notAlreadyPresent )
-					toRemove.add( Integer.valueOf( row ) );
-			}
-
-			// Detect NOT_MAPPED.
-			if (trigger == InputTrigger.NOT_MAPPED)
-			{
-				if ( notMappedBindings.get( action ) == null )
-				{
-					final Set< Integer > notMapped = new HashSet<>();
-					notMapped.add( Integer.valueOf( row ) );
-					notMappedBindings.put( action, notMapped );
-				}
-				else
-				{
-					notMappedBindings.get( action ).add( Integer.valueOf( row ) );
-				}
+				contextsToAddBack.addAll( row.getContexts() );
+				iter.remove();
 			}
 		}
 
-		/*
-		 * Second pass: We want to remove NOT_MAPPED rows for action that have
-		 * an otherwise trigger.
-		 */
-		for ( final String action : notMappedBindings.keySet() )
-			if ( bindings.get( action ).size() > 1 )
-				for ( final Integer row : notMappedBindings.get( action ) )
-					toRemove.add( row );
+		final Set< String > contextsStillPresent = new HashSet<>();
+		for ( final MyTableRow row : tableModel.rows )
+			if ( row.getName().equals( removedRow.getName() ) )
+				contextsStillPresent.addAll( row.getContexts() );
 
-		/*
-		 * Remove.
-		 */
-
-		toRemove.sort( Comparator.reverseOrder() );
-		for ( final Integer rowToRemove : toRemove )
+		contextsToAddBack.removeAll( contextsStillPresent );
+		if ( !contextsToAddBack.isEmpty() )
 		{
-			final int row = rowToRemove.intValue();
-			tableModel.commands.remove( row );
-			tableModel.bindings.remove( row );
-			tableModel.contexts.remove( row );
-			tableModel.fireTableRowsDeleted( row, row );
+			final MyTableRow newRow = new MyTableRow( removedRow.getName(), InputTrigger.NOT_MAPPED, new ArrayList<>( contextsToAddBack ) );
+			tableModel.rows.add( modelRow, newRow );
 		}
 
-		// Notify listeners.
-		if ( !toRemove.isEmpty() )
-			notifyListeners();
+		tableModel.mergeRows();
 
-		updateEditors();
-
+		final int rowToSelect = Math.min( tableBindings.convertRowIndexToView( modelRow ), tableModel.getRowCount() - 1 );
+		tableBindings.getSelectionModel().setSelectionInterval( rowToSelect, rowToSelect );
 	}
 
 	private void copyCommand()
@@ -745,27 +696,51 @@ public class VisualEditorPanel extends JPanel
 		if ( viewRow < 0 )
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
+		final MyTableRow row = tableModel.rows.get( modelRow );
 
-		final String action = tableModel.commands.get( modelRow );
-		final List< String > cs = tableModel.contexts.get( modelRow );
-		// Check whether there is already a line in the table without a binding.
-		for ( int i = 0; i < tableModel.commands.size(); i++ )
-		{
-			// Brute force.
-			if ( tableModel.commands.get( i ).equals( action )
-					&& new HashSet<>( cs ).equals( new HashSet<>( tableModel.contexts.get( i ) ) )
-					&& tableModel.bindings.get( i ) == InputTrigger.NOT_MAPPED )
-				return;
-		}
+		final String action = row.getName();
+		final List< String > cs = row.getContexts();
+		final MyTableRow copiedRow = new MyTableRow( action, InputTrigger.NOT_MAPPED, new ArrayList<>( cs ) );
+		tableModel.rows.add( modelRow + 1, copiedRow  );
+		tableModel.mergeRows();
 
-		// Create one then.
-		tableModel.commands.add( modelRow + 1, action );
-		tableModel.bindings.add( modelRow + 1, InputTrigger.NOT_MAPPED );
-		tableModel.contexts.add( modelRow + 1, cs );
-		tableModel.fireTableRowsInserted( modelRow, modelRow );
+		// Find the row we just added if any.
+		final int modelRowToSelect = Collections.binarySearch( tableModel.rows, copiedRow, new MyTableRowComparator() );
+		final int rowToSelect;
+		if ( modelRowToSelect < 0 )
+			rowToSelect = tableBindings.convertRowIndexToView( modelRow );
+		else
+			rowToSelect = tableBindings.convertRowIndexToView( modelRowToSelect );
+		tableBindings.getSelectionModel().setSelectionInterval( rowToSelect, rowToSelect );
 
 		// Notify listeners.
 		notifyListeners();
+
+		// Listener to avoid having duplicates with NOT_MAPPED. If the user don't edit it, we remove it.
+		final ListSelectionListener lsl = new ListSelectionListener()
+		{
+			@Override
+			public void valueChanged( final ListSelectionEvent e )
+			{
+				if ( e.getValueIsAdjusting() )
+					return;
+
+				tableBindings.getSelectionModel().removeListSelectionListener( this );
+				final MyTableRow selectedRowToRestore = tableModel.rows.get( e.getFirstIndex() );
+				final int modelRowToRemove = Collections.binarySearch( tableModel.rows, copiedRow, new MyTableRowComparator() );
+				if ( modelRowToRemove >= 0 )
+				{
+					tableModel.rows.remove( modelRowToRemove );
+					tableModel.addMissingRows();
+				}
+
+				final int bs = Collections.binarySearch( tableModel.rows, selectedRowToRestore, new MyTableRowComparator() );
+				final int vbs = tableBindings.convertRowIndexToView( bs );
+				tableBindings.getSelectionModel().setSelectionInterval( vbs, vbs );
+			}
+		};
+		tableBindings.getSelectionModel().addListSelectionListener( lsl );
+		keybindingEditor.requestFocusInWindow();
 	}
 
 	private void keybindingsChanged( final InputTrigger inputTrigger )
@@ -774,10 +749,20 @@ public class VisualEditorPanel extends JPanel
 		if ( viewRow < 0 )
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
+		final MyTableRow row = tableModel.rows.get( modelRow );
 
-		tableModel.bindings.set( modelRow, inputTrigger );
-		tableModel.fireTableCellUpdated( modelRow, 1 );
+		final MyTableRow updatedRow = new MyTableRow( row.getName(), inputTrigger, row.getContexts() );
+		tableModel.rows.set( modelRow, updatedRow );
+		tableModel.mergeRows();
 		lookForConflicts();
+
+		final int modelRowToSelect = Collections.binarySearch( tableModel.rows, updatedRow, new MyTableRowComparator() );
+		final int rowToSelect;
+		if (modelRowToSelect < 0)
+		 rowToSelect = tableBindings.convertRowIndexToView( modelRow );
+		else
+			rowToSelect = tableBindings.convertRowIndexToView( modelRowToSelect );
+		tableBindings.getSelectionModel().setSelectionInterval( rowToSelect, rowToSelect );
 
 		// Notify listeners.
 		notifyListeners();
@@ -789,32 +774,11 @@ public class VisualEditorPanel extends JPanel
 		if ( viewRow < 0 )
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
+		final MyTableRow row = tableModel.rows.get( modelRow );
 
-		tableModel.contexts.set( modelRow, new ArrayList<>( selectedContexts ) );
-		tableModel.fireTableCellUpdated( modelRow, 2 );
-
-		// Check whether we have lost some contexts known for this command.
-		final String command = tableModel.commands.get( modelRow );
-		Map< String, String > contextMap = actionDescriptions.get( command );
-		if ( null == contextMap )
-			contextMap = Collections.emptyMap();
-		final Set< String > missingContexts = new HashSet<>( contextMap.keySet() );
-		// Brute force
-		for ( int i = 0; i < tableModel.commands.size(); i++ )
-		{
-			if ( command.equals( tableModel.commands.get( i ) ) )
-				missingContexts.removeAll( tableModel.contexts.get( i ) );
-		}
-		// Recreate missing contexts as unbound line.
-		if ( !missingContexts.isEmpty() )
-		{
-			final List< String > cs = new ArrayList<>( missingContexts );
-			cs.sort( null );
-			tableModel.commands.add( modelRow + 1, command );
-			tableModel.bindings.add( modelRow + 1, InputTrigger.NOT_MAPPED );
-			tableModel.contexts.add( modelRow + 1, cs );
-			tableModel.fireTableRowsInserted( modelRow + 1, modelRow + 1 );
-		}
+		tableModel.rows.set( modelRow, new MyTableRow( row.getName(), row.getTrigger(), new ArrayList<>( selectedContexts ) ) );
+		tableModel.addMissingRows();
+		tableBindings.getSelectionModel().setSelectionInterval( modelRow, modelRow );
 
 		// Notify listeners.
 		notifyListeners();
@@ -857,11 +821,8 @@ public class VisualEditorPanel extends JPanel
 			setForeground( isSelected ? table.getSelectionForeground() : table.getForeground() );
 			setBackground( isSelected ? table.getSelectionBackground() : table.getBackground() );
 			final int modelRow = tableBindings.convertRowIndexToModel( row );
-			final String command = tableModel.commands.get( modelRow );
-			Map< String, String > contextMap = actionDescriptions.get( command );
-			if ( null == contextMap )
-				contextMap = Collections.emptyMap();
-			setAcceptableTags( contextMap.keySet() );
+			final String name = tableModel.rows.get( modelRow ).getName();
+			setAcceptableTags( commandNameToAcceptableContexts.get( name ) );
 
 			@SuppressWarnings( "unchecked" )
 			final List< String > contexts = ( List< String > ) value;
@@ -906,6 +867,47 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
+	private static class MyTableRow
+	{
+		private final String name;
+
+		private final InputTrigger trigger;
+
+		private final List< String > contexts;
+
+		public MyTableRow( final String name, final InputTrigger trigger, final List< String > contexts )
+		{
+			this.name = name;
+			this.trigger = trigger;
+			this.contexts = contexts;
+		}
+
+		public String getName()
+		{
+			return name;
+		}
+
+		public InputTrigger getTrigger()
+		{
+			return trigger;
+		}
+
+		public List< String > getContexts()
+		{
+			return contexts;
+		}
+
+		@Override
+		public String toString()
+		{
+			return "MyTableRow{" +
+					"name='" + name + '\'' +
+					", trigger=" + trigger +
+					", contexts=" + contexts +
+					'}';
+		}
+	}
+
 	private static class MyTableModel extends AbstractTableModel
 	{
 
@@ -913,77 +915,89 @@ public class VisualEditorPanel extends JPanel
 
 		private static final String[] TABLE_HEADERS = new String[] { "Command", "Binding", "Contexts" };
 
-		private final List< String > commands;
+		private final List< MyTableRow > rows;
 
-		private final List< InputTrigger > bindings;
+		private final Set< Command > allCommands;
 
-		private final List< List< String > > contexts;
-
-		public MyTableModel( final Map< String, Map< String, String > > actionDescriptions, final Map< String, Set< Input > > actionToInputsMap )
+		public MyTableModel( final Set< Command > commands, final Map< String, Set< Input > > actionToInputsMap )
 		{
-			this.commands = new ArrayList<>();
-			this.bindings = new ArrayList<>();
-			this.contexts = new ArrayList<>();
-
-			final Set< String > allCommands = new HashSet<>();
-			allCommands.addAll( actionDescriptions.keySet() );
-			allCommands.addAll( actionToInputsMap.keySet() );
-			final List< String > sortedCommands = new ArrayList<>( allCommands );
-			sortedCommands.sort( null );
-			final InputComparator inputComparator = new InputComparator();
-			for ( final String command : sortedCommands )
+			rows = new ArrayList<>();
+			allCommands = commands;
+			for ( final Command command : commands )
 			{
-				Map< String, String > contextMap = actionDescriptions.get( command );
-				if ( null == contextMap )
-					contextMap = Collections.emptyMap();
-
-				final Set< Input > inputs = actionToInputsMap.get( command );
-				if ( null == inputs )
+				final Set< Input > inputs = actionToInputsMap.get( command.getName() );
+				if ( null != inputs )
 				{
-					// Not found in the config. Add command with due contexts.
-					commands.add( command );
-					bindings.add( InputTrigger.NOT_MAPPED );
-					final List< String > cs = new ArrayList<>( contextMap.keySet() );
-					cs.sort( null );
-					contexts.add( cs );
-				}
-				else
-				{
-					// Found in the config.
-					final List< Input > sortedInputs = new ArrayList<>( inputs );
-					sortedInputs.sort( inputComparator );
-					final Set< String > usedContexts = new HashSet<>();
-					for ( final Input input : sortedInputs )
-					{
-						commands.add( command );
-						bindings.add( input.trigger );
-						final List< String > cs = new ArrayList<>( input.contexts );
-						cs.sort( null );
-						contexts.add( cs );
-						usedContexts.addAll( cs );
-					}
-					/*
-					 * Check that we have exhausted known contexts. If not, push
-					 * missing ones.
-					 */
-					final Set< String > missingContexts = new HashSet<>( contextMap.keySet() );
-					missingContexts.removeAll( usedContexts );
-					if ( !missingContexts.isEmpty() )
-					{
-						final List< String > sortedMissingContexts = new ArrayList<>( missingContexts );
-						sortedMissingContexts.sort( null );
-						commands.add( command );
-						bindings.add( InputTrigger.NOT_MAPPED );
-						contexts.add( sortedMissingContexts );
-					}
+					for ( final Input input : inputs )
+						if ( input.contexts.contains( command.getContext() ) )
+							rows.add( new MyTableRow( command.getName(), input.trigger, Collections.singletonList( command.getContext() ) ) );
 				}
 			}
+			addMissingRows();
+		}
+
+		/**
+		 * Find and merge rows with the same action name and trigger, but different
+		 * contexts.
+		 */
+		private void mergeRows()
+		{
+			final List< MyTableRow > rowsUnmerged = new ArrayList<>( rows );
+			rows.clear();
+
+			final MyTableRowComparator comparator = new MyTableRowComparator();
+			rowsUnmerged.sort( comparator );
+
+			for ( int i = 0; i < rowsUnmerged.size(); )
+			{
+				final MyTableRow rowA = rowsUnmerged.get( i );
+				int j = i + 1;
+				while ( j < rowsUnmerged.size() && comparator.compare( rowsUnmerged.get( j ), rowA ) == 0 )
+					++j;
+
+				final Set< String > cs = new HashSet<>();
+				for ( int k = i; k < j; ++k )
+					cs.addAll( rowsUnmerged.get( k ).getContexts() );
+
+				rows.add( new MyTableRow( rowA.getName(), rowA.getTrigger(), new ArrayList<>( cs ) ) );
+
+				i = j;
+			}
+
+			this.fireTableDataChanged();
+		}
+
+		/**
+		 * Add missing
+		 */
+		private void addMissingRows()
+		{
+			final ArrayList< Command > missingCommands = new ArrayList<>();
+			for ( final Command command : allCommands )
+			{
+				boolean found = false;
+				for ( final MyTableRow row : rows )
+				{
+					if ( row.getName().equals( command.getName() ) && row.getContexts().contains( command.getContext() ) )
+					{
+						found = true;
+						break;
+					}
+				}
+				if ( !found )
+					missingCommands.add( command );
+			}
+
+			for ( final Command command : missingCommands )
+				rows.add( new MyTableRow( command.getName(), InputTrigger.NOT_MAPPED, Collections.singletonList( command.getContext() ) ) );
+
+			mergeRows();
 		}
 
 		@Override
 		public int getRowCount()
 		{
-			return commands.size();
+			return rows.size();
 		}
 
 		@Override
@@ -998,11 +1012,11 @@ public class VisualEditorPanel extends JPanel
 			switch ( columnIndex )
 			{
 			case 0:
-				return commands.get( rowIndex );
+				return rows.get( rowIndex ).getName();
 			case 1:
-				return bindings.get( rowIndex );
+				return rows.get( rowIndex ).getTrigger();
 			case 2:
-				return contexts.get( rowIndex );
+				return rows.get( rowIndex ).getContexts();
 			default:
 				throw new NoSuchElementException( "Cannot access column " + columnIndex + " in this model." );
 			}
@@ -1015,9 +1029,34 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
+	private static final class MyTableRowComparator implements Comparator< MyTableRow >
+	{
+		@Override
+		public int compare( final MyTableRow o1, final MyTableRow o2 )
+		{
+			final int cn = o1.name.compareTo( o2.name );
+			if ( cn != 0 )
+				return cn;
+
+			final int ct = compare( o1.trigger, o2.trigger );
+//			if ( ct != 0 ) // TODO: remove
+				return ct;
+		}
+
+		private int compare( final InputTrigger o1, final InputTrigger o2 )
+		{
+			if ( o1 == InputTrigger.NOT_MAPPED )
+				return o2 == InputTrigger.NOT_MAPPED ? 0 : 1;
+			if ( o2 == InputTrigger.NOT_MAPPED )
+				return -1;
+			return o1.toString().compareTo( o2.toString() );
+		}
+	}
+
+
+	// TODO: trash?
 	private static final class InputComparator implements Comparator< Input >
 	{
-
 		@Override
 		public int compare( final Input o1, final Input o2 )
 		{
@@ -1029,6 +1068,7 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
+	// TODO: trash?
 	private static final class InputTriggerComparator implements Comparator< InputTrigger >
 	{
 

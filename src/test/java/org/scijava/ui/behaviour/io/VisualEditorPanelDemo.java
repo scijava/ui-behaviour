@@ -10,6 +10,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.scijava.ui.behaviour.io.gui.Command;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptionBuilder;
 import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
 
@@ -40,7 +41,7 @@ public class VisualEditorPanelDemo
 				"  triggers: [shift D]" + "\n" +
 				"- !mapping" + "\n" +
 				"  action: destroy the world" + "\n" +
-				"  contexts: [unknown context, mamut]" + "\n" +
+				"  contexts: [mamut]" + "\n" +
 				"  triggers: [control A]" + "\n" +
 				"" );
 		final List< InputTriggerDescription > triggers = YamlConfigIO.read( reader );
@@ -48,7 +49,7 @@ public class VisualEditorPanelDemo
 		return config;
 	}
 
-	private static Map< String, Map< String, String > > getDemoCommands()
+	private static Map< Command, String > getDemoCommands()
 	{
 		return new CommandDescriptionBuilder()
 				.addCommand( "drag1", "mamut", "Move an item around the editor." )

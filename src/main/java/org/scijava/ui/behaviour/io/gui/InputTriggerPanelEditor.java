@@ -274,6 +274,12 @@ public class InputTriggerPanelEditor extends JPanel
 		repaint();
 	}
 
+	@Override
+	public boolean requestFocusInWindow()
+	{
+		return textField.requestFocusInWindow();
+	}
+
 	/*
 	 * INNER CLASSES
 	 */
