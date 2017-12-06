@@ -378,11 +378,16 @@ public class VisualEditorPanel extends JPanel
 					return;
 				}
 
-				final MyTableRow selectedRowToRestore = tableModel.rows.get( e.getFirstIndex() );
+				final int selIndex = tableBindings.getSelectionModel().getMinSelectionIndex();
+				if ( selIndex < 0 )
+					return;
+				final MyTableRow selectedRowToRestore = tableModel.rows.get( selIndex );
 				if ( !tableModel.removeSuperfluousNotMapped() )
 					return;
 
 				final int bs = Collections.binarySearch( tableModel.rows, selectedRowToRestore, new MyTableRowComparator() );
+				if ( bs < 0 )
+					return;
 				final int vbs = tableBindings.convertRowIndexToView( bs );
 				tableBindings.getSelectionModel().setSelectionInterval( vbs, vbs );
 			}
@@ -763,8 +768,8 @@ public class VisualEditorPanel extends JPanel
 
 		final int modelRowToSelect = Collections.binarySearch( tableModel.rows, updatedRow, new MyTableRowComparator() );
 		final int rowToSelect;
-		if (modelRowToSelect < 0)
-		 rowToSelect = tableBindings.convertRowIndexToView( modelRow );
+		if ( modelRowToSelect < 0 )
+			rowToSelect = tableBindings.convertRowIndexToView( modelRow );
 		else
 			rowToSelect = tableBindings.convertRowIndexToView( modelRowToSelect );
 		tableBindings.getSelectionModel().setSelectionInterval( rowToSelect, rowToSelect );
