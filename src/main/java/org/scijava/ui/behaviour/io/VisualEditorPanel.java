@@ -95,6 +95,8 @@ public class VisualEditorPanel extends JPanel
 
 	private MyTableModel tableModel;
 
+	private boolean blockRemoveNotMapped = false;
+
 	private final InputTriggerPanelEditor keybindingEditor;
 
 	private final TagPanelEditor contextsEditor;
@@ -360,6 +362,29 @@ public class VisualEditorPanel extends JPanel
 				if ( e.getValueIsAdjusting() )
 					return;
 				updateEditors();
+			}
+		} );
+		tableBindings.getSelectionModel().addListSelectionListener( new ListSelectionListener()
+		{
+			@Override
+			public void valueChanged( final ListSelectionEvent e )
+			{
+				if ( e.getValueIsAdjusting() )
+					return;
+
+				if ( blockRemoveNotMapped )
+				{
+					blockRemoveNotMapped = false;
+					return;
+				}
+
+				final MyTableRow selectedRowToRestore = tableModel.rows.get( e.getFirstIndex() );
+				if ( !tableModel.removeSuperfluousNotMapped() )
+					return;
+
+				final int bs = Collections.binarySearch( tableModel.rows, selectedRowToRestore, new MyTableRowComparator() );
+				final int vbs = tableBindings.convertRowIndexToView( bs );
+				tableBindings.getSelectionModel().setSelectionInterval( vbs, vbs );
 			}
 		} );
 		tableBindings.setFocusTraversalKeys( KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null );
@@ -639,11 +664,11 @@ public class VisualEditorPanel extends JPanel
 		{
 			final MyTableRow newRow = new MyTableRow( removedRow.getName(), InputTrigger.NOT_MAPPED, new ArrayList<>( contextsToAddBack ) );
 			tableModel.rows.add( modelRow, newRow );
-//			tableModel.fireTableRowsUpdated( modelRow, modelRow );
-//		}
-//		else
-//		{
-//			tableModel.fireTableRowsDeleted( modelRow, modelRow );
+			tableModel.fireTableRowsUpdated( modelRow, modelRow );
+		}
+		else
+		{
+			tableModel.fireTableRowsDeleted( modelRow, modelRow );
 		}
 
 		tableModel.mergeRows();
@@ -702,8 +727,11 @@ public class VisualEditorPanel extends JPanel
 		final List< String > cs = row.getContexts();
 		final MyTableRow copiedRow = new MyTableRow( action, InputTrigger.NOT_MAPPED, new ArrayList<>( cs ) );
 		tableModel.rows.add( modelRow + 1, copiedRow  );
-		tableModel.mergeRows();
+		blockRemoveNotMapped = true;
+		if ( !tableModel.mergeRows() )
+			tableModel.fireTableRowsInserted( modelRow + 1, modelRow + 1 );
 
+		blockRemoveNotMapped = true;
 		// Find the row we just added if any.
 		final int modelRowToSelect = Collections.binarySearch( tableModel.rows, copiedRow, new MyTableRowComparator() );
 		final int rowToSelect;
@@ -716,30 +744,6 @@ public class VisualEditorPanel extends JPanel
 		// Notify listeners.
 		notifyListeners();
 
-		// Listener to avoid having duplicates with NOT_MAPPED. If the user don't edit it, we remove it.
-		final ListSelectionListener lsl = new ListSelectionListener()
-		{
-			@Override
-			public void valueChanged( final ListSelectionEvent e )
-			{
-				if ( e.getValueIsAdjusting() )
-					return;
-
-				tableBindings.getSelectionModel().removeListSelectionListener( this );
-				final MyTableRow selectedRowToRestore = tableModel.rows.get( e.getFirstIndex() );
-				final int modelRowToRemove = Collections.binarySearch( tableModel.rows, copiedRow, new MyTableRowComparator() );
-				if ( modelRowToRemove >= 0 )
-				{
-					tableModel.rows.remove( modelRowToRemove );
-					tableModel.addMissingRows();
-				}
-
-				final int bs = Collections.binarySearch( tableModel.rows, selectedRowToRestore, new MyTableRowComparator() );
-				final int vbs = tableBindings.convertRowIndexToView( bs );
-				tableBindings.getSelectionModel().setSelectionInterval( vbs, vbs );
-			}
-		};
-		tableBindings.getSelectionModel().addListSelectionListener( lsl );
 		keybindingEditor.requestFocusInWindow();
 	}
 
@@ -753,7 +757,8 @@ public class VisualEditorPanel extends JPanel
 
 		final MyTableRow updatedRow = new MyTableRow( row.getName(), inputTrigger, row.getContexts() );
 		tableModel.rows.set( modelRow, updatedRow );
-		tableModel.mergeRows();
+		if ( !tableModel.mergeRows() )
+			tableModel.fireTableRowsUpdated( modelRow, modelRow );
 		lookForConflicts();
 
 		final int modelRowToSelect = Collections.binarySearch( tableModel.rows, updatedRow, new MyTableRowComparator() );
@@ -777,7 +782,8 @@ public class VisualEditorPanel extends JPanel
 		final MyTableRow row = tableModel.rows.get( modelRow );
 
 		tableModel.rows.set( modelRow, new MyTableRow( row.getName(), row.getTrigger(), new ArrayList<>( selectedContexts ) ) );
-		tableModel.addMissingRows();
+		if ( !tableModel.addMissingRows() )
+			tableModel.fireTableRowsUpdated( modelRow, modelRow );
 		tableBindings.getSelectionModel().setSelectionInterval( modelRow, modelRow );
 
 		// Notify listeners.
@@ -898,6 +904,32 @@ public class VisualEditorPanel extends JPanel
 		}
 
 		@Override
+		public boolean equals( final Object o )
+		{
+			if ( this == o )
+				return true;
+			if ( o == null || getClass() != o.getClass() )
+				return false;
+
+			final MyTableRow that = ( MyTableRow ) o;
+
+			if ( !name.equals( that.name ) )
+				return false;
+			if ( !trigger.equals( that.trigger ) )
+				return false;
+			return contexts.equals( that.contexts );
+		}
+
+		@Override
+		public int hashCode()
+		{
+			int result = name.hashCode();
+			result = 31 * result + trigger.hashCode();
+			result = 31 * result + contexts.hashCode();
+			return result;
+		}
+
+		@Override
 		public String toString()
 		{
 			return "MyTableRow{" +
@@ -937,10 +969,68 @@ public class VisualEditorPanel extends JPanel
 		}
 
 		/**
-		 * Find and merge rows with the same action name and trigger, but different
-		 * contexts.
+		 * Find and remove rows with trigger NOT_MAPPED.
 		 */
-		private void mergeRows()
+		public void removeAllNotMapped( final List< MyTableRow > rows )
+		{
+			final Iterator< MyTableRow > iter = rows.iterator();
+			while ( iter.hasNext() )
+			{
+				final MyTableRow row = iter.next();
+				if ( row.getTrigger().equals( InputTrigger.NOT_MAPPED ) )
+					iter.remove();
+			}
+		}
+
+		/**
+		 * Find and remove table rows with trigger {@code NOT_MAPPED}, whose
+		 * name and contexts are covered by other rows (that map to other
+		 * triggers).
+		 *
+		 * If any changes are made, {@code fireTableDataChanged} is fired.
+		 *
+		 * @return true, if changes were made.
+		 */
+		public boolean removeSuperfluousNotMapped()
+		{
+			final ArrayList< MyTableRow > copy = new ArrayList<>( rows );
+			removeAllNotMapped( rows );
+			addMissingRows( rows );
+			if ( !copy.equals( rows ) )
+			{
+				this.fireTableDataChanged();
+				return true;
+			}
+			return false;
+		}
+
+		/**
+		 * Find and merge table rows with the same action name and trigger, but
+		 * different contexts.
+		 *
+		 * If any changes are made, {@code fireTableDataChanged} is fired.
+		 *
+		 * @return true, if changes were made.
+		 */
+		private boolean mergeRows()
+		{
+			final ArrayList< MyTableRow > copy = new ArrayList<>( rows );
+			mergeRows( rows );
+			if ( !copy.equals( rows ) )
+			{
+				this.fireTableDataChanged();
+				return true;
+			}
+			return false;
+		}
+
+		/**
+		 * In the given list of {@code rows}, find and merge rows with the same
+		 * action name and trigger, but different contexts.
+		 *
+		 * @param rows list of rows to modify.
+		 */
+		private void mergeRows( final List< MyTableRow > rows )
 		{
 			final List< MyTableRow > rowsUnmerged = new ArrayList<>( rows );
 			rows.clear();
@@ -963,14 +1053,38 @@ public class VisualEditorPanel extends JPanel
 
 				i = j;
 			}
-
-			this.fireTableDataChanged();
 		}
 
 		/**
-		 * Add missing
+		 * Add {@code NOT_MAPPED} rows for (name, context) pairs in
+		 * {@link #allCommands} that are not otherwise covered. Then
+		 * {@link #mergeRows()}.
+		 *
+		 * If any changes are made, {@code fireTableDataChanged} is fired.
+		 *
+		 * @return true, if changes were made.
 		 */
-		private void addMissingRows()
+		private boolean addMissingRows()
+		{
+			final ArrayList< MyTableRow > copy = new ArrayList<>( rows );
+			addMissingRows( rows );
+			if ( !copy.equals( rows ) )
+			{
+				this.fireTableDataChanged();
+				return true;
+			}
+			return false;
+		}
+
+		/**
+		 * In the given list of {@code rows}, add {@code NOT_MAPPED} rows for
+		 * (name, context) pairs in {@link #allCommands} that are not otherwise
+		 * covered. Then {@link #mergeRows(List)}.
+		 *
+		 * @param rows
+		 *            list of rows to modify.
+		 */
+		private void addMissingRows( final List< MyTableRow > rows )
 		{
 			final ArrayList< Command > missingCommands = new ArrayList<>();
 			for ( final Command command : allCommands )
@@ -991,7 +1105,7 @@ public class VisualEditorPanel extends JPanel
 			for ( final Command command : missingCommands )
 				rows.add( new MyTableRow( command.getName(), InputTrigger.NOT_MAPPED, Collections.singletonList( command.getContext() ) ) );
 
-			mergeRows();
+			mergeRows( rows );
 		}
 
 		@Override
