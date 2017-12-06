@@ -256,7 +256,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 					return;
 				}
 
-				for ( final InputTrigger trigger : triggers )
+				for ( final InputTrigger trigger : defaultKeyStrokes )
 				{
 					if ( trigger.isKeyStroke() )
 					{
