@@ -431,36 +431,48 @@ public class VisualEditorPanel extends JPanel
 	{
 		lblConflict.setText( "" );
 
-		// TODO: revise
-		/*
 		final int viewRow = tableBindings.getSelectedRow();
 		if ( viewRow < 0 )
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
 		lblConflict.setText( "" );
-		final InputTrigger inputTrigger = tableModel.bindings.get( modelRow );
+		final InputTrigger inputTrigger = tableModel.rows.get( modelRow ).getTrigger();
 		if ( inputTrigger == InputTrigger.NOT_MAPPED )
 			return;
+		final List< String > contexts = tableModel.rows.get( modelRow ).getContexts();
 
 		final ArrayList< String > conflicts = new ArrayList<>();
-		for ( int i = 0; i < tableModel.commands.size(); i++ )
+		for ( int i = 0; i < tableModel.getRowCount(); i++ )
 		{
 			if ( i == modelRow )
 				continue;
 
-			if ( tableModel.bindings.get( i ).equals( inputTrigger ) )
-				conflicts.add( tableModel.commands.get( i ) );
+			if ( tableModel.rows.get( i ).getTrigger().equals( inputTrigger ) )
+			{
+				// Same trigger. Check if contexts overlap.
+				final List< String > overlappingContexts = new ArrayList<>( tableModel.rows.get( i ).getContexts() );
+				overlappingContexts.retainAll( contexts );
+				if ( !overlappingContexts.isEmpty() )
+				{
+					final StringBuilder str = new StringBuilder();
+					str.append( tableModel.rows.get( i ).getName() );
+					str.append( " in " + overlappingContexts.get( 0 ) );
+					for ( int j = 1; j < overlappingContexts.size(); j++ )
+						str.append( ", " + overlappingContexts.get( j ) );
+
+					conflicts.add( str.toString() );
+				}
+			}
 		}
 
 		if ( !conflicts.isEmpty() )
 		{
 			final StringBuilder str = new StringBuilder( conflicts.get( 0 ) );
 			for ( int i = 1; i < conflicts.size(); i++ )
-				str.append( ", " + conflicts.get( i ) );
+				str.append( "; " + conflicts.get( i ) );
 			lblConflict.setText( str.toString() );
 		}
-		*/
 	}
 
 	public void setButtonPanelVisible( final boolean visible )
