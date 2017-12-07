@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -49,6 +50,8 @@ import javax.swing.table.TableRowSorter;
 
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
+import org.scijava.ui.behaviour.io.InputTriggerDescription;
+import org.scijava.ui.behaviour.io.InputTriggerDescriptionsBuilder;
 
 public class VisualEditorPanel extends JPanel
 {
@@ -126,6 +129,18 @@ public class VisualEditorPanel extends JPanel
 	private final JButton btnRestore;
 
 	private TableRowSorter< MyTableModel > tableRowSorter;
+
+	/**
+	 * Creates a visual editor for an {@link InputTriggerConfig}. The config
+	 * object is directly modified when the user clicks the 'Apply' button.
+	 *
+	 * @param config
+	 *            the {@link InputTriggerConfig} object to modify.
+	 */
+	public VisualEditorPanel( final InputTriggerConfig config )
+	{
+		this( config, extractEmptyCommandDescriptions( config ) );
+	}
 
 	/**
 	 * Creates a visual editor for an {@link InputTriggerConfig}. The config
@@ -769,6 +784,18 @@ public class VisualEditorPanel extends JPanel
 	{
 		for ( final ConfigChangeListener listener : listeners )
 			listener.configChanged();
+	}
+
+	private static Map< Command, String > extractEmptyCommandDescriptions( final InputTriggerConfig keyconf )
+	{
+		final List< InputTriggerDescription > descriptions = new InputTriggerDescriptionsBuilder( keyconf ).getDescriptions();
+		final Set< Command > commands = new LinkedHashSet<>();
+		for ( final InputTriggerDescription desc : descriptions )
+			for( final String context : desc.getContexts() )
+				commands.add( new Command( desc.getAction(), context ) );
+		final Map< Command, String > commandDescriptions = new HashMap<>();
+		commands.forEach( command -> commandDescriptions.put( command, null ) );
+		return commandDescriptions;
 	}
 
 	public void addConfigChangeListener( final ConfigChangeListener listener )
