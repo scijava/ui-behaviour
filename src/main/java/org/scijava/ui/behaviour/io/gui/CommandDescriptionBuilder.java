@@ -5,20 +5,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Utility class that is used to build a 2-level map of existing contexts ->
- * commands and their description.
+ * Utility class that is used to build a map of {@link Command}s to their
+ * description.
  *
  * @author Jean-Yves Tinevez
- *
  */
 public class CommandDescriptionBuilder
 {
 
 	/**
-	 * The map of commands -> map of contexts -> description of what the command
-	 * do in a context.
+	 * The map of {@link Command} to description of what the command does.
 	 */
-	private HashMap< Command, String > map;
+	private final HashMap< Command, String > map;
 
 	public CommandDescriptionBuilder()
 	{
@@ -33,8 +31,8 @@ public class CommandDescriptionBuilder
 	}
 
 	/**
-	 * Returns the map of commands -> map of contexts -> description of what the
-	 * command does in a context.
+	 * Returns the map of {@link Command} to description of what the command
+	 * does.
 	 *
 	 * @return a new immutable map
 	 */
