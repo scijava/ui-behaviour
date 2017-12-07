@@ -382,7 +382,7 @@ public class VisualEditorPanel extends JPanel
 				if ( !tableModel.removeSuperfluousNotMapped() )
 					return;
 
-				final int bs = Collections.binarySearch( tableModel.rows, selectedRowToRestore, new MyTableRowComparator() );
+				final int bs = Collections.binarySearch( tableModel.rows, selectedRowToRestore, MyTableRowComparator );
 				if ( bs < 0 )
 					return;
 				final int vbs = tableBindings.convertRowIndexToView( bs );
@@ -425,7 +425,7 @@ public class VisualEditorPanel extends JPanel
 		scrollPane.setViewportView( tableBindings );
 
 		this.tableRowSorter = new TableRowSorter<>( tableModel );
-		tableRowSorter.setComparator( 1, new InputTriggerComparator() );
+		tableRowSorter.setComparator( 1, InputTriggerComparator );
 		tableBindings.setRowSorter( tableRowSorter );
 	}
 
@@ -700,7 +700,7 @@ public class VisualEditorPanel extends JPanel
 
 		blockRemoveNotMapped = true;
 		// Find the row we just added if any.
-		final int modelRowToSelect = Collections.binarySearch( tableModel.rows, copiedRow, new MyTableRowComparator() );
+		final int modelRowToSelect = Collections.binarySearch( tableModel.rows, copiedRow, MyTableRowComparator );
 		final int rowToSelect;
 		if ( modelRowToSelect < 0 )
 			rowToSelect = tableBindings.convertRowIndexToView( modelRow );
@@ -728,7 +728,7 @@ public class VisualEditorPanel extends JPanel
 			tableModel.fireTableRowsUpdated( modelRow, modelRow );
 		lookForConflicts();
 
-		final int modelRowToSelect = Collections.binarySearch( tableModel.rows, updatedRow, new MyTableRowComparator() );
+		final int modelRowToSelect = Collections.binarySearch( tableModel.rows, updatedRow, MyTableRowComparator );
 		final int rowToSelect;
 		if ( modelRowToSelect < 0 )
 			rowToSelect = tableBindings.convertRowIndexToView( modelRow );
@@ -1011,14 +1011,13 @@ public class VisualEditorPanel extends JPanel
 			final List< MyTableRow > rowsUnmerged = new ArrayList<>( rows );
 			rows.clear();
 
-			final MyTableRowComparator comparator = new MyTableRowComparator();
-			rowsUnmerged.sort( comparator );
+			rowsUnmerged.sort( MyTableRowComparator );
 
 			for ( int i = 0; i < rowsUnmerged.size(); )
 			{
 				final MyTableRow rowA = rowsUnmerged.get( i );
 				int j = i + 1;
-				while ( j < rowsUnmerged.size() && comparator.compare( rowsUnmerged.get( j ), rowA ) == 0 )
+				while ( j < rowsUnmerged.size() && MyTableRowComparator.compare( rowsUnmerged.get( j ), rowA ) == 0 )
 					++j;
 
 				final Set< String > contexts = new HashSet<>();
@@ -1119,7 +1118,7 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
-	private static final class MyTableRowComparator implements Comparator< MyTableRow >
+	private static final Comparator< MyTableRow > MyTableRowComparator = new Comparator< MyTableRow >()
 	{
 		@Override
 		public int compare( final MyTableRow o1, final MyTableRow o2 )
@@ -1139,9 +1138,9 @@ public class VisualEditorPanel extends JPanel
 				return -1;
 			return o1.toString().compareTo( o2.toString() );
 		}
-	}
+	};
 
-	private static final class InputTriggerComparator implements Comparator< InputTrigger >
+	private static final Comparator< InputTrigger > InputTriggerComparator = new Comparator< InputTrigger >()
 	{
 		@Override
 		public int compare( final InputTrigger o1, final InputTrigger o2 )
@@ -1152,5 +1151,5 @@ public class VisualEditorPanel extends JPanel
 				return -1;
 			return o1.toString().compareTo( o2.toString() );
 		}
-	}
+	};
 }
