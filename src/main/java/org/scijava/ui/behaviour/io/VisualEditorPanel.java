@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -80,7 +79,7 @@ public class VisualEditorPanel extends JPanel
 
 	/**
 	 * Interface for listeners notified when settings are changed in the visual
-	 * editor.``
+	 * editor.
 	 */
 	@FunctionalInterface
 	public static interface ConfigChangeListener
@@ -112,8 +111,6 @@ public class VisualEditorPanel extends JPanel
 	private final Map< String, Set< String > > commandNameToAcceptableContexts;
 
 	private final Map< Command, String > actionDescriptions;
-
-	private final Set< String > contexts; // TODO: do we need it?
 
 	private final JLabel lblConflict;
 
@@ -151,7 +148,6 @@ public class VisualEditorPanel extends JPanel
 		commandNameToAcceptableContexts = new HashMap<>();
 		for ( final Command command : commands )
 			commandNameToAcceptableContexts.computeIfAbsent( command.getName(), k -> new HashSet<>() ).add( command.getContext() );
-		this.contexts = commands.stream().map( c -> c.getContext() ).collect( Collectors.toSet() ); // TODO: do we need it?
 		this.listeners = new HashSet<>();
 
 		/*
@@ -276,7 +272,7 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblContext.gridy = 2;
 		panelCommandEditor.add( lblContext, gbc_lblContext );
 
-		this.contextsEditor = new TagPanelEditor( contexts );
+		this.contextsEditor = new TagPanelEditor( Collections.emptyList() );
 		final GridBagConstraints gbc_comboBoxContext = new GridBagConstraints();
 		gbc_comboBoxContext.insets = new Insets( 5, 5, 5, 5 );
 		gbc_comboBoxContext.fill = GridBagConstraints.BOTH;
@@ -510,7 +506,7 @@ public class VisualEditorPanel extends JPanel
 		tableBindings.setModel( tableModel );
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
-		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( contexts ) );
+		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( Collections.emptyList() ) );
 		tableBindings.getSelectionModel().setSelectionInterval( 0, 0 );
 
 		// Notify listeners.
@@ -1131,22 +1127,6 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
-
-	// TODO: trash?
-	private static final class InputComparator implements Comparator< Input >
-	{
-		@Override
-		public int compare( final Input o1, final Input o2 )
-		{
-			if ( o1.trigger == InputTrigger.NOT_MAPPED )
-				return 1;
-			if ( o2.trigger == InputTrigger.NOT_MAPPED )
-				return -1;
-			return o1.trigger.toString().compareTo( o2.trigger.toString() );
-		}
-	}
-
-	// TODO: trash?
 	private static final class InputTriggerComparator implements Comparator< InputTrigger >
 	{
 
