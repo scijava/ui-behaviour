@@ -10,6 +10,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,6 +29,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -540,7 +543,6 @@ public class VisualEditorPanel extends JPanel
 
 	private void exportToCsv()
 	{
-		/*
 		final int userSignal = fileChooser.showSaveDialog( this );
 		if ( userSignal != JFileChooser.APPROVE_OPTION )
 			return;
@@ -566,13 +568,13 @@ public class VisualEditorPanel extends JPanel
 		sb.append( MyTableModel.TABLE_HEADERS[ 2 ] );
 		sb.append( '\n' );
 
-		for ( int i = 0; i < tableModel.commands.size(); i++ )
+		for ( int i = 0; i < tableModel.getRowCount(); i++ )
 		{
-			sb.append( tableModel.commands.get( i ) );
+			sb.append( tableModel.rows.get( i ).getName() );
 			sb.append( CSV_SEPARATOR + '\t' );
-			sb.append( tableModel.bindings.get( i ).toString() );
+			sb.append( tableModel.rows.get( i ).getTrigger().toString() );
 			sb.append( CSV_SEPARATOR + '\t' );
-			final List< String > contexts = tableModel.contexts.get( i );
+			final List< String > contexts = tableModel.rows.get( i ).getContexts();
 			if ( !contexts.isEmpty() )
 			{
 				sb.append( contexts.get( 0 ) );
@@ -593,7 +595,6 @@ public class VisualEditorPanel extends JPanel
 			JOptionPane.showMessageDialog( fileChooser, "Error writing file:\n" + e.getMessage(), "Error writing file.", JOptionPane.ERROR_MESSAGE );
 			e.printStackTrace();
 		}
-		 */
 	}
 
 	private void updateEditors()
@@ -1112,9 +1113,7 @@ public class VisualEditorPanel extends JPanel
 			if ( cn != 0 )
 				return cn;
 
-			final int ct = compare( o1.trigger, o2.trigger );
-//			if ( ct != 0 ) // TODO: remove
-				return ct;
+			return compare( o1.trigger, o2.trigger );
 		}
 
 		private int compare( final InputTrigger o1, final InputTrigger o2 )
