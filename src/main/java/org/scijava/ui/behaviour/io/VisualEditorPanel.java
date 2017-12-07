@@ -10,6 +10,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,13 +23,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -79,7 +81,7 @@ public class VisualEditorPanel extends JPanel
 
 	/**
 	 * Interface for listeners notified when settings are changed in the visual
-	 * editor.``
+	 * editor.
 	 */
 	@FunctionalInterface
 	public static interface ConfigChangeListener
@@ -112,8 +114,6 @@ public class VisualEditorPanel extends JPanel
 
 	private final Map< Command, String > actionDescriptions;
 
-	private final Set< String > contexts; // TODO: do we need it?
-
 	private final JLabel lblConflict;
 
 	private JTextArea textAreaDescription;
@@ -127,6 +127,8 @@ public class VisualEditorPanel extends JPanel
 	private final JButton btnApply;
 
 	private final JButton btnRestore;
+
+	private TableRowSorter< MyTableModel > tableRowSorter;
 
 	/**
 	 * Creates a visual editor for an {@link InputTriggerConfig}. The config
@@ -150,7 +152,6 @@ public class VisualEditorPanel extends JPanel
 		commandNameToAcceptableContexts = new HashMap<>();
 		for ( final Command command : commands )
 			commandNameToAcceptableContexts.computeIfAbsent( command.getName(), k -> new HashSet<>() ).add( command.getContext() );
-		this.contexts = commands.stream().map( c -> c.getContext() ).collect( Collectors.toSet() ); // TODO: do we need it?
 		this.listeners = new HashSet<>();
 
 		/*
@@ -275,7 +276,7 @@ public class VisualEditorPanel extends JPanel
 		gbc_lblContext.gridy = 2;
 		panelCommandEditor.add( lblContext, gbc_lblContext );
 
-		this.contextsEditor = new TagPanelEditor( contexts );
+		this.contextsEditor = new TagPanelEditor( Collections.emptyList() );
 		final GridBagConstraints gbc_comboBoxContext = new GridBagConstraints();
 		gbc_comboBoxContext.insets = new Insets( 5, 5, 5, 5 );
 		gbc_comboBoxContext.fill = GridBagConstraints.BOTH;
@@ -425,42 +426,58 @@ public class VisualEditorPanel extends JPanel
 
 		configToModel();
 		scrollPane.setViewportView( tableBindings );
+
+		this.tableRowSorter = new TableRowSorter<>( tableModel );
+		tableRowSorter.setComparator( 1, new InputTriggerComparator() );
+		tableBindings.setRowSorter( tableRowSorter );
 	}
 
 	private void lookForConflicts()
 	{
 		lblConflict.setText( "" );
 
-		// TODO: revise
-		/*
 		final int viewRow = tableBindings.getSelectedRow();
 		if ( viewRow < 0 )
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 
 		lblConflict.setText( "" );
-		final InputTrigger inputTrigger = tableModel.bindings.get( modelRow );
+		final InputTrigger inputTrigger = tableModel.rows.get( modelRow ).getTrigger();
 		if ( inputTrigger == InputTrigger.NOT_MAPPED )
 			return;
+		final List< String > contexts = tableModel.rows.get( modelRow ).getContexts();
 
 		final ArrayList< String > conflicts = new ArrayList<>();
-		for ( int i = 0; i < tableModel.commands.size(); i++ )
+		for ( int i = 0; i < tableModel.getRowCount(); i++ )
 		{
 			if ( i == modelRow )
 				continue;
 
-			if ( tableModel.bindings.get( i ).equals( inputTrigger ) )
-				conflicts.add( tableModel.commands.get( i ) );
+			if ( tableModel.rows.get( i ).getTrigger().equals( inputTrigger ) )
+			{
+				// Same trigger. Check if contexts overlap.
+				final List< String > overlappingContexts = new ArrayList<>( tableModel.rows.get( i ).getContexts() );
+				overlappingContexts.retainAll( contexts );
+				if ( !overlappingContexts.isEmpty() )
+				{
+					final StringBuilder str = new StringBuilder();
+					str.append( tableModel.rows.get( i ).getName() );
+					str.append( " in " + overlappingContexts.get( 0 ) );
+					for ( int j = 1; j < overlappingContexts.size(); j++ )
+						str.append( ", " + overlappingContexts.get( j ) );
+
+					conflicts.add( str.toString() );
+				}
+			}
 		}
 
 		if ( !conflicts.isEmpty() )
 		{
 			final StringBuilder str = new StringBuilder( conflicts.get( 0 ) );
 			for ( int i = 1; i < conflicts.size(); i++ )
-				str.append( ", " + conflicts.get( i ) );
+				str.append( "; " + conflicts.get( i ) );
 			lblConflict.setText( str.toString() );
 		}
-		*/
 	}
 
 	public void setButtonPanelVisible( final boolean visible )
@@ -507,7 +524,7 @@ public class VisualEditorPanel extends JPanel
 		tableBindings.setModel( tableModel );
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
-		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( contexts ) );
+		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( Collections.emptyList() ) );
 		tableBindings.getSelectionModel().setSelectionInterval( 0, 0 );
 
 		// Notify listeners.
@@ -519,9 +536,6 @@ public class VisualEditorPanel extends JPanel
 
 	private void filterRows()
 	{
-		final TableRowSorter< MyTableModel > tableRowSorter = new TableRowSorter<>( tableModel );
-		tableRowSorter.setComparator( 1, new InputTriggerComparator() );
-		tableBindings.setRowSorter( tableRowSorter );
 		RowFilter< MyTableModel, Integer > rf = null;
 		try
 		{
@@ -541,7 +555,6 @@ public class VisualEditorPanel extends JPanel
 
 	private void exportToCsv()
 	{
-		/*
 		final int userSignal = fileChooser.showSaveDialog( this );
 		if ( userSignal != JFileChooser.APPROVE_OPTION )
 			return;
@@ -567,13 +580,13 @@ public class VisualEditorPanel extends JPanel
 		sb.append( MyTableModel.TABLE_HEADERS[ 2 ] );
 		sb.append( '\n' );
 
-		for ( int i = 0; i < tableModel.commands.size(); i++ )
+		for ( int i = 0; i < tableModel.getRowCount(); i++ )
 		{
-			sb.append( tableModel.commands.get( i ) );
+			sb.append( tableModel.rows.get( i ).getName() );
 			sb.append( CSV_SEPARATOR + '\t' );
-			sb.append( tableModel.bindings.get( i ).toString() );
+			sb.append( tableModel.rows.get( i ).getTrigger().toString() );
 			sb.append( CSV_SEPARATOR + '\t' );
-			final List< String > contexts = tableModel.contexts.get( i );
+			final List< String > contexts = tableModel.rows.get( i ).getContexts();
 			if ( !contexts.isEmpty() )
 			{
 				sb.append( contexts.get( 0 ) );
@@ -594,7 +607,6 @@ public class VisualEditorPanel extends JPanel
 			JOptionPane.showMessageDialog( fileChooser, "Error writing file:\n" + e.getMessage(), "Error writing file.", JOptionPane.ERROR_MESSAGE );
 			e.printStackTrace();
 		}
-		 */
 	}
 
 	private void updateEditors()
@@ -740,13 +752,20 @@ public class VisualEditorPanel extends JPanel
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 		final MyTableRow row = tableModel.rows.get( modelRow );
 
-		tableModel.rows.set( modelRow, new MyTableRow( row.getName(), row.getTrigger(), selectedContexts ) );
+		final List< String > newContexts = new ArrayList<>( selectedContexts );
+		newContexts.sort( null );
+		tableModel.rows.set( modelRow, new MyTableRow( row.getName(), row.getTrigger(), newContexts ) );
 		if ( !tableModel.addMissingRows() )
 			tableModel.fireTableRowsUpdated( modelRow, modelRow );
-		tableBindings.getSelectionModel().setSelectionInterval( modelRow, modelRow );
 
 		// Notify listeners.
 		notifyListeners();
+
+		// Select proper row again (might have sorted differently now).
+		final int viewRowToSelect = tableBindings.convertRowIndexToView( modelRow );
+		if ( viewRowToSelect < 0 )
+			return;
+		tableBindings.getSelectionModel().setSelectionInterval( viewRowToSelect, viewRowToSelect );
 	}
 
 	private void notifyListeners()
@@ -1112,9 +1131,7 @@ public class VisualEditorPanel extends JPanel
 			if ( cn != 0 )
 				return cn;
 
-			final int ct = compare( o1.trigger, o2.trigger );
-//			if ( ct != 0 ) // TODO: remove
-				return ct;
+			return compare( o1.trigger, o2.trigger );
 		}
 
 		private int compare( final InputTrigger o1, final InputTrigger o2 )
@@ -1127,7 +1144,6 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
-	// TODO: trash?
 	private static final class InputTriggerComparator implements Comparator< InputTrigger >
 	{
 		@Override
