@@ -1,4 +1,4 @@
-package org.scijava.ui.behaviour.io;
+package org.scijava.ui.behaviour.io.gui;
 
 import java.awt.EventQueue;
 import java.io.StringReader;
@@ -10,8 +10,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.scijava.ui.behaviour.io.InputTriggerConfig;
+import org.scijava.ui.behaviour.io.InputTriggerDescription;
 import org.scijava.ui.behaviour.io.gui.Command;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptionBuilder;
+import org.scijava.ui.behaviour.io.gui.VisualEditorPanel;
 import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
 
 public class VisualEditorPanelDemo

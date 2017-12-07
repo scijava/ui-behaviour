@@ -109,6 +109,44 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		return triggers;
 	}
 
+	public void clear()
+	{
+		actionToInputsMap.clear();
+	}
+
+	public void add( final String trigger, final String behaviourName, final String context )
+	{
+		add( InputTrigger.getFromString( trigger ), behaviourName, context );
+	}
+
+	public void add( final InputTrigger trigger, final String behaviourName, final String context )
+	{
+		add( trigger, behaviourName, Collections.singleton( context ) );
+	}
+
+	public synchronized void add( final InputTrigger trigger, final String behaviourName, final Collection< String > contexts )
+	{
+		final Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
+		for ( final Input input : inputs )
+		{
+			if ( input.trigger.equals( trigger ) )
+			{
+				/*
+				 * the trigger -> behaviour binding already exists.
+				 * just add the new context
+				 */
+				input.contexts.addAll( contexts );
+				return;
+			}
+		}
+
+		/*
+		 * the trigger -> behaviour binding does not exist.
+		 * add it
+		 */
+		inputs.add( new Input( trigger, behaviourName, contexts ) );
+	}
+
 	public static class InputTriggerAdderImp implements InputTriggerAdder
 	{
 		private final InputTriggerMap map;
@@ -353,44 +391,6 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		{
 			return new InputTriggerDescription( new String[] { trigger.toString() }, behaviour, contexts.toArray( new String[ 0 ] ) );
 		}
-	}
-
-	void clear()
-	{
-		actionToInputsMap.clear();
-	}
-
-	void add( final String trigger, final String behaviourName, final String context )
-	{
-		add( InputTrigger.getFromString( trigger ), behaviourName, context );
-	}
-
-	void add( final InputTrigger trigger, final String behaviourName, final String context )
-	{
-		add( trigger, behaviourName, Collections.singleton( context ) );
-	}
-
-	synchronized void add( final InputTrigger trigger, final String behaviourName, final Collection< String > contexts )
-	{
-		final Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
-		for ( final Input input : inputs )
-		{
-			if ( input.trigger.equals( trigger ) )
-			{
-				/*
-				 * the trigger -> behaviour binding already exists.
-				 * just add the new context
-				 */
-				input.contexts.addAll( contexts );
-				return;
-			}
-		}
-
-		/*
-		 * the trigger -> behaviour binding does not exist.
-		 * add it
-		 */
-		inputs.add( new Input( trigger, behaviourName, contexts ) );
 	}
 
 	/*

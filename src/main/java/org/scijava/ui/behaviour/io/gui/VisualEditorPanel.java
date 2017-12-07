@@ -1,4 +1,4 @@
-package org.scijava.ui.behaviour.io;
+package org.scijava.ui.behaviour.io.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -48,10 +48,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 
 import org.scijava.ui.behaviour.InputTrigger;
-import org.scijava.ui.behaviour.io.gui.Command;
-import org.scijava.ui.behaviour.io.gui.CommandDescriptionBuilder;
-import org.scijava.ui.behaviour.io.gui.InputTriggerPanelEditor;
-import org.scijava.ui.behaviour.io.gui.TagPanelEditor;
+import org.scijava.ui.behaviour.io.InputTriggerConfig;
 
 public class VisualEditorPanel extends JPanel
 {
