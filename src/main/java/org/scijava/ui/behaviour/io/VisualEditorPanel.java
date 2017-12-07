@@ -46,7 +46,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 
 import org.scijava.ui.behaviour.InputTrigger;
-import org.scijava.ui.behaviour.io.InputTriggerConfig.Input;
 import org.scijava.ui.behaviour.io.gui.Command;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptionBuilder;
 import org.scijava.ui.behaviour.io.gui.InputTriggerPanelEditor;
@@ -506,7 +505,7 @@ public class VisualEditorPanel extends JPanel
 
 	public void configToModel()
 	{
-		tableModel = new MyTableModel( commands, config.actionToInputsMap );
+		tableModel = new MyTableModel( commands, config );
 		tableBindings.setModel( tableModel );
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
@@ -915,19 +914,15 @@ public class VisualEditorPanel extends JPanel
 
 		private final Set< Command > allCommands;
 
-		public MyTableModel( final Set< Command > commands, final Map< String, Set< Input > > actionToInputsMap )
+		public MyTableModel( final Set< Command > commands, final InputTriggerConfig config )
 		{
 			rows = new ArrayList<>();
 			allCommands = commands;
 			for ( final Command command : commands )
 			{
-				final Set< Input > inputs = actionToInputsMap.get( command.getName() );
-				if ( null != inputs )
-				{
-					for ( final Input input : inputs )
-						if ( input.contexts.contains( command.getContext() ) )
-							rows.add( new MyTableRow( command.getName(), input.trigger, Collections.singletonList( command.getContext() ) ) );
-				}
+				final Set< InputTrigger > inputs = config.getInputs( command.getName(), Collections.singleton( command.getContext() ) );
+				for ( final InputTrigger input : inputs )
+					rows.add( new MyTableRow( command.getName(), input, Collections.singletonList( command.getContext() ) ) );
 			}
 			addMissingRows();
 		}
@@ -1131,25 +1126,9 @@ public class VisualEditorPanel extends JPanel
 		}
 	}
 
-
-	// TODO: trash?
-	private static final class InputComparator implements Comparator< Input >
-	{
-		@Override
-		public int compare( final Input o1, final Input o2 )
-		{
-			if ( o1.trigger == InputTrigger.NOT_MAPPED )
-				return 1;
-			if ( o2.trigger == InputTrigger.NOT_MAPPED )
-				return -1;
-			return o1.trigger.toString().compareTo( o2.trigger.toString() );
-		}
-	}
-
 	// TODO: trash?
 	private static final class InputTriggerComparator implements Comparator< InputTrigger >
 	{
-
 		@Override
 		public int compare( final InputTrigger o1, final InputTrigger o2 )
 		{
