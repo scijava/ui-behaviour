@@ -129,6 +129,8 @@ public class VisualEditorPanel extends JPanel
 
 	private final JButton btnRestore;
 
+	private TableRowSorter< MyTableModel > tableRowSorter;
+
 	/**
 	 * Creates a visual editor for an {@link InputTriggerConfig}. The config
 	 * object is directly modified when the user clicks the 'Apply' button.
@@ -425,6 +427,10 @@ public class VisualEditorPanel extends JPanel
 
 		configToModel();
 		scrollPane.setViewportView( tableBindings );
+
+		this.tableRowSorter = new TableRowSorter<>( tableModel );
+		tableRowSorter.setComparator( 1, new InputTriggerComparator() );
+		tableBindings.setRowSorter( tableRowSorter );
 	}
 
 	private void lookForConflicts()
@@ -533,9 +539,6 @@ public class VisualEditorPanel extends JPanel
 
 	private void filterRows()
 	{
-		final TableRowSorter< MyTableModel > tableRowSorter = new TableRowSorter<>( tableModel );
-		tableRowSorter.setComparator( 1, new InputTriggerComparator() );
-		tableBindings.setRowSorter( tableRowSorter );
 		RowFilter< MyTableModel, Integer > rf = null;
 		try
 		{
@@ -754,13 +757,20 @@ public class VisualEditorPanel extends JPanel
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 		final MyTableRow row = tableModel.rows.get( modelRow );
 
-		tableModel.rows.set( modelRow, new MyTableRow( row.getName(), row.getTrigger(), new ArrayList<>( selectedContexts ) ) );
+		final List< String > newContexts = new ArrayList<>( selectedContexts );
+		newContexts.sort( null );
+		tableModel.rows.set( modelRow, new MyTableRow( row.getName(), row.getTrigger(), newContexts ) );
 		if ( !tableModel.addMissingRows() )
 			tableModel.fireTableRowsUpdated( modelRow, modelRow );
-		tableBindings.getSelectionModel().setSelectionInterval( modelRow, modelRow );
 
 		// Notify listeners.
 		notifyListeners();
+
+		// Select proper row again (might have sorted differently now).
+		final int viewRowToSelect = tableBindings.convertRowIndexToView( modelRow );
+		if ( viewRowToSelect < 0 )
+			return;
+		tableBindings.getSelectionModel().setSelectionInterval( viewRowToSelect, viewRowToSelect );
 	}
 
 	private void notifyListeners()
