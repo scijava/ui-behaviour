@@ -486,17 +486,15 @@ public class VisualEditorPanel extends JPanel
 				continue;
 
 			final String action = row.getName();
-			final Set< String > cs = new HashSet<>( row.getContexts() );
-			config.add( inputTrigger, action, cs );
+			config.add( inputTrigger, action, row.getContexts() );
 		}
 
 		// fill in InputTrigger.NOT_MAPPED for any action that doesn't have any input
 		for ( final Command command : commands )
 		{
 			final String action = command.getName();
-			final Set< String > cs = Collections.singleton( command.getContext() );
-			if ( config.getInputs( action, cs ).isEmpty() )
-				config.add( InputTrigger.NOT_MAPPED, action, cs );
+			if ( config.getInputs( action, command.getContext() ).isEmpty() )
+				config.add( InputTrigger.NOT_MAPPED, action, command.getContext() );
 		}
 
 		btnApply.setEnabled( false );
@@ -615,7 +613,7 @@ public class VisualEditorPanel extends JPanel
 		final MyTableRow row = tableModel.rows.get( modelRow );
 		final String action = row.getName();
 		final InputTrigger trigger = row.getTrigger();
-		final List< String > contexts = new ArrayList<>( row.getContexts() );
+		final List< String > contexts = row.getContexts();
 
 		final String description;
 		final Set< String > acceptableContexts = commandNameToAcceptableContexts.get( action );
@@ -685,9 +683,7 @@ public class VisualEditorPanel extends JPanel
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 		final MyTableRow row = tableModel.rows.get( modelRow );
 
-		final String action = row.getName();
-		final List< String > cs = row.getContexts();
-		final MyTableRow copiedRow = new MyTableRow( action, InputTrigger.NOT_MAPPED, new ArrayList<>( cs ) );
+		final MyTableRow copiedRow = new MyTableRow( row.getName(), InputTrigger.NOT_MAPPED, row.getContexts() );
 		tableModel.rows.add( modelRow + 1, copiedRow  );
 		blockRemoveNotMapped = true;
 		if ( !tableModel.mergeRows() )
@@ -744,7 +740,7 @@ public class VisualEditorPanel extends JPanel
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 		final MyTableRow row = tableModel.rows.get( modelRow );
 
-		tableModel.rows.set( modelRow, new MyTableRow( row.getName(), row.getTrigger(), new ArrayList<>( selectedContexts ) ) );
+		tableModel.rows.set( modelRow, new MyTableRow( row.getName(), row.getTrigger(), selectedContexts ) );
 		if ( !tableModel.addMissingRows() )
 			tableModel.fireTableRowsUpdated( modelRow, modelRow );
 		tableBindings.getSelectionModel().setSelectionInterval( modelRow, modelRow );
@@ -844,11 +840,16 @@ public class VisualEditorPanel extends JPanel
 
 		private final List< String > contexts;
 
-		public MyTableRow( final String name, final InputTrigger trigger, final List< String > contexts )
+		public MyTableRow( final String name, final InputTrigger trigger, final String context )
+		{
+			this( name, trigger, Collections.singletonList( context ) );
+		}
+
+		public MyTableRow( final String name, final InputTrigger trigger, final Collection< String > contexts )
 		{
 			this.name = name;
 			this.trigger = trigger;
-			this.contexts = contexts;
+			this.contexts = new ArrayList<>( contexts );
 		}
 
 		public String getName()
@@ -920,9 +921,9 @@ public class VisualEditorPanel extends JPanel
 			allCommands = commands;
 			for ( final Command command : commands )
 			{
-				final Set< InputTrigger > inputs = config.getInputs( command.getName(), Collections.singleton( command.getContext() ) );
+				final Set< InputTrigger > inputs = config.getInputs( command.getName(), command.getContext() );
 				for ( final InputTrigger input : inputs )
-					rows.add( new MyTableRow( command.getName(), input, Collections.singletonList( command.getContext() ) ) );
+					rows.add( new MyTableRow( command.getName(), input, command.getContext() ) );
 			}
 			addMissingRows();
 		}
@@ -1004,11 +1005,11 @@ public class VisualEditorPanel extends JPanel
 				while ( j < rowsUnmerged.size() && comparator.compare( rowsUnmerged.get( j ), rowA ) == 0 )
 					++j;
 
-				final Set< String > cs = new HashSet<>();
+				final Set< String > contexts = new HashSet<>();
 				for ( int k = i; k < j; ++k )
-					cs.addAll( rowsUnmerged.get( k ).getContexts() );
+					contexts.addAll( rowsUnmerged.get( k ).getContexts() );
 
-				rows.add( new MyTableRow( rowA.getName(), rowA.getTrigger(), new ArrayList<>( cs ) ) );
+				rows.add( new MyTableRow( rowA.getName(), rowA.getTrigger(), contexts ) );
 
 				i = j;
 			}
@@ -1062,7 +1063,7 @@ public class VisualEditorPanel extends JPanel
 			}
 
 			for ( final Command command : missingCommands )
-				rows.add( new MyTableRow( command.getName(), InputTrigger.NOT_MAPPED, Collections.singletonList( command.getContext() ) ) );
+				rows.add( new MyTableRow( command.getName(), InputTrigger.NOT_MAPPED, command.getContext() ) );
 
 			mergeRows( rows );
 		}

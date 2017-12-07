@@ -37,8 +37,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
+
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.InputTriggerAdder;
 import org.scijava.ui.behaviour.InputTriggerMap;
@@ -71,7 +73,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 				final InputTrigger trigger = InputTrigger.getFromString( triggerStr );
 				final Input input = new Input( trigger, behaviour, contexts );
 
-				Set< Input > inputs = actionToInputsMap.computeIfAbsent( input.behaviour, k -> new LinkedHashSet<>() );
+				final Set< Input > inputs = actionToInputsMap.computeIfAbsent( input.behaviour, k -> new LinkedHashSet<>() );
 				inputs.add( input );
 			}
 		}
@@ -87,6 +89,24 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 	public KeyStrokeAdder keyStrokeAdder( final InputMap map, final String ... contexts )
 	{
 		return new KeyStrokeAdderImp( map, this, contexts );
+	}
+
+	public Set< InputTrigger > getInputs( final String behaviourName, final String context )
+	{
+		return getInputs( behaviourName, Collections.singleton( context ) );
+	}
+
+	public Set< InputTrigger > getInputs( final String behaviourName, final Set< String > contexts )
+	{
+		final Set< Input > inputs = actionToInputsMap.get( behaviourName );
+		final Set< InputTrigger > triggers = new LinkedHashSet<>();
+		if ( inputs != null )
+		{
+			for ( final Input input : inputs )
+				if ( ! Collections.disjoint( contexts, input.contexts ) )
+					triggers.add( input.trigger );
+		}
+		return triggers;
 	}
 
 	public static class InputTriggerAdderImp implements InputTriggerAdder
@@ -303,7 +323,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		Input(
 				final InputTrigger trigger,
 				final String behaviour,
-				final Set< String > contexts )
+				final Collection< String > contexts )
 		{
 			this.trigger = trigger;
 			this.behaviour = behaviour;
@@ -335,19 +355,6 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		}
 	}
 
-	public Set< InputTrigger > getInputs( final String behaviourName, final Set< String > contexts )
-	{
-		final Set< Input > inputs = actionToInputsMap.get( behaviourName );
-		final Set< InputTrigger > triggers = new LinkedHashSet<>();
-		if ( inputs != null )
-		{
-			for ( final Input input : inputs )
-				if ( ! Collections.disjoint( contexts, input.contexts ) )
-					triggers.add( input.trigger );
-		}
-		return triggers;
-	}
-
 	void clear()
 	{
 		actionToInputsMap.clear();
@@ -363,9 +370,9 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		add( trigger, behaviourName, Collections.singleton( context ) );
 	}
 
-	synchronized void add( final InputTrigger trigger, final String behaviourName, final Set< String > contexts )
+	synchronized void add( final InputTrigger trigger, final String behaviourName, final Collection< String > contexts )
 	{
-		Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
+		final Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
 		for ( final Input input : inputs )
 		{
 			if ( input.trigger.equals( trigger ) )
@@ -399,7 +406,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 
 			for ( final String behaviourName : behaviours )
 			{
-				Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
+				final Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
 
 				boolean added = false;
 				for ( final Input input : inputs )
@@ -435,7 +442,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			final InputTrigger trigger = InputTrigger.getFromString( key.toString() );
 			final String behaviourName = map.get( key ).toString();
 
-			Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
+			final Set< Input > inputs = actionToInputsMap.computeIfAbsent( behaviourName, k -> new LinkedHashSet<>() );
 
 			boolean added = false;
 			for ( final Input input : inputs )
