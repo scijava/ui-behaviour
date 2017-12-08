@@ -149,9 +149,8 @@ public class VisualEditorPanel extends JPanel
 	 * @param config
 	 *            the {@link InputTriggerConfig} object to modify.
 	 * @param commandDescriptions
-	 *            The commands available. They are specified as a map from map
-	 *            of commands -> map of contexts -> description of what the
-	 *            command do in a context. Use <code>null</code> as value to not
+	 *            The commands available. They are specified as a map from
+	 *            command to description. Use <code>null</code> as value to not
 	 *            specify a description.
 	 * @see CommandDescriptionBuilder
 	 */
