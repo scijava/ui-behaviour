@@ -31,7 +31,7 @@ package org.scijava.ui.behaviour.util;
 
 import java.awt.event.ActionEvent;
 
-public class RunnableAction extends AbstractNamedAction
+public class RunnableAction extends AbstractNamedAction implements Runnable
 {
 	private final Runnable action;
 
@@ -43,6 +43,12 @@ public class RunnableAction extends AbstractNamedAction
 
 	@Override
 	public void actionPerformed( final ActionEvent e )
+	{
+		action.run();
+	}
+
+	@Override
+	public void run()
 	{
 		action.run();
 	}
