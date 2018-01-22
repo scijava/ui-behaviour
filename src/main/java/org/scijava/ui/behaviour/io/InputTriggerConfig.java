@@ -117,7 +117,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 	public void set( InputTriggerConfig config )
 	{
 		actionToInputsMap.clear();
-		for ( Entry< String, Set< Input > > entry : actionToInputsMap.entrySet() )
+		for ( Entry< String, Set< Input > > entry : config.actionToInputsMap.entrySet() )
 		{
 			final String behaviourName = entry.getKey();
 			final Set< Input > inputs = new LinkedHashSet<>();
