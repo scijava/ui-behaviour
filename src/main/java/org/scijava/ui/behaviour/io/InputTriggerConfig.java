@@ -114,6 +114,18 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		actionToInputsMap.clear();
 	}
 
+	public void set( InputTriggerConfig config )
+	{
+		actionToInputsMap.clear();
+		for ( Entry< String, Set< Input > > entry : actionToInputsMap.entrySet() )
+		{
+			final String behaviourName = entry.getKey();
+			final Set< Input > inputs = new LinkedHashSet<>();
+			entry.getValue().forEach( i -> inputs.add( i.copy() ) );
+			actionToInputsMap.put( behaviourName, inputs );
+		}
+	}
+
 	public void add( final String trigger, final String behaviourName, final String context )
 	{
 		add( InputTrigger.getFromString( trigger ), behaviourName, context );
@@ -366,6 +378,18 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			this.trigger = trigger;
 			this.behaviour = behaviour;
 			this.contexts = new HashSet<>( contexts );
+		}
+
+		Input( Input input )
+		{
+			this.trigger = input.trigger;
+			this.behaviour = input.behaviour;
+			this.contexts = new HashSet<>( input.contexts );
+		}
+
+		Input copy()
+		{
+			return new Input( this );
 		}
 
 		@Override
