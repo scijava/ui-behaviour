@@ -552,9 +552,6 @@ public class VisualEditorPanel extends JPanel
 		RowFilter< MyTableModel, Integer > rf = null;
 		try
 		{
-			final int[] indices = new int[ tableModel.getRowCount() ];
-			for ( int i = 0; i < indices.length; i++ )
-				indices[ i ] = i;
 			rf = RowFilter.regexFilter( textFieldFilter.getText(), 0 );
 		}
 		catch ( final java.util.regex.PatternSyntaxException pse )
