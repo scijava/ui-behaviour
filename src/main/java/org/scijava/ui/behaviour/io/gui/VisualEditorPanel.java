@@ -722,9 +722,6 @@ public class VisualEditorPanel extends JPanel
 			rowToSelect = tableBindings.convertRowIndexToView( modelRowToSelect );
 		tableBindings.getSelectionModel().setSelectionInterval( rowToSelect, rowToSelect );
 
-		// Notify listeners.
-		notifyListeners();
-
 		keybindingEditor.requestFocusInWindow();
 	}
 
