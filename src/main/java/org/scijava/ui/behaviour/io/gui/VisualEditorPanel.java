@@ -536,7 +536,9 @@ public class VisualEditorPanel extends JPanel
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
 		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( Collections.emptyList() ) );
-		tableBindings.getSelectionModel().setSelectionInterval( 0, 0 );
+
+		if (tableBindings.getRowCount() > 0)
+			tableBindings.getSelectionModel().setSelectionInterval( 0, 0 );
 
 		// Notify listeners.
 		notifyListeners();
