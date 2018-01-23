@@ -109,6 +109,23 @@ public final class InputActionBindings
 	}
 
 	/**
+	 * Add as {@link ActionMap} with the specified id at the specified position
+	 * in the list (overrides maps at lower positions). If the specified id
+	 * already exists in the list, remove the corresponding earlier
+	 * {@link ActionMap}.
+	 */
+	public void addActionMap( final int index, final String id, final ActionMap actionMap )
+	{
+		removeId( actions, id );
+		if ( actionMap != null )
+		{
+			final int i = Math.max( 0, Math.min( actions.size(), index ) );
+			actions.add( i, new Actions( id, actionMap ) );
+		}
+		updateTheActionMap();
+	}
+
+	/**
 	 * Remove the {@link ActionMap} with the given id from the list.
 	 */
 	public void removeActionMap( final String id )
@@ -118,7 +135,7 @@ public final class InputActionBindings
 	}
 
 	/**
-	 * Add as {@link InputMap} with the specified id to the end of the list
+	 * Adds a {@link InputMap} with the specified id to the end of the list
 	 * (overrides maps that were added earlier). If the specified id already
 	 * exists in the list, remove the corresponding earlier {@link InputMap}.
 	 * <p>
@@ -138,7 +155,7 @@ public final class InputActionBindings
 	}
 
 	/**
-	 * Add as {@link InputMap} with the specified id to the end of the list
+	 * Adds a {@link InputMap} with the specified id to the end of the list
 	 * (overrides maps that were added earlier). If the specified id already
 	 * exists in the list, remove the corresponding earlier {@link InputMap}.
 	 * <p>
@@ -157,6 +174,56 @@ public final class InputActionBindings
 		removeId( inputs, id );
 		if ( inputMap != null )
 			inputs.add( new Keys( id, inputMap, idsToBlock ) );
+		updateTheInputMap();
+	}
+
+	/**
+	 * Inserts a {@link InputMap} with the specified id at the specified
+	 * position in the list (overrides maps at lower positions). If the
+	 * specified id already exists in the list, remove the corresponding earlier
+	 * {@link InputMap}.
+	 * <p>
+	 * If {@code idsToBlock} are given, {@link InputMap}s with these ids earlier
+	 * in the chain that should be disabled. The special id "all" blocks all
+	 * earlier {@link InputMap}s.
+	 *
+	 * @param index
+	 * @param id
+	 * @param inputMap
+	 * @param idsToBlock
+	 *            ids of {@link InputMap}s earlier in the chain that should be
+	 *            disabled.
+	 */
+	public void addInputMap( final int index, final String id, final InputMap inputMap, final String... idsToBlock )
+	{
+		addInputMap( index, id, inputMap, Arrays.asList( idsToBlock ) );
+	}
+
+	/**
+	 * Inserts a {@link InputMap} with the specified id at the specified
+	 * position in the list (overrides maps at lower positions). If the
+	 * specified id already exists in the list, remove the corresponding earlier
+	 * {@link InputMap}.
+	 * <p>
+	 * If {@code idsToBlock} are given, {@link InputMap}s with these ids earlier
+	 * in the chain that should be disabled. The special id "all" blocks all
+	 * earlier {@link InputMap}s.
+	 *
+	 * @param index
+	 * @param id
+	 * @param inputMap
+	 * @param idsToBlock
+	 *            ids of {@link InputMap}s earlier in the chain that should be
+	 *            disabled.
+	 */
+	public void addInputMap( final int index, final String id, final InputMap inputMap, final Collection< String > idsToBlock )
+	{
+		removeId( inputs, id );
+		if ( inputMap != null )
+		{
+			final int i = Math.max( 0, Math.min( inputs.size(), index ) );
+			inputs.add( i, new Keys( id, inputMap, idsToBlock ) );
+		}
 		updateTheInputMap();
 	}
 
