@@ -96,6 +96,8 @@ public class VisualEditorPanel extends JPanel
 
 	private MyTableModel tableModel;
 
+	private TableRowSorter< MyTableModel > tableRowSorter;
+
 	private boolean blockRemoveNotMapped = false;
 
 	private final InputTriggerPanelEditor keybindingEditor;
@@ -116,7 +118,7 @@ public class VisualEditorPanel extends JPanel
 
 	private final JLabel lblConflict;
 
-	private JTextArea textAreaDescription;
+	private final JTextArea textAreaDescription;
 
 	private final JPanel panelEditor;
 
@@ -127,8 +129,6 @@ public class VisualEditorPanel extends JPanel
 	private final JButton btnApply;
 
 	private final JButton btnRestore;
-
-	private TableRowSorter< MyTableModel > tableRowSorter;
 
 	/**
 	 * Creates a visual editor for an {@link InputTriggerConfig}. The config
@@ -437,10 +437,6 @@ public class VisualEditorPanel extends JPanel
 
 		configToModel();
 		scrollPane.setViewportView( tableBindings );
-
-		this.tableRowSorter = new TableRowSorter<>( tableModel );
-		tableRowSorter.setComparator( 1, InputTriggerComparator );
-		tableBindings.setRowSorter( tableRowSorter );
 	}
 
 	private void lookForConflicts()
@@ -533,6 +529,12 @@ public class VisualEditorPanel extends JPanel
 	{
 		tableModel = new MyTableModel( commands, config );
 		tableBindings.setModel( tableModel );
+
+		tableRowSorter = new TableRowSorter<>( tableModel );
+		tableRowSorter.setComparator( 1, InputTriggerComparator );
+		tableBindings.setRowSorter( tableRowSorter );
+		filterRows();
+
 		// Renderers.
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
 		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( Collections.emptyList() ) );
