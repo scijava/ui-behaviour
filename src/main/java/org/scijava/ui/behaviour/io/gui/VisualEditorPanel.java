@@ -678,6 +678,9 @@ public class VisualEditorPanel extends JPanel
 		tableModel.rows.remove( modelRow );
 		if ( !tableModel.addMissingRows() )
 			tableModel.fireTableRowsDeleted( modelRow, modelRow );
+
+		// Notify listeners.
+		notifyListeners();
 	}
 
 	private void unbindAllCommand()
@@ -696,6 +699,9 @@ public class VisualEditorPanel extends JPanel
 		}
 		if ( !tableModel.addMissingRows() )
 			tableModel.fireTableDataChanged();
+
+		// Notify listeners.
+		notifyListeners();
 	}
 
 	private void copyCommand()
