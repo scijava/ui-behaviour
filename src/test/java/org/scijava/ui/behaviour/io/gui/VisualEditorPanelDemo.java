@@ -12,9 +12,6 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.io.InputTriggerDescription;
-import org.scijava.ui.behaviour.io.gui.Command;
-import org.scijava.ui.behaviour.io.gui.CommandDescriptionBuilder;
-import org.scijava.ui.behaviour.io.gui.VisualEditorPanel;
 import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
 
 public class VisualEditorPanelDemo
@@ -57,6 +54,8 @@ public class VisualEditorPanelDemo
 		return new CommandDescriptionBuilder()
 				.addCommand( "drag1", "mamut", "Move an item around the editor." )
 				.addCommand( "drag1", "trackscheme", "Move an item around the editor." )
+				.addCommand( "drag1", "other", "Move an item around the editor." )
+				.addCommand( "Elude", "other", "Refuse to answer the question." )
 				.addCommand( "scroll1", "mamut", null )
 				.addCommand( "destroy the world", "all", "Make a disgusting coffee for breakfast. \n"
 						+ "For this one, you are by yourself. Good luck and know that we are with you. This is a long line. Hopefully long engouh.\n"
@@ -64,6 +63,7 @@ public class VisualEditorPanelDemo
 						+ "tabulation1\ttabulation2\n"
 						+ "lalallala\ttrollololo." )
 				.addCommand( "ride the dragon", "all", "Go to work by bike." )
+				.addCommand( "Punish", "all", "Go to work by parisian metro." )
 				.addCommand( "make some coffee", "mamut", null )
 				.addCommand( "make some coffee", "trackscheme", "Make a decent coffee." )
 				.get();

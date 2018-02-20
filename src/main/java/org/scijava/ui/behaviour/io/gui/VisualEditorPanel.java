@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -436,6 +438,10 @@ public class VisualEditorPanel extends JPanel
 		} );
 
 		configToModel();
+		tableBindings.getRowSorter().toggleSortOrder( 0 );
+		if ( tableBindings.getRowCount() > 0 )
+			tableBindings.getSelectionModel().setSelectionInterval( 0, 0);
+
 		scrollPane.setViewportView( tableBindings );
 	}
 
@@ -539,9 +545,6 @@ public class VisualEditorPanel extends JPanel
 		tableBindings.getColumnModel().getColumn( 1 ).setCellRenderer( new MyBindingsRenderer() );
 		tableBindings.getColumnModel().getColumn( 2 ).setCellRenderer( new MyContextsRenderer( Collections.emptyList() ) );
 
-		if (tableBindings.getRowCount() > 0)
-			tableBindings.getSelectionModel().setSelectionInterval( 0, 0 );
-
 		// Notify listeners.
 		notifyListeners();
 
@@ -551,15 +554,24 @@ public class VisualEditorPanel extends JPanel
 
 	private void filterRows()
 	{
-		RowFilter< MyTableModel, Integer > rf = null;
-		try
+		final String regex =  textFieldFilter.getText();
+		final Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE );
+		final Matcher matcher = pattern.matcher( "" );
+		final RowFilter< MyTableModel, Integer > rf = new RowFilter< MyTableModel, Integer >()
 		{
-			rf = RowFilter.regexFilter( textFieldFilter.getText(), 0 );
-		}
-		catch ( final java.util.regex.PatternSyntaxException pse )
-		{
-			return;
-		}
+
+			@Override
+			public boolean include( final Entry< ? extends MyTableModel, ? extends Integer > entry )
+			{
+				int count = entry.getValueCount();
+				while ( --count >= 0 )
+				{
+					matcher.reset( entry.getStringValue( count ) );
+					if ( matcher.find() ) { return true; }
+				}
+				return false;
+			}
+		};
 		tableRowSorter.setRowFilter( rf );
 	}
 
