@@ -253,6 +253,7 @@ public final class TriggerBehaviourBindings
 			final BehaviourMap map = iter.previous().getBehaviourMap();
 			if ( map != null )
 			{
+				map.setParent( null );
 				root.setParent( map );
 				root = map;
 			}
@@ -275,6 +276,7 @@ public final class TriggerBehaviourBindings
 			final InputTriggerMap map = keys.getInputTriggerMap();
 			if ( map != null )
 			{
+				map.setParent( null );
 				root.setParent( map );
 				root = map;
 			}
