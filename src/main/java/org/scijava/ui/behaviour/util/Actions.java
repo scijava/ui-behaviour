@@ -190,7 +190,9 @@ public class Actions
 		this.keyConfig = keyConfig;
 		keyStrokeAdder = keyConfig.keyStrokeAdder( inputMap, keyConfigContexts );
 		inputMap.clear();
-		for ( final Object o : actionMap.keys() )
-			keyStrokeAdder.put( ( String ) o );
+		final Object[] keys = actionMap.keys();
+		if ( keys != null )
+			for ( final Object o : keys )
+				keyStrokeAdder.put( ( String ) o );
 	}
 }
