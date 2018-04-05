@@ -29,8 +29,18 @@
  */
 package org.scijava.ui.behaviour.util;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import org.scijava.ui.behaviour.Behaviour;
 import org.scijava.ui.behaviour.BehaviourMap;
+import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.InputTriggerAdder;
 import org.scijava.ui.behaviour.InputTriggerMap;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -164,12 +174,51 @@ public class Behaviours
 	 * @param keyConfig
 	 *            the new keyConfig
 	 */
-	public void updateKeyConfig( final InputTriggerAdder.Factory keyConfig )
+	public void updateKeyConfig( final InputTriggerConfig keyConfig )
+	{
+		updateKeyConfig( keyConfig, true );
+	}
+
+	/**
+	 * Clears the {@link InputTriggerMap} and re-adds all behaviour keys from
+	 * {@link BehaviourMap} using the provided {@code keyConfig}.
+	 * <p>
+	 * If {@code clearAll==false}, then behaviours that are currently in the
+	 * {@code InputTriggerMap} but are not defined in the {@code keyConfig}
+	 * retain their current keystrokes (note that {@code keyConfig} can map
+	 * behaviours to "not mapped").
+	 *
+	 * @param keyConfig
+	 *            the new keyConfig
+	 * @param clearAll
+	 *            whether to clear all bindings (also of behaviours that are
+	 *            undefined in {@code keyConfig})
+	 */
+	public void updateKeyConfig( final InputTriggerConfig keyConfig, final boolean clearAll )
 	{
 		this.keyConfig = keyConfig;
+
+		final Map< String, List< InputTrigger > > unassigned = new HashMap<>();
+		if ( !clearAll )
+		{
+			final Map< InputTrigger, Set< String > > bindings = inputTriggerMap.getBindings();
+			final HashSet< String > contexts = new HashSet<>( Arrays.asList( keyConfigContexts ) );
+			for ( final Entry< InputTrigger, Set< String > > entry : bindings.entrySet() )
+			{
+				final InputTrigger trigger = entry.getKey();
+				for ( final String behaviourKey : entry.getValue() )
+				{
+					if ( keyConfig.getInputs( behaviourKey, contexts ).isEmpty() )
+						unassigned.computeIfAbsent( behaviourKey, k -> new ArrayList<>() ).add( trigger );
+				}
+			}
+		}
+
 		inputTriggerAdder = keyConfig.inputTriggerAdder( inputTriggerMap, keyConfigContexts );
 		inputTriggerMap.clear();
 		for ( final String behaviourName : behaviourMap.keys() )
 			inputTriggerAdder.put( behaviourName );
+
+		unassigned.forEach( ( behaviourKey, triggers ) -> triggers.forEach( trigger -> inputTriggerMap.put( trigger, behaviourKey ) ) );
 	}
 }

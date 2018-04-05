@@ -29,8 +29,16 @@
  */
 package org.scijava.ui.behaviour.util;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.KeyStroke;
 
 import org.scijava.ui.behaviour.KeyStrokeAdder;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -185,14 +193,52 @@ public class Actions
 	 * @param keyConfig
 	 *            the new keyConfig
 	 */
-	public void updateKeyConfig( final KeyStrokeAdder.Factory keyConfig )
+	public void updateKeyConfig( final InputTriggerConfig keyConfig )
+	{
+		updateKeyConfig( keyConfig, true );
+	}
+
+	/**
+	 * Clears the {@link InputMap} and re-adds all ({@code String}) action keys
+	 * from {@link ActionMap} using the provided {@code keyConfig}.
+	 * <p>
+	 * Actions that are currently in the {@code InputMap} but are not defined in
+	 * the {@code keyConfig} retain their current keystrokes (note that
+	 * {@code keyConfig} can map actions to "not mapped").
+	 *
+	 * @param keyConfig
+	 *            the new keyConfig
+	 * @param clearAll
+	 *            whether to clear all bindings (also of actions that are
+	 *            undefined in {@code keyConfig})
+	 */
+	public void updateKeyConfig( final InputTriggerConfig keyConfig, final boolean clearAll )
 	{
 		this.keyConfig = keyConfig;
+
+		final Map< Object, List< KeyStroke > > unassigned = new HashMap<>();
+		if ( !clearAll )
+		{
+			final KeyStroke[] inputs = inputMap.keys();
+			if ( inputs != null )
+			{
+				final HashSet< String > contexts = new HashSet<>( Arrays.asList( keyConfigContexts ) );
+				for ( final KeyStroke input : inputs )
+				{
+					final Object actionKey = inputMap.get( input );
+					if ( ( !( actionKey instanceof String ) ) || keyConfig.getInputs( ( String ) actionKey, contexts ).isEmpty() )
+						unassigned.computeIfAbsent( actionKey, k -> new ArrayList<>() ).add( input );
+				}
+			}
+		}
+
 		keyStrokeAdder = keyConfig.keyStrokeAdder( inputMap, keyConfigContexts );
 		inputMap.clear();
 		final Object[] keys = actionMap.keys();
 		if ( keys != null )
 			for ( final Object o : keys )
 				keyStrokeAdder.put( ( String ) o );
+
+		unassigned.forEach( ( actionMapKey, keyStrokes ) -> keyStrokes.forEach( keyStroke -> inputMap.put( keyStroke, actionMapKey ) ) );
 	}
 }
