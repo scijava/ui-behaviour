@@ -177,11 +177,15 @@ public class InputTriggerMap
 	}
 
 	/**
-	 * Get all bindings defined in this map and its parents. Note the returned
-	 * map <em>not</em> backed by the {@link InputTriggerMap}, i.e., it will not
-	 * reflect changes to the {@link InputTriggerMap}.
+	 * Get all bindings defined in this map and its parents. Note that the
+	 * returned map is <em>not</em> backed by the {@link InputTriggerMap}, i.e.,
+	 * it will not reflect changes to the {@link InputTriggerMap}.
+	 * <p>
+	 * This differs from {@code getBindings()} in that this method includes the
+	 * bindings defined in the parent.
 	 *
-	 * @return all bindings defined in this map and its parents.
+	 * @return all bindings (trigger to set of behaviour keys) defined in this
+	 *         map and its parents.
 	 */
 	public synchronized Map< InputTrigger, Set< String > > getAllBindings()
 	{
@@ -191,22 +195,42 @@ public class InputTriggerMap
 		else
 			allBindings = new HashMap<>();
 
+		addBindings( allBindings );
+
+		return allBindings;
+	}
+
+	/**
+	 * Get all bindings defined in this map. Note that the returned map is
+	 * <em>not</em> backed by the {@link InputTriggerMap}, i.e., it will not
+	 * reflect changes to the {@link InputTriggerMap}.
+	 *
+	 * @return all bindings (trigger to set of behaviour keys) defined in this
+	 *         map.
+	 */
+	public synchronized Map< InputTrigger, Set< String > > getBindings()
+	{
+		final Map< InputTrigger, Set< String > > bindings = new HashMap<>();
+		addBindings( bindings );
+		return bindings;
+	}
+
+	private void addBindings( final Map< InputTrigger, Set< String > > bindings )
+	{
 		for ( final Entry< InputTrigger, Set< String > > entry : triggerToKeys.entrySet() )
 		{
 			final InputTrigger inputTrigger = entry.getKey();
 			if ( entry.getValue() == null || entry.getValue().isEmpty() )
 				continue;
 
-			Set< String > behaviourKeys = allBindings.get( inputTrigger );
+			Set< String > behaviourKeys = bindings.get( inputTrigger );
 			if ( behaviourKeys == null )
 			{
 				behaviourKeys = new HashSet<>();
-				allBindings.put( inputTrigger, behaviourKeys );
+				bindings.put( inputTrigger, behaviourKeys );
 			}
 			behaviourKeys.addAll( entry.getValue() );
 		}
-
-		return allBindings;
 	}
 
 	public int modCount()
