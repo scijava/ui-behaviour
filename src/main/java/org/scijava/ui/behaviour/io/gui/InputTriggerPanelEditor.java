@@ -533,8 +533,8 @@ public class InputTriggerPanelEditor extends JPanel
 		TRIGGER_SYMBOLS.put( "ENTER", "\u23CE" );
 		TRIGGER_SYMBOLS.put( "BACK_SPACE", "\u232B" );
 		TRIGGER_SYMBOLS.put( "DELETE", "\u2326" );
-		TRIGGER_SYMBOLS.put( "TAB", "\u2B7E" );
-		TRIGGER_SYMBOLS.put( "PAUSE", "\u23F8" );
+		TRIGGER_SYMBOLS.put( "TAB", "\u21E5" );
+		TRIGGER_SYMBOLS.put( "PAUSE", "||" );
 		TRIGGER_SYMBOLS.put( "CAPS_LOCK", "\u21EA" );
 		TRIGGER_SYMBOLS.put( "PAGE_UP", "\u21DE" );
 		TRIGGER_SYMBOLS.put( "PAGE_DOWN", "\u21DF" );
