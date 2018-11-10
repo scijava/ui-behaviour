@@ -331,11 +331,11 @@ public class MouseAndKeyHandler
 //		System.out.println( e );
 		update();
 
-		final int x = e.getX();
-		final int y = e.getY();
+		mouseX = e.getX();
+		mouseY = e.getY();
 
 		for ( final BehaviourEntry< DragBehaviour > drag : activeButtonDrags )
-			drag.behaviour.drag( x, y );
+			drag.behaviour.drag( mouseX, mouseY );
 	}
 
 	@Override
