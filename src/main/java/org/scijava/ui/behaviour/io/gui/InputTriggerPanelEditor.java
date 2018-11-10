@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -200,6 +201,9 @@ public class InputTriggerPanelEditor extends JPanel
 		if ( tokens.length == 0 )
 			return;
 
+		// We have to sort tokens as they are displayed.
+		sortTokens( tokens );
+
 		final StringBuilder strBlder = new StringBuilder();
 		for ( int i = 0; i < tokens.length - 1; i++ )
 			strBlder.append( tokens[ i ] + " " );
@@ -262,6 +266,7 @@ public class InputTriggerPanelEditor extends JPanel
 		}
 		else
 		{
+			sortTokens( tokens );
 			for ( final String key : tokens )
 			{
 				final KeyItem tagp = new KeyItem( key, valid );
@@ -333,9 +338,9 @@ public class InputTriggerPanelEditor extends JPanel
 			final String prefix = content.substring( w + 1 );
 			// We search on the lower case list.
 			final int n = Collections.binarySearch( INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS, prefix.toLowerCase() );
-			if ( n < 0 && -n <= INPUT_TRIGGER_SYNTAX_TAGS.size() )
+			if ( n < 0 && -n <= INPUT_TRIGGER_SYNTAX_TAGS_SORTED.size() )
 			{
-				final String match = INPUT_TRIGGER_SYNTAX_TAGS.get( -n - 1 );
+				final String match = INPUT_TRIGGER_SYNTAX_TAGS_SORTED.get( -n - 1 );
 				if ( match.toLowerCase().startsWith( prefix.toLowerCase() ) )
 				{
 					// A completion is found
@@ -432,23 +437,29 @@ public class InputTriggerPanelEditor extends JPanel
 		listeners.remove( listener );
 	}
 
+	/** Contains the tags in the order we want them to appear in the panel. */
 	private static final List< String > INPUT_TRIGGER_SYNTAX_TAGS = new ArrayList<>();
+	/** Contains the tags sorted so that they can be searched by the autocomplete process. */
+	private static final List< String > INPUT_TRIGGER_SYNTAX_TAGS_SORTED = new ArrayList<>();
+	/** Small-caps version of INPUT_TRIGGER_SYNTAX_TAGS_SORTED. */
 	private static final List< String > INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS;
+	/** Visual replacement for some tags. */
 	private static final Map< String, String > TRIGGER_SYMBOLS = new HashMap<>();
 	private static final Map<String, String> INPUT_TRIGGER_SYNTAX_TAG_REMAP = new HashMap<>();
 
 	static
 	{
-		for ( int i = 0; i < 26; i++ )
-			INPUT_TRIGGER_SYNTAX_TAGS.add( String.valueOf( ( char ) ( 'A' + i ) ) );
-		for ( int i = 0; i < 10; i++ )
-			INPUT_TRIGGER_SYNTAX_TAGS.add( "" + i );
-		for ( int i = 1; i <= 24; i++ )
-			INPUT_TRIGGER_SYNTAX_TAGS.add( "F" + i );
-
 		INPUT_TRIGGER_SYNTAX_TAGS.addAll(
 				Arrays.asList( new String[] {
 						"all",
+						"ctrl",
+						"alt",
+						"altGraph",
+						"shift",
+						"meta",
+						"command",
+						"cmd",
+						"win",
 						"ENTER",
 						"BACK_SPACE",
 						"TAB",
@@ -495,14 +506,6 @@ public class InputTriggerPanelEditor extends JPanel
 						"DELETE",
 						"NUM_LOCK",
 						"SCROLL_LOCK",
-						"ctrl",
-						"alt",
-						"altGraph",
-						"shift",
-						"meta",
-						"command",
-						"cmd",
-						"win",
 						"double-click",
 						"button1",
 						"button2",
@@ -510,9 +513,17 @@ public class InputTriggerPanelEditor extends JPanel
 						"scroll",
 						"|"
 				} ) );
-		INPUT_TRIGGER_SYNTAX_TAGS.sort( String.CASE_INSENSITIVE_ORDER );
-		INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS = new ArrayList<>(INPUT_TRIGGER_SYNTAX_TAGS.size());
-		for ( final String tag : INPUT_TRIGGER_SYNTAX_TAGS )
+		for ( int i = 0; i < 26; i++ )
+			INPUT_TRIGGER_SYNTAX_TAGS.add( String.valueOf( ( char ) ( 'A' + i ) ) );
+		for ( int i = 0; i < 10; i++ )
+			INPUT_TRIGGER_SYNTAX_TAGS.add( "" + i );
+		for ( int i = 1; i <= 24; i++ )
+			INPUT_TRIGGER_SYNTAX_TAGS.add( "F" + i );
+
+		INPUT_TRIGGER_SYNTAX_TAGS_SORTED.addAll( INPUT_TRIGGER_SYNTAX_TAGS );
+		INPUT_TRIGGER_SYNTAX_TAGS_SORTED.sort( String.CASE_INSENSITIVE_ORDER );
+		INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS = new ArrayList<>( INPUT_TRIGGER_SYNTAX_TAGS_SORTED.size() );
+		for ( final String tag : INPUT_TRIGGER_SYNTAX_TAGS_SORTED )
 			INPUT_TRIGGER_SYNTAX_TAGS_SMALL_CAPS.add( tag.toLowerCase() );
 
 		INPUT_TRIGGER_SYNTAX_TAG_REMAP.put( "cmd", "meta" );
@@ -522,8 +533,8 @@ public class InputTriggerPanelEditor extends JPanel
 		TRIGGER_SYMBOLS.put( "ENTER", "\u23CE" );
 		TRIGGER_SYMBOLS.put( "BACK_SPACE", "\u232B" );
 		TRIGGER_SYMBOLS.put( "DELETE", "\u2326" );
-		TRIGGER_SYMBOLS.put( "TAB", "\u2B7E" );
-		TRIGGER_SYMBOLS.put( "PAUSE", "\u23F8" );
+		TRIGGER_SYMBOLS.put( "TAB", "\u21E5" );
+		TRIGGER_SYMBOLS.put( "PAUSE", "||" );
 		TRIGGER_SYMBOLS.put( "CAPS_LOCK", "\u21EA" );
 		TRIGGER_SYMBOLS.put( "PAGE_UP", "\u21DE" );
 		TRIGGER_SYMBOLS.put( "PAGE_DOWN", "\u21DF" );
@@ -563,6 +574,30 @@ public class InputTriggerPanelEditor extends JPanel
 		TRIGGER_SYMBOLS.put( "win", "\u2756" );
 		// Vertical bar is special
 		TRIGGER_SYMBOLS.put( "|", "    |    " );
+	}
+
+	/**
+	 * Sort tokens in a visually pleasing way. Makes sure we do not mess with
+	 * the '|' syntax.
+	 */
+	private static final void sortTokens( final String[] tokens )
+	{
+		int vbarIndex = -1;
+		for ( int i = 0; i < tokens.length; i++ )
+		{
+			if ( tokens[ i ].equals( "|" ) )
+			{
+				vbarIndex = i;
+				break;
+			}
+		}
+		if ( vbarIndex >= 0 )
+		{
+			Arrays.sort( tokens, 0, vbarIndex, Comparator.comparingInt( INPUT_TRIGGER_SYNTAX_TAGS::indexOf ) );
+			Arrays.sort( tokens, vbarIndex + 1, tokens.length, Comparator.comparingInt( INPUT_TRIGGER_SYNTAX_TAGS::indexOf ) );
+		}
+		else
+			Arrays.sort( tokens, Comparator.comparingInt( INPUT_TRIGGER_SYNTAX_TAGS::indexOf ) );
 	}
 
 	private static boolean isMac()
