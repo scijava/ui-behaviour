@@ -39,66 +39,62 @@ import javax.swing.JPanel;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.io.InputTriggerDescription;
 import org.scijava.ui.behaviour.io.yaml.YamlConfigIO;
+import org.scijava.ui.behaviour.util.AbstractNamedBehaviour;
+import org.scijava.ui.behaviour.util.Behaviours;
 
 public class UsageExample
 {
-	static class MyDragBehaviour implements DragBehaviour
+	static class MyDragBehaviour extends AbstractNamedBehaviour implements DragBehaviour
 	{
-		private final String name;
-
 		public MyDragBehaviour( final String name )
 		{
-			this.name = name;
+			super( name );
 		}
 
 		@Override
 		public void init( final int x, final int y )
 		{
-			System.out.println( name + ": init(" + x + ", " + y + ")" );
+			System.out.println( name() + ": init(" + x + ", " + y + ")" );
 		}
 
 		@Override
 		public void drag( final int x, final int y )
 		{
-			System.out.println( name + ": drag(" + x + ", " + y + ")" );
+			System.out.println( name() + ": drag(" + x + ", " + y + ")" );
 		}
 
 		@Override
 		public void end( final int x, final int y )
 		{
-			System.out.println( name + ": end(" + x + ", " + y + ")" );
+			System.out.println( name() + ": end(" + x + ", " + y + ")" );
 		}
 	}
 
-	static class MyClickBehaviour implements ClickBehaviour
+	static class MyClickBehaviour extends AbstractNamedBehaviour implements ClickBehaviour
 	{
-		private final String name;
-
 		public MyClickBehaviour( final String name )
 		{
-			this.name = name;
+			super( name );
 		}
 
 		@Override
 		public void click( final int x, final int y )
 		{
-			System.out.println( name + ": click(" + x + ", " + y + ")" );
+			System.out.println( name() + ": click(" + x + ", " + y + ")" );
 		}
 	}
 
-	static class MyScrollBehaviour implements ScrollBehaviour
+	static class MyScrollBehaviour extends AbstractNamedBehaviour implements ScrollBehaviour
 	{
-		private final String name;
-
 		public MyScrollBehaviour( final String name )
 		{
-			this.name = name;
+			super( name );
 		}
 
 		@Override
 		public void scroll( final double wheelRotation, final boolean isHorizontal, final int x, final int y )
 		{
-			System.out.println( name + ": scroll(" + wheelRotation + ", " + isHorizontal + ", " + x + ", " + y + ")" );
+			System.out.println( name() + ": scroll(" + wheelRotation + ", " + isHorizontal + ", " + x + ", " + y + ")" );
 		}
 	}
 
@@ -153,16 +149,14 @@ public class UsageExample
 		/*
 		 * Create behaviours and input mappings.
 		 */
-		behaviourMap.put( "drag1", new MyDragBehaviour( "drag1" ) );
-		behaviourMap.put( "drag2", new MyDragBehaviour( "drag2" ) );
-		behaviourMap.put( "scroll1", new MyScrollBehaviour( "scroll1" ) );
-		behaviourMap.put( "click1", new MyClickBehaviour( "click1" ) );
-
-		final InputTriggerAdder adder = config.inputTriggerAdder( inputMap, "all" );
-		adder.put( "drag1" ); // put input trigger as defined in config
-		adder.put( "drag2", "button1", "shift A | G" ); // default triggers if not defined in config
-		adder.put( "scroll1", "alt scroll" );
-		adder.put( "click1", "button3", "B | all" );
+		Behaviours behaviours = new Behaviours( inputMap, behaviourMap, config, "all" );
+		behaviours.namedBehaviour( new MyDragBehaviour( "drag1" ) ); // put input trigger as defined in config
+		behaviours.namedBehaviour( new MyDragBehaviour( "drag2" ),
+				"button1", "shift A | G" ); // default triggers if not defined in config
+		behaviours.namedBehaviour( new MyScrollBehaviour( "scroll1" ),
+				"alt scroll" );
+		behaviours.namedBehaviour( new MyClickBehaviour( "click1" ),
+				"button3", "B | all" );
 
 		/*
 		 * See org.scijava.ui.behaviour.util.InputActionBindings and
