@@ -41,6 +41,7 @@ import javax.swing.ActionMap;
 import javax.swing.ComponentInputMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 
 /**
  * Maintains lists of {@link ActionMap}s and {@link InputMap}s, which are
@@ -50,7 +51,7 @@ import javax.swing.JComponent;
  * overrides all previous ones. For added {@link InputMap}s it is possible to
  * block maps that were added earlier.
  *
- * @author Tobias Pietzsch &lt;tobias.pietzsch@gmail.com&gt;
+ * @author Tobias Pietzsch
  */
 public final class InputActionBindings
 {
@@ -63,6 +64,16 @@ public final class InputActionBindings
 	 * the leaf of the {@link ActionMap} chain.
 	 */
 	private final ActionMap theActionMap;
+
+	/**
+	 * parent for the {@link #getConcatenatedInputMap() concatenated InputMap}.
+	 */
+	private InputMap parentInputMap;
+
+	/**
+	 * parent for the {@link #getConcatenatedActionMap()} () concatenated ActionMap}.
+	 */
+	private ActionMap parentActionMap;
 
 	private final List< Actions > actions;
 
@@ -132,6 +143,16 @@ public final class InputActionBindings
 	{
 		if ( removeId( actions, id ) )
 			updateTheActionMap();
+	}
+
+	/**
+	 * Set existing parent ActionMap, which is managed outside of this
+	 * InputActionBindings and serves as a parent for the whole chain.
+	 */
+	public void setParentActionMap( final ActionMap parent )
+	{
+		parentActionMap = parent;
+		updateTheActionMap();
 	}
 
 	/**
@@ -237,6 +258,16 @@ public final class InputActionBindings
 	}
 
 	/**
+	 * Set existing parent InputMap, which is managed outside of this
+	 * InputActionBindings and serves as a parent for the whole chain.
+	 */
+	public void setParentInputMap( final InputMap parent )
+	{
+		parentInputMap = parent;
+		updateTheInputMap();
+	}
+
+	/**
 	 * Get the chained {@link InputMap}. This is the leaf map, that has all
 	 * {@link #addInputMap(String, InputMap, String...) added} {@link InputMap}s
 	 * as parents. Note, that this will remain the same instance when maps are
@@ -256,6 +287,38 @@ public final class InputActionBindings
 	public ActionMap getConcatenatedActionMap()
 	{
 		return theActionMap;
+	}
+
+	/**
+	 * Creates a new {@code InputActionBindings} and installs it into
+	 * {@code component}, either augmenting or replacing {@code component}s
+	 * existing {@code InputMap} and {@code ActionMap}.
+	 *
+	 * @param component
+	 *     the component whose {@code InputMap} and {@code ActionMap} to set.
+	 * @param condition
+	 *     one of {@code JComponent.WHEN_IN_FOCUSED_WINDOW},
+	 *     {@code WHEN_IN_FOCUSED_WINDOW},
+	 *     {@code WHEN_ANCESTOR_OF_FOCUSED_COMPONENT}.
+	 * @param replaceExistingMaps
+	 *     if {@code true}, the existing {@code InputMap} and {@code ActionMap}
+	 *     will be replaced. If {@code false}, the existing maps will become the
+	 *     parents of the new ones.
+	 * @return the new {@code InputActionBindings}
+	 */
+	public static InputActionBindings installNewBindings( final JComponent component, final int condition, final boolean replaceExistingMaps )
+	{
+		final InputActionBindings keybindings = new InputActionBindings();
+		if ( !replaceExistingMaps )
+		{
+			final ActionMap existingActionMap = component.getActionMap();
+			final InputMap existingInputMap = component.getInputMap( condition );
+			keybindings.setParentActionMap( existingActionMap.getParent() );
+			keybindings.setParentInputMap( existingInputMap.getParent() );
+		}
+		SwingUtilities.replaceUIActionMap( component, keybindings.getConcatenatedActionMap() );
+		SwingUtilities.replaceUIInputMap( component, condition, keybindings.getConcatenatedInputMap() );
+		return keybindings;
 	}
 
 	private interface WithId
@@ -343,7 +406,7 @@ public final class InputActionBindings
 				root = map;
 			}
 		}
-		root.setParent( null );
+		root.setParent( parentActionMap );
 	}
 
 	private void updateTheInputMap()
@@ -367,8 +430,11 @@ public final class InputActionBindings
 
 			blocked.addAll( keys.getKeysIdsToBlock() );
 			if ( blocked.contains( "all" ) )
-				break;
+			{
+				root.setParent( null );
+				return;
+			}
 		}
-		root.setParent( null );
+		root.setParent( parentInputMap );
 	}
 }
