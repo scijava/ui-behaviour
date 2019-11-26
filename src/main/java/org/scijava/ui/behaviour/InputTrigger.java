@@ -522,29 +522,29 @@ public class InputTrigger
 		{
 			final Map< String, Integer > uninitializedMap = new HashMap<>( 8, 1.0f );
 			uninitializedMap.put( "shift",
-					Integer.valueOf( InputEvent.SHIFT_DOWN_MASK ) );
+					InputEvent.SHIFT_DOWN_MASK );
 			uninitializedMap.put( "control",
-					Integer.valueOf( InputEvent.CTRL_DOWN_MASK ) );
+					InputEvent.CTRL_DOWN_MASK );
 			uninitializedMap.put( "ctrl",
-					Integer.valueOf( InputEvent.CTRL_DOWN_MASK ) );
+					InputEvent.CTRL_DOWN_MASK );
 			uninitializedMap.put( "meta",
-					Integer.valueOf( InputEvent.META_DOWN_MASK ) );
+					InputEvent.META_DOWN_MASK );
 			uninitializedMap.put( "alt",
-					Integer.valueOf( InputEvent.ALT_DOWN_MASK ) );
+					InputEvent.ALT_DOWN_MASK );
 			uninitializedMap.put( "altGraph",
-					Integer.valueOf( InputEvent.ALT_GRAPH_DOWN_MASK ) );
+					InputEvent.ALT_GRAPH_DOWN_MASK );
 			uninitializedMap.put( "button1",
-					Integer.valueOf( InputEvent.BUTTON1_DOWN_MASK ) );
+					InputEvent.BUTTON1_DOWN_MASK );
 			uninitializedMap.put( "button2",
-					Integer.valueOf( InputEvent.BUTTON2_DOWN_MASK ) );
+					InputEvent.BUTTON2_DOWN_MASK );
 			uninitializedMap.put( "button3",
-					Integer.valueOf( InputEvent.BUTTON3_DOWN_MASK ) );
+					InputEvent.BUTTON3_DOWN_MASK );
 			uninitializedMap.put( DOUBLE_CLICK_TEXT,
-					Integer.valueOf( DOUBLE_CLICK_MASK ) );
+					DOUBLE_CLICK_MASK );
 			uninitializedMap.put( SCROLL_TEXT,
-					Integer.valueOf( SCROLL_MASK ) );
+					SCROLL_MASK );
 			uninitializedMap.put( WINDOWS_TEXT,
-					Integer.valueOf( WIN_DOWN_MASK ) );
+					WIN_DOWN_MASK );
 			modifierKeywords =
 					Collections.synchronizedMap( uninitializedMap );
 		}
