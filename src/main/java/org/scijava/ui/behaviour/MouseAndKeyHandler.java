@@ -396,7 +396,7 @@ public class MouseAndKeyHandler extends AbstractMouseAndKeyHandler
 		this.receiver = new KeyPressedReceiver()
 		{
 			@Override
-			public void handleKeyPressed( final int mask, final boolean doubleClick, final TIntSet pressedKeys )
+			public void handleKeyPressed( final KeyPressedReceiver origin, final int mask, final boolean doubleClick, final TIntSet pressedKeys )
 			{
 				if ( MouseAndKeyHandler.this.handleKeyPressed( mask, doubleClick, pressedKeys, true ) )
 					focus.run();
