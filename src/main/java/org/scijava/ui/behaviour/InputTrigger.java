@@ -88,7 +88,7 @@ public class InputTrigger
 	private static final String WINDOWS_TEXT= "win";
 
 	/**
-	 * String used to specify a special {@value #NOT_MAPPED} trigger that blocks
+	 * String used to specify a special {@code NOT_MAPPED} trigger that blocks
 	 * all triggers for an action.
 	 */
 	private static final String NOT_MAPPED_TEXT = "not mapped";
