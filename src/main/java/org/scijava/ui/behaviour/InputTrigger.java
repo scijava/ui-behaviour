@@ -53,11 +53,18 @@ import gnu.trove.set.hash.TIntHashSet;
  */
 public class InputTrigger
 {
-	public static final int DOUBLE_CLICK_MASK = 1 << 20;
+	public static final int SHIFT_DOWN_MASK     = 1 << 6;  // == InputEvent.SHIFT_DOWN_MASK
+	public static final int CTRL_DOWN_MASK      = 1 << 7;  // == InputEvent.CTRL_DOWN_MASK
+	public static final int META_DOWN_MASK      = 1 << 8;  // == InputEvent.META_DOWN_MASK
+	public static final int ALT_DOWN_MASK       = 1 << 9;  // == InputEvent.ALT_DOWN_MASK
+	public static final int BUTTON1_DOWN_MASK   = 1 << 10; // == InputEvent.BUTTON1_DOWN_MASK
+	public static final int BUTTON2_DOWN_MASK   = 1 << 11; // == InputEvent.BUTTON2_DOWN_MASK
+	public static final int BUTTON3_DOWN_MASK   = 1 << 12; // == InputEvent.BUTTON3_DOWN_MASK
+	public static final int ALT_GRAPH_DOWN_MASK = 1 << 13; // == InputEvent.ALT_GRAPH_DOWN_MASK
 
-	public static final int SCROLL_MASK = 1 << 21;
-
-	public static final int WIN_DOWN_MASK = 1 << 22;
+	public static final int DOUBLE_CLICK_MASK   = 1 << 20;
+	public static final int SCROLL_MASK         = 1 << 21;
+	public static final int WIN_DOWN_MASK       = 1 << 22;
 
 	public static final int IGNORE_MASK = -1;
 
@@ -147,7 +154,7 @@ public class InputTrigger
 			 * TODO: KeyStroke only if no ignore keys are given????
 			 */
 			KeyStroke keyStroke = null;
-			if ( ( mask & ( DOUBLE_CLICK_MASK | InputEvent.BUTTON1_DOWN_MASK | InputEvent.BUTTON2_DOWN_MASK | InputEvent.BUTTON3_DOWN_MASK ) ) == 0 )
+			if ( ( mask & ( DOUBLE_CLICK_MASK | BUTTON1_DOWN_MASK | BUTTON2_DOWN_MASK | BUTTON3_DOWN_MASK ) ) == 0 )
 			{
 				// no mouse keys, no double-click -- pure keystroke
 				// This might still fail if for example "win" modifier is present.
@@ -333,7 +340,7 @@ public class InputTrigger
 
 	public boolean isKeyTriggered()
 	{
-		return ( mask & ( InputEvent.BUTTON1_DOWN_MASK |  InputEvent.BUTTON2_DOWN_MASK | InputEvent.BUTTON3_DOWN_MASK | SCROLL_MASK ) ) == 0;
+		return ( mask & ( BUTTON1_DOWN_MASK |  BUTTON2_DOWN_MASK | BUTTON3_DOWN_MASK | SCROLL_MASK ) ) == 0;
 	}
 
 	public boolean isKeyStroke()
@@ -487,14 +494,14 @@ public class InputTrigger
 
     private void addModifierTexts( final int mask, final StringBuilder buf )
     {
-		addModifierText( mask, InputEvent.SHIFT_DOWN_MASK, "shift", buf );
-		addModifierText( mask, InputEvent.CTRL_DOWN_MASK, "ctrl", buf );
-		addModifierText( mask, InputEvent.META_DOWN_MASK, "meta", buf );
-		addModifierText( mask, InputEvent.ALT_DOWN_MASK, "alt", buf );
-		addModifierText( mask, InputEvent.ALT_GRAPH_DOWN_MASK, "altGraph", buf );
-		addModifierText( mask, InputEvent.BUTTON1_DOWN_MASK, "button1", buf );
-		addModifierText( mask, InputEvent.BUTTON2_DOWN_MASK, "button2", buf );
-		addModifierText( mask, InputEvent.BUTTON3_DOWN_MASK, "button3", buf );
+		addModifierText( mask, SHIFT_DOWN_MASK, "shift", buf );
+		addModifierText( mask, CTRL_DOWN_MASK, "ctrl", buf );
+		addModifierText( mask, META_DOWN_MASK, "meta", buf );
+		addModifierText( mask, ALT_DOWN_MASK, "alt", buf );
+		addModifierText( mask, ALT_GRAPH_DOWN_MASK, "altGraph", buf );
+		addModifierText( mask, BUTTON1_DOWN_MASK, "button1", buf );
+		addModifierText( mask, BUTTON2_DOWN_MASK, "button2", buf );
+		addModifierText( mask, BUTTON3_DOWN_MASK, "button3", buf );
 		addModifierText( mask, DOUBLE_CLICK_MASK, DOUBLE_CLICK_TEXT, buf );
 		addModifierText( mask, SCROLL_MASK, SCROLL_TEXT, buf );
 		addModifierText( mask, WIN_DOWN_MASK, WINDOWS_TEXT, buf );
@@ -522,23 +529,23 @@ public class InputTrigger
 		{
 			final Map< String, Integer > uninitializedMap = new HashMap<>( 8, 1.0f );
 			uninitializedMap.put( "shift",
-					InputEvent.SHIFT_DOWN_MASK );
+					SHIFT_DOWN_MASK );
 			uninitializedMap.put( "control",
-					InputEvent.CTRL_DOWN_MASK );
+					CTRL_DOWN_MASK );
 			uninitializedMap.put( "ctrl",
-					InputEvent.CTRL_DOWN_MASK );
+					CTRL_DOWN_MASK );
 			uninitializedMap.put( "meta",
-					InputEvent.META_DOWN_MASK );
+					META_DOWN_MASK );
 			uninitializedMap.put( "alt",
-					InputEvent.ALT_DOWN_MASK );
+					ALT_DOWN_MASK );
 			uninitializedMap.put( "altGraph",
-					InputEvent.ALT_GRAPH_DOWN_MASK );
+					ALT_GRAPH_DOWN_MASK );
 			uninitializedMap.put( "button1",
-					InputEvent.BUTTON1_DOWN_MASK );
+					BUTTON1_DOWN_MASK );
 			uninitializedMap.put( "button2",
-					InputEvent.BUTTON2_DOWN_MASK );
+					BUTTON2_DOWN_MASK );
 			uninitializedMap.put( "button3",
-					InputEvent.BUTTON3_DOWN_MASK );
+					BUTTON3_DOWN_MASK );
 			uninitializedMap.put( DOUBLE_CLICK_TEXT,
 					DOUBLE_CLICK_MASK );
 			uninitializedMap.put( SCROLL_TEXT,
