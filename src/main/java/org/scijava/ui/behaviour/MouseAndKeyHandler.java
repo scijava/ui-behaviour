@@ -7,13 +7,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -30,7 +30,6 @@
 package org.scijava.ui.behaviour;
 
 import java.awt.Component;
-import java.awt.Toolkit;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
@@ -42,8 +41,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.scijava.ui.behaviour.KeyPressedManager.KeyPressedReceiver;
 
@@ -51,148 +48,14 @@ import gnu.trove.map.hash.TIntLongHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
-public class MouseAndKeyHandler
+public class MouseAndKeyHandler extends AbstractMouseAndKeyHandler
 		implements KeyListener, MouseListener, MouseWheelListener, MouseMotionListener, FocusListener
 {
-	private static final int DOUBLE_CLICK_INTERVAL = getDoubleClickInterval();
-
 	private static final int OSX_META_LEFT_CLICK = InputEvent.BUTTON1_MASK | InputEvent.BUTTON3_MASK | InputEvent.META_MASK;
 
 	private static final int OSX_ALT_LEFT_CLICK = InputEvent.BUTTON1_MASK | InputEvent.BUTTON2_MASK | InputEvent.ALT_MASK;
 
 	private static final int OSX_ALT_RIGHT_CLICK = InputEvent.BUTTON3_MASK | InputEvent.BUTTON2_MASK | InputEvent.ALT_MASK | InputEvent.META_MASK;
-
-	private static int getDoubleClickInterval()
-	{
-		final Object prop = Toolkit.getDefaultToolkit().getDesktopProperty( "awt.multiClickInterval" );
-		return prop == null ? 200 : ( Integer ) prop;
-	}
-
-	private InputTriggerMap inputMap;
-
-	private BehaviourMap behaviourMap;
-
-	private int inputMapExpectedModCount;
-
-	private int behaviourMapExpectedModCount;
-
-	public void setInputMap( final InputTriggerMap inputMap )
-	{
-		this.inputMap = inputMap;
-		inputMapExpectedModCount = inputMap.modCount() - 1;
-	}
-
-	public void setBehaviourMap( final BehaviourMap behaviourMap )
-	{
-		this.behaviourMap = behaviourMap;
-		behaviourMapExpectedModCount = behaviourMap.modCount() - 1;
-	}
-
-	/*
-	 * Managing internal behaviour lists.
-	 *
-	 * The internal lists only contain entries for Behaviours that can be
-	 * actually triggered with the current InputMap, grouped by Behaviour type,
-	 * such that hopefully lookup from the event handlers is fast,
-	 */
-
-	static class BehaviourEntry< T extends Behaviour >
-	{
-		final InputTrigger buttons;
-
-		final T behaviour;
-
-		BehaviourEntry(
-				final InputTrigger buttons,
-				final T behaviour )
-		{
-			this.buttons = buttons;
-			this.behaviour = behaviour;
-		}
-	}
-
-	private final ArrayList< BehaviourEntry< DragBehaviour > > buttonDrags = new ArrayList<>();
-
-	private final ArrayList< BehaviourEntry< DragBehaviour > > keyDrags = new ArrayList<>();
-
-	private final ArrayList< BehaviourEntry< ClickBehaviour > > buttonClicks = new ArrayList<>();
-
-	private final ArrayList< BehaviourEntry< ClickBehaviour > > keyClicks = new ArrayList<>();
-
-	private final ArrayList< BehaviourEntry< ScrollBehaviour > > scrolls = new ArrayList<>();
-
-	/**
-	 * Make sure that the internal behaviour lists are up to date. For this, we
-	 * keep track the modification count of {@link #inputMap} and
-	 * {@link #behaviourMap}. If expected mod counts are not matched, call
-	 * {@link #updateInternalMaps()} to rebuild the internal behaviour lists.
-	 */
-	private synchronized void update()
-	{
-		final int imc = inputMap.modCount();
-		final int bmc = behaviourMap.modCount();
-		if ( imc != inputMapExpectedModCount || bmc != behaviourMapExpectedModCount )
-		{
-			inputMapExpectedModCount = imc;
-			behaviourMapExpectedModCount = bmc;
-			updateInternalMaps();
-		}
-	}
-
-	/**
-	 * Build internal lists buttonDrag, keyDrags, etc from of {@link #inputMap}
-	 * and {@link #behaviourMap}. The internal lists only contain entries for
-	 * behaviours that can be actually triggered with the current InputMap,
-	 * grouped by behaviour type, such that hopefully lookup from the event
-	 * handlers is fast.
-	 */
-	private void updateInternalMaps()
-	{
-		buttonDrags.clear();
-		keyDrags.clear();
-		buttonClicks.clear();
-		keyClicks.clear();
-		scrolls.clear();
-
-		for ( final Entry< InputTrigger, Set< String > > entry : inputMap.getAllBindings().entrySet() )
-		{
-			final InputTrigger buttons = entry.getKey();
-			final Set< String > behaviourKeys = entry.getValue();
-			if ( behaviourKeys == null )
-				continue;
-
-			for ( final String behaviourKey : behaviourKeys )
-			{
-				final Behaviour behaviour = behaviourMap.get( behaviourKey );
-				if ( behaviour == null )
-					continue;
-
-				if ( behaviour instanceof DragBehaviour )
-				{
-					final BehaviourEntry< DragBehaviour > dragEntry = new BehaviourEntry<>( buttons, ( DragBehaviour ) behaviour );
-					if ( buttons.isKeyTriggered() )
-						keyDrags.add( dragEntry );
-					else
-						buttonDrags.add( dragEntry );
-				}
-				if ( behaviour instanceof ClickBehaviour )
-				{
-					final BehaviourEntry< ClickBehaviour > clickEntry = new BehaviourEntry<>( buttons, ( ClickBehaviour ) behaviour );
-					if ( buttons.isKeyTriggered() )
-						keyClicks.add( clickEntry );
-					else
-						buttonClicks.add( clickEntry );
-				}
-				if ( behaviour instanceof ScrollBehaviour )
-				{
-					final BehaviourEntry< ScrollBehaviour > scrollEntry = new BehaviourEntry<>( buttons, ( ScrollBehaviour ) behaviour );
-					scrolls.add( scrollEntry );
-				}
-			}
-		}
-	}
-
-
 
 	/*
 	 * Event handling. Forwards to registered behaviours.
@@ -242,9 +105,9 @@ public class MouseAndKeyHandler
 		 * We keep track of whether the SHIFT key was actually pressed for disambiguation.
 		 */
 		if ( globalKeys.shiftPressed() )
-			mask |= InputEvent.SHIFT_DOWN_MASK;
+			mask |= InputTrigger.SHIFT_DOWN_MASK;
 		else
-			mask &= ~InputEvent.SHIFT_DOWN_MASK;
+			mask &= ~InputTrigger.SHIFT_DOWN_MASK;
 
 		/*
 		 * On OS X AWT sets the META_DOWN_MASK to for right clicks. We keep
@@ -252,9 +115,9 @@ public class MouseAndKeyHandler
 		 * disambiguation.
 		 */
 		if ( globalKeys.metaPressed() )
-			mask |= InputEvent.META_DOWN_MASK;
+			mask |= InputTrigger.META_DOWN_MASK;
 		else
-			mask &= ~InputEvent.META_DOWN_MASK;
+			mask &= ~InputTrigger.META_DOWN_MASK;
 
 		if ( globalKeys.winPressed() )
 			mask |= InputTrigger.WIN_DOWN_MASK;
@@ -276,11 +139,11 @@ public class MouseAndKeyHandler
 		if ( e.getID() != MouseEvent.MOUSE_WHEEL && e.getID() != MouseEvent.MOUSE_RELEASED )
 		{
 			if ( ( modifiers & InputEvent.BUTTON1_MASK ) != 0 )
-				mask |= InputEvent.BUTTON1_DOWN_MASK;
+				mask |= InputTrigger.BUTTON1_DOWN_MASK;
 			if ( ( modifiers & InputEvent.BUTTON2_MASK ) != 0 )
-				mask |= InputEvent.BUTTON2_DOWN_MASK;
+				mask |= InputTrigger.BUTTON2_DOWN_MASK;
 			if ( ( modifiers & InputEvent.BUTTON3_MASK ) != 0 )
-				mask |= InputEvent.BUTTON3_DOWN_MASK;
+				mask |= InputTrigger.BUTTON3_DOWN_MASK;
 		}
 
 		/*
@@ -288,21 +151,21 @@ public class MouseAndKeyHandler
 		 * that.
 		 */
 		if ( modifiers == OSX_META_LEFT_CLICK )
-			mask &= ~InputEvent.BUTTON3_DOWN_MASK;
+			mask &= ~InputTrigger.BUTTON3_DOWN_MASK;
 
 		/*
 		 * On OS X AWT sets the BUTTON2_DOWN_MASK for alt+left clicks. Fix
 		 * that.
 		 */
 		if ( modifiers == OSX_ALT_LEFT_CLICK )
-			mask &= ~InputEvent.BUTTON2_DOWN_MASK;
+			mask &= ~InputTrigger.BUTTON2_DOWN_MASK;
 
 		/*
 		 * On OS X AWT sets the BUTTON2_DOWN_MASK for alt+right clicks. Fix
 		 * that.
 		 */
 		if ( modifiers == OSX_ALT_RIGHT_CLICK )
-			mask &= ~InputEvent.BUTTON2_DOWN_MASK;
+			mask &= ~InputTrigger.BUTTON2_DOWN_MASK;
 
 		/*
 		 * Deal with mouse double-clicks.
@@ -335,7 +198,7 @@ public class MouseAndKeyHandler
 		mouseY = e.getY();
 
 		for ( final BehaviourEntry< DragBehaviour > drag : activeButtonDrags )
-			drag.behaviour.drag( mouseX, mouseY );
+			drag.behaviour().drag( mouseX, mouseY );
 	}
 
 	@Override
@@ -348,7 +211,7 @@ public class MouseAndKeyHandler
 		mouseY = e.getY();
 
 		for ( final BehaviourEntry< DragBehaviour > drag : activeKeyDrags )
-			drag.behaviour.drag( mouseX, mouseY );
+			drag.behaviour().drag( mouseX, mouseY );
 	}
 
 	@Override
@@ -370,14 +233,14 @@ public class MouseAndKeyHandler
 		 * the SHIFT key is not pressed. With SHIFT pressed, everything is
 		 * treated as vertical scrolling.
 		 */
-		final boolean exShiftMask = ( e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK ) != 0;
+		final boolean exShiftMask = ( e.getModifiersEx() & InputTrigger.SHIFT_DOWN_MASK ) != 0;
 		final boolean isHorizontal = !globalKeys.shiftPressed() && exShiftMask;
 
 		for ( final BehaviourEntry< ScrollBehaviour > scroll : scrolls )
 		{
-			if ( scroll.buttons.matches( mask, globalKeys.pressedKeys() ) )
+			if ( scroll.buttons().matches( mask, globalKeys.pressedKeys() ) )
 			{
-				scroll.behaviour.scroll( wheelRotation, isHorizontal, x, y );
+				scroll.behaviour().scroll( wheelRotation, isHorizontal, x, y );
 			}
 		}
 	}
@@ -396,10 +259,10 @@ public class MouseAndKeyHandler
 		final int clickMask = mask & ~InputTrigger.DOUBLE_CLICK_MASK;
 		for ( final BehaviourEntry< ClickBehaviour > click : buttonClicks )
 		{
-			if ( click.buttons.matches( mask, pressedKeys ) ||
-					( clickMask != mask && click.buttons.matches( clickMask, pressedKeys ) ) )
+			if ( click.buttons().matches( mask, pressedKeys ) ||
+					( clickMask != mask && click.buttons().matches( clickMask, pressedKeys ) ) )
 			{
-				click.behaviour.click( x, y );
+				click.behaviour().click( x, y );
 			}
 		}
 	}
@@ -417,9 +280,9 @@ public class MouseAndKeyHandler
 
 		for ( final BehaviourEntry< DragBehaviour > drag : buttonDrags )
 		{
-			if ( drag.buttons.matches( mask, globalKeys.pressedKeys() ) )
+			if ( drag.buttons().matches( mask, globalKeys.pressedKeys() ) )
 			{
-				drag.behaviour.init( x, y );
+				drag.behaviour().init( x, y );
 				activeButtonDrags.add( drag );
 			}
 		}
@@ -438,9 +301,9 @@ public class MouseAndKeyHandler
 
 		final ArrayList< BehaviourEntry< ? > > ended = new ArrayList<>();
 		for ( final BehaviourEntry< DragBehaviour > drag : activeButtonDrags )
-			if ( !drag.buttons.matchesSubset( mask, globalKeys.pressedKeys() ) )
+			if ( !drag.buttons().matchesSubset( mask, globalKeys.pressedKeys() ) )
 			{
-				drag.behaviour.end( x, y );
+				drag.behaviour().end( x, y );
 				ended.add( drag );
 			}
 		activeButtonDrags.removeAll( ended );
@@ -574,26 +437,26 @@ public class MouseAndKeyHandler
 		for ( final BehaviourEntry< DragBehaviour > drag : keyDrags )
 		{
 			if ( !activeKeyDrags.contains( drag ) &&
-					( drag.buttons.matches( mask, pressedKeys ) ||
-					( doubleClick && drag.buttons.matches( doubleClickMask, pressedKeys ) ) ) )
+					( drag.buttons().matches( mask, pressedKeys ) ||
+							( doubleClick && drag.buttons().matches( doubleClickMask, pressedKeys ) ) ) )
 			{
 				if ( dryRun )
 					return true;
 				triggered = true;
-				drag.behaviour.init( mouseX, mouseY );
+				drag.behaviour().init( mouseX, mouseY );
 				activeKeyDrags.add( drag );
 			}
 		}
 
 		for ( final BehaviourEntry< ClickBehaviour > click : keyClicks )
 		{
-			if ( click.buttons.matches( mask, pressedKeys ) ||
-					( doubleClick && click.buttons.matches( doubleClickMask, pressedKeys ) ) )
+			if ( click.buttons().matches( mask, pressedKeys ) ||
+					( doubleClick && click.buttons().matches( doubleClickMask, pressedKeys ) ) )
 			{
 				if ( dryRun )
 					return true;
 				triggered = true;
-				click.behaviour.click( mouseX, mouseY );
+				click.behaviour().click( mouseX, mouseY );
 			}
 		}
 
@@ -620,9 +483,9 @@ public class MouseAndKeyHandler
 
 			final ArrayList< BehaviourEntry< ? > > ended = new ArrayList<>();
 			for ( final BehaviourEntry< DragBehaviour > drag : activeKeyDrags )
-				if ( !drag.buttons.matchesSubset( mask, pressedKeys ) )
+				if ( !drag.buttons().matchesSubset( mask, pressedKeys ) )
 				{
-					drag.behaviour.end( mouseX, mouseY );
+					drag.behaviour().end( mouseX, mouseY );
 					ended.add( drag );
 				}
 			activeKeyDrags.removeAll( ended );
