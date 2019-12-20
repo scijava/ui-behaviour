@@ -10,41 +10,42 @@
  * <h2>Overview</h2>
  *
  * ui-behaviour is a library for binding behaviours by keys or mouse-actions.
- * The idea is similar to Swing's InputMap/ActionMap framework. The difference
- * is that actions are atomic while behaviours (possibly) stretch over a period
- * of time. For example, a DragBehaviour is initialized (e.g., with a mouse
- * click) at certain coordinates, goes through a series of coordinate updates,
- * and then ends (when the mouse is released).
+ * The idea is similar to Swing's {@code InputMap/ActionMap} framework. The
+ * difference is that actions are atomic while behaviours (possibly) stretch
+ * over a period of time. For example, a {@code DragBehaviour} is initialized
+ * (e.g., with a mouse click) at certain coordinates, goes through a series of
+ * coordinate updates, and then ends (when the mouse is released).
  * <p>
  * The combination of modifiers, keys, mouse buttons etc. that initiates a
  * behaviour is called a "trigger" and is constructed from a string description.
  * <p>
  * The basic syntax for a trigger description is a sequence of modifier and key
- * names separated by whitespace. Examples are SPACE, button1, shift alt scroll,
- * and ctrl F G.
+ * names separated by whitespace. Examples are "{@code SPACE}",
+ * "{@code button1}", "{@code shift alt scroll}", and "{@code ctrl F G}".
  * <p>
  * Additionally, one can specify a combination of modifiers, keys, mouse buttons
  * etc. that should be ignored when triggering the behaviour. This is a another
  * sequence of modifier and key names separated from the trigger description by
- * "|". For example, ctrl button1 | shift alt is triggered by pressing the left
- * mouse-button while holding the ctrl key. If the shift and/or alt key are
- * pressed simultaneously, the trigger still matches. To ignore all other
- * modifiers and keys, the special name all is used. So, A | all is a trigger
- * that matches when the A key is pressed, regardless which other modifiers,
- * keys, or buttons are active at the same time.
+ * "{@code |}". For example, "{@code ctrl button1 | shift alt}" is triggered by
+ * pressing the left mouse-button while holding the ctrl key. If the shift
+ * and/or alt key are pressed simultaneously, the trigger still matches. To
+ * ignore all other modifiers and keys, the special name "{@code all}" is used.
+ * So, "{@code A | all}" is a trigger that matches when the A key is pressed,
+ * regardless which other modifiers, keys, or buttons are active at the same
+ * time.
  *
  *
- * <h2>Chaining principle.</h2>
+ * <h2>Chaining principle</h2>
  *
- * In Swing, a JComponent has an InputMap. Each InputMap can have a parent, and
- * if a mapping for a given key is not found in the InputMap, it asks the
- * parent.
+ * In Swing, a {@code JComponent} has an {@code InputMap}. Each InputMap can
+ * have a parent, and if a mapping for a given key is not found in the InputMap,
+ * it asks the parent.
  * <p>
- * Now, for BDV, I (Tobias Pietzsch speaking in this section) thought that this
- * concept is nice for adding InputMap/ActionMap pairs with related actions to
- * the viewer. For example one map with navigation shortcuts, then one map for
- * bookmarking, and then each user extension could also create its own
- * InputMap/ActionMap pair and just chain it to the existing maps.
+ * For BigDataViewer, we thought that this concept is nice for adding
+ * InputMap/ActionMap pairs with related actions to the viewer. For example one
+ * map with navigation shortcuts, then one map for bookmarking, and then each
+ * user extension could also create its own InputMap/ActionMap pair and just
+ * chain it to the existing maps.
  * <p>
  * The slight complication with this is, that if you have a situation like this:
  *
@@ -52,26 +53,25 @@
  * component &rarr; map2 &rarr; map1
  * </pre>
  *
- * and you want to add another one, it should look like this:
+ * and you want to add another one, "map3", it should look like this:
  *
  * <pre>
  * component &rarr; map3 &rarr; map2 &rarr; map1
  * </pre>
  *
- * so you need to insert it between component and map2.
+ * So, "map3" should be inserted between "component" and "map2".
  * <p>
- * The way this is resolved in ui-behaviours InputActionBindings is that there
- * is a theInputMap/theActionMap pair that acts as an empty leaf map with
- * exchangeable parents.
- * <p>
- * So from the component side it always looks like
+ * This is resolved in ui-behaviours {@code InputActionBindings} by having a
+ * {@code theInputMap/theActionMap} pair that acts as an empty leaf map with
+ * exchangeable parents. From the component side it always looks like
  *
  * <pre>
  * component &rarr; theMap
  * </pre>
  *
- * and then internally the InputActionBindings maintains a list [map1, map2,
- * ...] which is then assembled into a new chain whenever something changes. So
+ * and then internally the {@code InputActionBindings} maintains a list
+ * {@code [map1, map2, ...]} which is then assembled into a new chain whenever
+ * something changes. So
  *
  * <pre>
  * theMap &rarr; map2 &rarr; map1
@@ -83,17 +83,18 @@
  * theMap &rarr; map3 &rarr; map2 &rarr; map1
  * </pre>
  *
- * when map3 is added.
+ * when "map3" is added.
  * <p>
  * And the behaviours framework doesn't have to care about the Swing particulars
- * (e.g. actually each Jcomponent has 3 different inputmaps for different
- * situation, etc).
+ * (e.g., actually each {@code JComponent} has 3 different inputmaps for
+ * different situations).
+ *
+ * <h2>Blocking maps</h2>
+ *
+ * On top of this, InputActionBindings adds a few convenience features.
  * <p>
- * Having this already, InputActionBindings adds a few convenience features on
- * top.
- * <p>
- * For every map pair that you append to InputActionBindings you specify a
- * unique name that then can be used to remove the map pair again.
+ * For every map pair that you append to {@code InputActionBindings} you specify
+ * a unique name that can later be used to remove the map pair again.
  * <p>
  * E.g., if map2 would have the name "bookmarking", then
  *
@@ -119,19 +120,20 @@
  * For example, let's say that you want to temporarily add your own specific
  * keys that maybe conflict with the bookmarking keys.
  * <p>
- * So the situation is
+ * Starting from this situation:
  *
  * <pre>
  * theMap &rarr; map3 &rarr; map2 &rarr; map1
  * </pre>
  *
- * Now you
+ * the following
  *
  * <pre>
- * InputActionBindings.addInputMap( map4, "myMap", // block these: // "navigation", "bookmarking" )
+ * InputActionBindings.addInputMap( map4, "myMap", "navigation", "bookmarking" )
+ * // "myMap" blocks "navigation", "bookmarking"
  * </pre>
  *
- * then this will result in
+ * will result in
  *
  * <pre>
  * theMap &rarr; map4 &rarr; map3
@@ -140,8 +142,8 @@
  * that is, map1 and map2 were blocked.
  * <p>
  *
- * However, InputActionsBindings still knows about map1 and map2. Once you
- * remove the blocking "myMap", they will be reinstated.
+ * However, InputActionsBindings still knows about map1 and map2. Once the
+ * blocking "myMap" is removed, they will be reinstated.
  * <p>
  * As a concrete example: this whole machinery is used for bookmarking in BDV.
  * You set a bookmark by pressing "shift B" and then some other key, that is the
@@ -152,7 +154,7 @@
  * other inputmaps. So "1" will not trigger switching to bdv source 1. After the
  * bookmark name "1" is received, the temporary inputmap is removed again.
  * <p>
- * For Behaviours, the chaining concept is exactly the same
+ * For Behaviours, the chaining and blocking concepts are exactly the same
  *
  *
  *
