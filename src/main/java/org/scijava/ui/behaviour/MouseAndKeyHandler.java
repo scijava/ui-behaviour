@@ -259,8 +259,8 @@ public class MouseAndKeyHandler extends AbstractMouseAndKeyHandler
 		final int clickMask = mask & ~InputTrigger.DOUBLE_CLICK_MASK;
 		for ( final BehaviourEntry< ClickBehaviour > click : buttonClicks )
 		{
-			if ( click.buttons().matches( mask, pressedKeys ) ||
-					( clickMask != mask && click.buttons().matches( clickMask, pressedKeys ) ) )
+			if ( click.buttons().matches( mask, globalKeys.pressedKeys() ) ||
+					( clickMask != mask && click.buttons().matches( clickMask, globalKeys.pressedKeys() ) ) )
 			{
 				click.behaviour().click( x, y );
 			}
@@ -362,9 +362,9 @@ public class MouseAndKeyHandler extends AbstractMouseAndKeyHandler
 			}
 
 			if ( keypressManager != null )
-				keypressManager.handleKeyPressed( receiver, mask, doubleClick, pressedKeys );
+				keypressManager.handleKeyPressed( receiver, mask, doubleClick, globalKeys.pressedKeys() );
 			else
-				handleKeyPressed( mask, doubleClick, pressedKeys, false );
+				handleKeyPressed( mask, doubleClick, globalKeys.pressedKeys(), false );
 		}
 	}
 
@@ -483,7 +483,7 @@ public class MouseAndKeyHandler extends AbstractMouseAndKeyHandler
 
 			final ArrayList< BehaviourEntry< ? > > ended = new ArrayList<>();
 			for ( final BehaviourEntry< DragBehaviour > drag : activeKeyDrags )
-				if ( !drag.buttons().matchesSubset( mask, pressedKeys ) )
+				if ( !drag.buttons().matchesSubset( mask, globalKeys.pressedKeys() ) )
 				{
 					drag.behaviour().end( mouseX, mouseY );
 					ended.add( drag );
