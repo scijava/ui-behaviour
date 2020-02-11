@@ -112,9 +112,9 @@ public class Actions
 	{
 		this.actionMap = actionMap;
 		this.inputMap = inputMap;
-		this.keyConfig = keyConfig;
+		this.keyConfig = keyConfig != null ? keyConfig : new InputTriggerConfig();
 		this.keyConfigContexts = keyConfigContexts;
-		keyStrokeAdder = keyConfig.keyStrokeAdder( inputMap, keyConfigContexts );
+		keyStrokeAdder = this.keyConfig.keyStrokeAdder( inputMap, keyConfigContexts );
 	}
 
 	public InputMap getInputMap()

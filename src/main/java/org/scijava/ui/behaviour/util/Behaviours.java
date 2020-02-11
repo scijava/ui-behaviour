@@ -114,9 +114,9 @@ public class Behaviours
 	{
 		this.inputTriggerMap = inputTriggerMap;
 		this.behaviourMap = behaviourMap;
-		this.keyConfig = keyConfig;
+		this.keyConfig = keyConfig != null ? keyConfig : new InputTriggerConfig();
 		this.keyConfigContexts = keyConfigContexts;
-		inputTriggerAdder = keyConfig.inputTriggerAdder( inputTriggerMap, keyConfigContexts );
+		inputTriggerAdder = this.keyConfig.inputTriggerAdder( inputTriggerMap, keyConfigContexts );
 	}
 
 	public InputTriggerMap getInputTriggerMap()
