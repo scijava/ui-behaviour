@@ -126,7 +126,12 @@ public class VisualEditorPanel extends JPanel
 
 	private final JPanel panelButtons;
 
-	private final HashSet< ConfigChangeListener > listeners;
+	/**
+	 * Set of listeners that are triggered whenever any single item change in the GUI.
+	 * This, however, does not mean that the underlying {@link InputTriggerConfig} was
+	 * changed at all as the GUI is buffering changes until the "Apply" button is pressed.
+	 */
+	private final HashSet< ConfigChangeListener > itemChangedListeners;
 
 	private final JButton btnApply;
 
@@ -165,7 +170,7 @@ public class VisualEditorPanel extends JPanel
 		commandNameToAcceptableContexts = new HashMap<>();
 		for ( final Command command : commands )
 			commandNameToAcceptableContexts.computeIfAbsent( command.getName(), k -> new HashSet<>() ).add( command.getContext() );
-		this.listeners = new HashSet<>();
+		this.itemChangedListeners = new HashSet<>();
 
 		/*
 		 * GUI
@@ -797,7 +802,7 @@ public class VisualEditorPanel extends JPanel
 
 	private void notifyListeners()
 	{
-		for ( final ConfigChangeListener listener : listeners )
+		for ( final ConfigChangeListener listener : itemChangedListeners)
 			listener.configChanged();
 	}
 
@@ -815,12 +820,12 @@ public class VisualEditorPanel extends JPanel
 
 	public void addConfigChangeListener( final ConfigChangeListener listener )
 	{
-		listeners.add( listener );
+		itemChangedListeners.add( listener );
 	}
 
 	public void removeConfigChangeListener( final ConfigChangeListener listener )
 	{
-		listeners.remove( listener );
+		itemChangedListeners.remove( listener );
 	}
 
 	/*
