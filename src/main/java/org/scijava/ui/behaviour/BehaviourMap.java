@@ -30,7 +30,7 @@
 package org.scijava.ui.behaviour;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -160,7 +160,7 @@ public class BehaviourMap
 
 	public synchronized Set< String > keys()
 	{
-		return new HashSet<>( behaviours.keySet() );
+		return new TreeSet<>( behaviours.keySet() );
 	}
 
 	public int modCount()
