@@ -37,6 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Iterator;
 
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
@@ -107,6 +108,22 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 					triggers.add( input.trigger );
 		}
 		return triggers;
+	}
+
+	/**
+	 * Creates a pretty printed list of keys, useful in conjuction with {@link InputTriggerConfig#getInputs}.
+	 *
+	 * @param triggers Set of triggers to be printed.
+	 * @return String with formatted content.
+	 */
+	public static String prettyPrintInputs(final Set<InputTrigger> triggers) {
+		final StringBuilder sb = new StringBuilder();
+		final Iterator<InputTrigger> it = triggers.iterator();
+		while (it.hasNext()) {
+			sb.append( it.next() );
+			if (it.hasNext()) sb.append(" or ");
+		}
+		return sb.toString();
 	}
 
 	public void clear()
