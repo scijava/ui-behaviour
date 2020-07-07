@@ -149,6 +149,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 				 */
 				input.contexts.addAll( contexts );
 				return;
+				//NB: this assumes that there exists up to one Input record for this (trigger,behaviour) pair
 			}
 		}
 
@@ -157,6 +158,49 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		 * add it
 		 */
 		inputs.add( new Input( trigger, behaviourName, contexts ) );
+	}
+
+	public void remove( final String trigger, final String behaviourName, final String context )
+	{
+		remove( InputTrigger.getFromString( trigger ), behaviourName, context );
+	}
+
+	public void remove( final InputTrigger trigger, final String behaviourName, final String context )
+	{
+		remove( trigger, behaviourName, Collections.singleton( context ) );
+	}
+
+	public synchronized void remove( final InputTrigger trigger, final String behaviourName, final Collection< String > contexts )
+	{
+		final Set< Input > inputs = actionToInputsMap.get( behaviourName );
+		if (inputs == null) return;
+
+		//find Input that covers this trigger -> behaviour binding
+		Input foundRelevantInput = null;
+		for ( final Input input : inputs )
+		{
+			if ( input.trigger.equals( trigger ) )
+			{
+				foundRelevantInput = input;
+				break;
+				//NB: this assumes that there exists up to one Input record for this (trigger,behaviour) pair
+			}
+		}
+
+		if (foundRelevantInput != null)
+		{
+			//found Input that covers this trigger -> behaviour binding,
+			//make sure it does not exist for the given context(s)
+			foundRelevantInput.contexts.removeAll( contexts );
+			if (foundRelevantInput.contexts.isEmpty())
+			{
+				//empty context set -> invalid record -> remove it
+				inputs.remove( foundRelevantInput );
+
+				if (inputs.isEmpty())
+					actionToInputsMap.remove( behaviourName );
+			}
+		}
 	}
 
 	public static class InputTriggerAdderImp implements InputTriggerAdder
