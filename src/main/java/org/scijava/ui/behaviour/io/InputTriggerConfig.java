@@ -33,11 +33,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Iterator;
 
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
@@ -111,17 +111,23 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 	}
 
 	/**
-	 * Creates a pretty printed list of keys, useful in conjuction with {@link InputTriggerConfig#getInputs}.
+	 * Creates a pretty printed list of keys, useful in conjunction with
+	 * {@link InputTriggerConfig#getInputs}.
 	 *
-	 * @param triggers Set of triggers to be printed.
+	 * @param triggers
+	 * 		Set of triggers to be printed.
+	 *
 	 * @return String with formatted content.
 	 */
-	public static String prettyPrintInputs(final Set<InputTrigger> triggers) {
+	public static String prettyPrintInputs( final Set< InputTrigger > triggers )
+	{
 		final StringBuilder sb = new StringBuilder();
-		final Iterator<InputTrigger> it = triggers.iterator();
-		while (it.hasNext()) {
+		final Iterator< InputTrigger > it = triggers.iterator();
+		while ( it.hasNext() )
+		{
 			sb.append( it.next() );
-			if (it.hasNext()) sb.append(" or ");
+			if ( it.hasNext() )
+				sb.append( " or " );
 		}
 		return sb.toString();
 	}
@@ -131,10 +137,10 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		actionToInputsMap.clear();
 	}
 
-	public void set( InputTriggerConfig config )
+	public void set( final InputTriggerConfig config )
 	{
 		actionToInputsMap.clear();
-		for ( Entry< String, Set< Input > > entry : config.actionToInputsMap.entrySet() )
+		for ( final Entry< String, Set< Input > > entry : config.actionToInputsMap.entrySet() )
 		{
 			final String behaviourName = entry.getKey();
 			final Set< Input > inputs = new LinkedHashSet<>();
@@ -397,7 +403,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			this.contexts = new HashSet<>( contexts );
 		}
 
-		Input( Input input )
+		Input( final Input input )
 		{
 			this.trigger = input.trigger;
 			this.behaviour = input.behaviour;
