@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +25,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -49,7 +47,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
-
+import org.scijava.listeners.Listeners;
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.io.InputTriggerDescription;
@@ -86,12 +84,12 @@ public class VisualEditorPanel extends JPanel
 	 * editor.
 	 */
 	@FunctionalInterface
-	public static interface ConfigChangeListener
+	public interface ConfigChangeListener
 	{
 		/**
 		 * Called when settings are changed in the visual editor.
 		 */
-		public void configChanged();
+		void configChanged();
 	}
 
 	private JTextField textFieldFilter;
@@ -126,7 +124,19 @@ public class VisualEditorPanel extends JPanel
 
 	private final JPanel panelButtons;
 
-	private final HashSet< ConfigChangeListener > listeners;
+	/**
+	 * Set of listeners that are triggered whenever any single item change in the GUI.
+	 * This, however, does not mean that the underlying {@link InputTriggerConfig} was
+	 * changed at all as the GUI is buffering changes until the "Apply" button is pressed.
+	 */
+	private final Listeners.List< ConfigChangeListener > configChangeListeners;
+
+	/**
+	 * Set of listeners that are triggered only when the "Apply" button is pressed,
+	 * which is precisely the moment when the current state/content of GUI is committed
+	 * to the underlying {@link InputTriggerConfig} via the ModelToConfig().
+	 */
+	private final Listeners.List< ConfigChangeListener > configCommittedListeners;
 
 	private final JButton btnApply;
 
@@ -165,7 +175,8 @@ public class VisualEditorPanel extends JPanel
 		commandNameToAcceptableContexts = new HashMap<>();
 		for ( final Command command : commands )
 			commandNameToAcceptableContexts.computeIfAbsent( command.getName(), k -> new HashSet<>() ).add( command.getContext() );
-		this.listeners = new HashSet<>();
+		this.configChangeListeners = new Listeners.SynchronizedList<>();
+		this.configCommittedListeners = new Listeners.SynchronizedList<>();
 
 		/*
 		 * GUI
@@ -427,14 +438,9 @@ public class VisualEditorPanel extends JPanel
 		btnApply.addActionListener( ( e ) -> modelToConfig() );
 
 		// Buttons re-enabling when model and config are out of sync.
-		addConfigChangeListener( new ConfigChangeListener()
-		{
-			@Override
-			public void configChanged()
-			{
-				btnApply.setEnabled( true );
-				btnRestore.setEnabled( true );
-			}
+		configChangeListeners().add( () -> {
+			btnApply.setEnabled( true );
+			btnRestore.setEnabled( true );
 		} );
 
 		configToModel();
@@ -475,9 +481,9 @@ public class VisualEditorPanel extends JPanel
 				{
 					final StringBuilder str = new StringBuilder();
 					str.append( tableModel.rows.get( i ).getName() );
-					str.append( " in " + overlappingContexts.get( 0 ) );
+					str.append( " in " ).append( overlappingContexts.get( 0 ) );
 					for ( int j = 1; j < overlappingContexts.size(); j++ )
-						str.append( ", " + overlappingContexts.get( j ) );
+						str.append( ", " ).append( overlappingContexts.get( j ) );
 
 					conflicts.add( str.toString() );
 				}
@@ -488,7 +494,7 @@ public class VisualEditorPanel extends JPanel
 		{
 			final StringBuilder str = new StringBuilder( conflicts.get( 0 ) );
 			for ( int i = 1; i < conflicts.size(); i++ )
-				str.append( "; " + conflicts.get( i ) );
+				str.append( "; " ).append( conflicts.get( i ) );
 			lblConflict.setText( str.toString() );
 		}
 	}
@@ -529,6 +535,8 @@ public class VisualEditorPanel extends JPanel
 
 		btnApply.setEnabled( false );
 		btnRestore.setEnabled( false );
+
+		configCommittedListeners.list.forEach( ConfigChangeListener::configChanged );
 	}
 
 	public void configToModel()
@@ -615,16 +623,14 @@ public class VisualEditorPanel extends JPanel
 			{
 				sb.append( contexts.get( 0 ) );
 				for ( int j = 1; j < contexts.size(); j++ )
-					sb.append( " - " + contexts.get( j ) );
+					sb.append( " - " ).append( contexts.get( j ) );
 			}
 			sb.append( '\n' );
 		}
 
-		try (final PrintWriter pw = new PrintWriter( file ))
+		try ( final PrintWriter pw = new PrintWriter( file ) )
 		{
-
 			pw.write( sb.toString() );
-			pw.close();
 		}
 		catch ( final FileNotFoundException e )
 		{
@@ -664,9 +670,9 @@ public class VisualEditorPanel extends JPanel
 			{
 				final String d = actionDescriptions.get( new Command( action, context ) );
 				if ( d != null )
-					str.append( "\n\nIn " + context + ":\n" + d );
+					str.append( "\n\nIn " ).append( context ).append( ":\n" ).append( d );
 				else
-					str.append( "\n\nIn " + context + " - no description." );
+					str.append( "\n\nIn " ).append( context ).append( " - no description." );
 			}
 			str.delete( 0, 2 );
 			description = str.toString();
@@ -703,13 +709,7 @@ public class VisualEditorPanel extends JPanel
 			return;
 		final int modelRow = tableBindings.convertRowIndexToModel( viewRow );
 		final String removeName = tableModel.rows.get( modelRow ).getName();
-		final Iterator< MyTableRow > iter = tableModel.rows.iterator();
-		while( iter.hasNext() )
-		{
-			final MyTableRow row = iter.next();
-			if ( row.getName().equals( removeName ) )
-				iter.remove();
-		}
+		tableModel.rows.removeIf( row -> row.getName().equals( removeName ) );
 		if ( !tableModel.addMissingRows() )
 			tableModel.fireTableDataChanged();
 
@@ -797,8 +797,7 @@ public class VisualEditorPanel extends JPanel
 
 	private void notifyListeners()
 	{
-		for ( final ConfigChangeListener listener : listeners )
-			listener.configChanged();
+		configChangeListeners.list.forEach( ConfigChangeListener::configChanged );
 	}
 
 	private static Map< Command, String > extractEmptyCommandDescriptions( final InputTriggerConfig keyconf )
@@ -813,14 +812,42 @@ public class VisualEditorPanel extends JPanel
 		return commandDescriptions;
 	}
 
-	public void addConfigChangeListener( final ConfigChangeListener listener )
+	/**
+	 * Please, see the documentation of {@link VisualEditorPanel#configChangeListeners}
+	 * and {@link VisualEditorPanel#configCommittedListeners} to understand when these
+	 * listeners are triggered. In short, these are triggered anytime a GUI item is changed.
+	 */
+	public Listeners< ConfigChangeListener > configChangeListeners()
 	{
-		listeners.add( listener );
+		return configChangeListeners;
 	}
 
+	/**
+	 * @deprecated Use {@code configChangeListeners().add(listener)} instead.
+	 */
+	@Deprecated
+	public void addConfigChangeListener( final ConfigChangeListener listener )
+	{
+		configChangeListeners().add( listener );
+	}
+
+	/**
+	 * @deprecated Use {@code configChangeListeners().remove(listener)} instead.
+	 */
+	@Deprecated
 	public void removeConfigChangeListener( final ConfigChangeListener listener )
 	{
-		listeners.remove( listener );
+		configChangeListeners().remove( listener );
+	}
+
+	/**
+	 * Please, see the documentation of {@link VisualEditorPanel#configChangeListeners}
+	 * and {@link VisualEditorPanel#configCommittedListeners} to understand when these
+	 * listeners are triggered. In short, these are triggered only when "Apply" button is pressed.
+	 */
+	public Listeners< ConfigChangeListener > configCommittedListeners()
+	{
+		return configCommittedListeners;
 	}
 
 	/*
@@ -991,13 +1018,7 @@ public class VisualEditorPanel extends JPanel
 		 */
 		public void removeAllNotMapped( final List< MyTableRow > rows )
 		{
-			final Iterator< MyTableRow > iter = rows.iterator();
-			while ( iter.hasNext() )
-			{
-				final MyTableRow row = iter.next();
-				if ( row.getTrigger().equals( InputTrigger.NOT_MAPPED ) )
-					iter.remove();
-			}
+			rows.removeIf( row -> row.getTrigger().equals( InputTrigger.NOT_MAPPED ) );
 		}
 
 		/**
