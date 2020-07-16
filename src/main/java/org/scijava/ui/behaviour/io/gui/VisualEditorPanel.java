@@ -50,6 +50,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 
+import org.scijava.listeners.Listeners;
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.io.InputTriggerDescription;
@@ -131,14 +132,14 @@ public class VisualEditorPanel extends JPanel
 	 * This, however, does not mean that the underlying {@link InputTriggerConfig} was
 	 * changed at all as the GUI is buffering changes until the "Apply" button is pressed.
 	 */
-	private final HashSet< ConfigChangeListener > configChangeListeners;
+	private final Listeners.List< ConfigChangeListener > configChangeListeners;
 
 	/**
 	 * Set of listeners that are triggered only when the "Apply" button is pressed,
 	 * which is precisely the moment when the current state/content of GUI is committed
 	 * to the underlying {@link InputTriggerConfig} via the ModelToConfig().
 	 */
-	private final HashSet< ConfigChangeListener > configCommittedListeners;
+	private final Listeners.List< ConfigChangeListener > configCommittedListeners;
 
 	private final JButton btnApply;
 
@@ -177,8 +178,8 @@ public class VisualEditorPanel extends JPanel
 		commandNameToAcceptableContexts = new HashMap<>();
 		for ( final Command command : commands )
 			commandNameToAcceptableContexts.computeIfAbsent( command.getName(), k -> new HashSet<>() ).add( command.getContext() );
-		this.configChangeListeners = new HashSet<>();
-		this.configCommittedListeners = new HashSet<>();
+		this.configChangeListeners = new Listeners.SynchronizedList<>();
+		this.configCommittedListeners = new Listeners.SynchronizedList<>();
 
 		/*
 		 * GUI
@@ -440,14 +441,9 @@ public class VisualEditorPanel extends JPanel
 		btnApply.addActionListener( ( e ) -> modelToConfig() );
 
 		// Buttons re-enabling when model and config are out of sync.
-		addConfigChangeListener( new ConfigChangeListener()
-		{
-			@Override
-			public void configChanged()
-			{
-				btnApply.setEnabled( true );
-				btnRestore.setEnabled( true );
-			}
+		configChangeListeners().add( () -> {
+			btnApply.setEnabled( true );
+			btnRestore.setEnabled( true );
 		} );
 
 		configToModel();
@@ -543,7 +539,7 @@ public class VisualEditorPanel extends JPanel
 		btnApply.setEnabled( false );
 		btnRestore.setEnabled( false );
 
-		configCommittedListeners.forEach( l -> l.configChanged() );
+		configCommittedListeners.list.forEach( ConfigChangeListener::configChanged );
 	}
 
 	public void configToModel()
@@ -812,7 +808,7 @@ public class VisualEditorPanel extends JPanel
 
 	private void notifyListeners()
 	{
-		configChangeListeners.forEach( ConfigChangeListener::configChanged );
+		configChangeListeners.list.forEach( ConfigChangeListener::configChanged );
 	}
 
 	private static Map< Command, String > extractEmptyCommandDescriptions( final InputTriggerConfig keyconf )
@@ -832,14 +828,27 @@ public class VisualEditorPanel extends JPanel
 	 * and {@link VisualEditorPanel#configCommittedListeners} to understand when these
 	 * listeners are triggered. In short, these are triggered anytime a GUI item is changed.
 	 */
-	public void addConfigChangeListener( final ConfigChangeListener listener )
+	public Listeners< ConfigChangeListener > configChangeListeners()
 	{
-		configChangeListeners.add( listener );
+		return configChangeListeners;
 	}
 
+	/**
+	 * @deprecated Use {@code configChangeListeners().add(listener)} instead.
+	 */
+	@Deprecated
+	public void addConfigChangeListener( final ConfigChangeListener listener )
+	{
+		configChangeListeners().add( listener );
+	}
+
+	/**
+	 * @deprecated Use {@code configChangeListeners().remove(listener)} instead.
+	 */
+	@Deprecated
 	public void removeConfigChangeListener( final ConfigChangeListener listener )
 	{
-		configChangeListeners.remove( listener );
+		configChangeListeners().remove( listener );
 	}
 
 	/**
@@ -847,14 +856,9 @@ public class VisualEditorPanel extends JPanel
 	 * and {@link VisualEditorPanel#configCommittedListeners} to understand when these
 	 * listeners are triggered. In short, these are triggered only when "Apply" button is pressed.
 	 */
-	public void addConfigCommittedListener( final ConfigChangeListener listener )
+	public Listeners< ConfigChangeListener > configCommittedListeners()
 	{
-		configCommittedListeners.add( listener );
-	}
-
-	public void removeConfigCommittedListener( final ConfigChangeListener listener )
-	{
-		configCommittedListeners.remove( listener );
+		return configCommittedListeners;
 	}
 
 	/*

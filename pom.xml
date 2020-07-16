@@ -100,6 +100,8 @@
 		<license.copyrightOwners>Max Planck Institute of Molecular Cell Biology
 and Genetics.</license.copyrightOwners>
 
+		<scijava-listeners.version>1.0.0-beta-3</scijava-listeners.version>
+
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 	</properties>
@@ -112,6 +114,11 @@ and Genetics.</license.copyrightOwners>
 	</repositories>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.scijava</groupId>
+			<artifactId>scijava-listeners</artifactId>
+			<version>${scijava-listeners.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>net.sf.trove4j</groupId>
 			<artifactId>trove4j</artifactId>
