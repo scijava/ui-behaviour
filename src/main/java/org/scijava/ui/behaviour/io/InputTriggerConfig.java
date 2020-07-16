@@ -149,7 +149,11 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 				 */
 				input.contexts.addAll( contexts );
 				return;
-				//NB: this assumes that there exists up to one Input record for this (trigger,behaviour) pair
+				/*
+				 * NB: this assumes that there exists not more than one Input
+				 * record for each (trigger, behaviour) pair. This property is
+				 * maintained by the add/remove implementations.
+				 */
 			}
 		}
 
@@ -173,32 +177,31 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 	public synchronized void remove( final InputTrigger trigger, final String behaviourName, final Collection< String > contexts )
 	{
 		final Set< Input > inputs = actionToInputsMap.get( behaviourName );
-		if (inputs == null) return;
+		if ( inputs == null )
+			return;
 
-		//find Input that covers this trigger -> behaviour binding
-		Input foundRelevantInput = null;
 		for ( final Input input : inputs )
 		{
 			if ( input.trigger.equals( trigger ) )
 			{
-				foundRelevantInput = input;
-				break;
-				//NB: this assumes that there exists up to one Input record for this (trigger,behaviour) pair
-			}
-		}
+				// found Input that covers this trigger -> behaviour binding,
+				// make sure it does not exist for the given context(s)
+				input.contexts.removeAll( contexts );
+				if ( input.contexts.isEmpty() )
+				{
+					// empty context set -> invalid record -> remove it
+					inputs.remove( input );
 
-		if (foundRelevantInput != null)
-		{
-			//found Input that covers this trigger -> behaviour binding,
-			//make sure it does not exist for the given context(s)
-			foundRelevantInput.contexts.removeAll( contexts );
-			if (foundRelevantInput.contexts.isEmpty())
-			{
-				//empty context set -> invalid record -> remove it
-				inputs.remove( foundRelevantInput );
+					if ( inputs.isEmpty() )
+						actionToInputsMap.remove( behaviourName );
+				}
 
-				if (inputs.isEmpty())
-					actionToInputsMap.remove( behaviourName );
+				return;
+				/*
+				 * NB: this assumes that there exists not more than one Input
+				 * record for each (trigger, behaviour) pair. This property is
+				 * maintained by the add/remove implementations.
+				 */
 			}
 		}
 	}
