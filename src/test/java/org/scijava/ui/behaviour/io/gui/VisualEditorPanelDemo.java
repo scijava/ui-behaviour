@@ -45,8 +45,7 @@ public class VisualEditorPanelDemo
 				"  triggers: [control A]" + "\n" +
 				"" );
 		final List< InputTriggerDescription > triggers = YamlConfigIO.read( reader );
-		final InputTriggerConfig config = new InputTriggerConfig( triggers );
-		return config;
+		return new InputTriggerConfig( triggers );
 	}
 
 	private static Map< Command, String > getDemoCommands()
