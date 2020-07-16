@@ -131,14 +131,14 @@ public class VisualEditorPanel extends JPanel
 	 * This, however, does not mean that the underlying {@link InputTriggerConfig} was
 	 * changed at all as the GUI is buffering changes until the "Apply" button is pressed.
 	 */
-	private final HashSet< ConfigChangeListener > itemChangedListeners;
+	private final HashSet< ConfigChangeListener > configChangeListeners;
 
 	/**
 	 * Set of listeners that are triggered only when the "Apply" button is pressed,
 	 * which is precisely the moment when the current state/content of GUI is committed
 	 * to the underlying {@link InputTriggerConfig} via the ModelToConfig().
 	 */
-	private final HashSet< ConfigChangeListener > configChangedListeners;
+	private final HashSet< ConfigChangeListener > configCommittedListeners;
 
 	private final JButton btnApply;
 
@@ -177,8 +177,8 @@ public class VisualEditorPanel extends JPanel
 		commandNameToAcceptableContexts = new HashMap<>();
 		for ( final Command command : commands )
 			commandNameToAcceptableContexts.computeIfAbsent( command.getName(), k -> new HashSet<>() ).add( command.getContext() );
-		this.itemChangedListeners = new HashSet<>();
-		this.configChangedListeners = new HashSet<>();
+		this.configChangeListeners = new HashSet<>();
+		this.configCommittedListeners = new HashSet<>();
 
 		/*
 		 * GUI
@@ -543,7 +543,7 @@ public class VisualEditorPanel extends JPanel
 		btnApply.setEnabled( false );
 		btnRestore.setEnabled( false );
 
-		configChangedListeners.forEach( l -> l.configChanged() );
+		configCommittedListeners.forEach( l -> l.configChanged() );
 	}
 
 	public void configToModel()
@@ -812,8 +812,7 @@ public class VisualEditorPanel extends JPanel
 
 	private void notifyListeners()
 	{
-		for ( final ConfigChangeListener listener : itemChangedListeners)
-			listener.configChanged();
+		configChangeListeners.forEach( ConfigChangeListener::configChanged );
 	}
 
 	private static Map< Command, String > extractEmptyCommandDescriptions( final InputTriggerConfig keyconf )
@@ -829,33 +828,33 @@ public class VisualEditorPanel extends JPanel
 	}
 
 	/**
-	 * Please, see the documentation of {@link VisualEditorPanel#itemChangedListeners}
-	 * and {@link VisualEditorPanel#configChangedListeners} to understand when these
+	 * Please, see the documentation of {@link VisualEditorPanel#configChangeListeners}
+	 * and {@link VisualEditorPanel#configCommittedListeners} to understand when these
 	 * listeners are triggered. In short, these are triggered anytime a GUI item is changed.
 	 */
 	public void addConfigChangeListener( final ConfigChangeListener listener )
 	{
-		itemChangedListeners.add( listener );
+		configChangeListeners.add( listener );
 	}
 
 	public void removeConfigChangeListener( final ConfigChangeListener listener )
 	{
-		itemChangedListeners.remove( listener );
+		configChangeListeners.remove( listener );
 	}
 
 	/**
-	 * Please, see the documentation of {@link VisualEditorPanel#itemChangedListeners}
-	 * and {@link VisualEditorPanel#configChangedListeners} to understand when these
+	 * Please, see the documentation of {@link VisualEditorPanel#configChangeListeners}
+	 * and {@link VisualEditorPanel#configCommittedListeners} to understand when these
 	 * listeners are triggered. In short, these are triggered only when "Apply" button is pressed.
 	 */
 	public void addConfigCommittedListener( final ConfigChangeListener listener )
 	{
-		configChangedListeners.add( listener );
+		configCommittedListeners.add( listener );
 	}
 
 	public void removeConfigCommittedListener( final ConfigChangeListener listener )
 	{
-		configChangedListeners.remove( listener );
+		configCommittedListeners.remove( listener );
 	}
 
 	/*
