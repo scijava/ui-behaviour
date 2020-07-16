@@ -172,6 +172,11 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 				 */
 				input.contexts.addAll( contexts );
 				return;
+				/*
+				 * NB: this assumes that there exists not more than one Input
+				 * record for each (trigger, behaviour) pair. This property is
+				 * maintained by the add/remove implementations.
+				 */
 			}
 		}
 
@@ -180,6 +185,48 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		 * add it
 		 */
 		inputs.add( new Input( trigger, behaviourName, contexts ) );
+	}
+
+	public void remove( final String trigger, final String behaviourName, final String context )
+	{
+		remove( InputTrigger.getFromString( trigger ), behaviourName, context );
+	}
+
+	public void remove( final InputTrigger trigger, final String behaviourName, final String context )
+	{
+		remove( trigger, behaviourName, Collections.singleton( context ) );
+	}
+
+	public synchronized void remove( final InputTrigger trigger, final String behaviourName, final Collection< String > contexts )
+	{
+		final Set< Input > inputs = actionToInputsMap.get( behaviourName );
+		if ( inputs == null )
+			return;
+
+		for ( final Input input : inputs )
+		{
+			if ( input.trigger.equals( trigger ) )
+			{
+				// found Input that covers this trigger -> behaviour binding,
+				// make sure it does not exist for the given context(s)
+				input.contexts.removeAll( contexts );
+				if ( input.contexts.isEmpty() )
+				{
+					// empty context set -> invalid record -> remove it
+					inputs.remove( input );
+
+					if ( inputs.isEmpty() )
+						actionToInputsMap.remove( behaviourName );
+				}
+
+				return;
+				/*
+				 * NB: this assumes that there exists not more than one Input
+				 * record for each (trigger, behaviour) pair. This property is
+				 * maintained by the add/remove implementations.
+				 */
+			}
+		}
 	}
 
 	public static class InputTriggerAdderImp implements InputTriggerAdder
