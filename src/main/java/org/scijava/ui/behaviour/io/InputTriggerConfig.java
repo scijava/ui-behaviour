@@ -114,10 +114,10 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		actionToInputsMap.clear();
 	}
 
-	public void set( InputTriggerConfig config )
+	public void set( final InputTriggerConfig config )
 	{
 		actionToInputsMap.clear();
-		for ( Entry< String, Set< Input > > entry : config.actionToInputsMap.entrySet() )
+		for ( final Entry< String, Set< Input > > entry : config.actionToInputsMap.entrySet() )
 		{
 			final String behaviourName = entry.getKey();
 			final Set< Input > inputs = new LinkedHashSet<>();
@@ -427,7 +427,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			this.contexts = new HashSet<>( contexts );
 		}
 
-		Input( Input input )
+		Input( final Input input )
 		{
 			this.trigger = input.trigger;
 			this.behaviour = input.behaviour;
