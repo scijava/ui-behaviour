@@ -158,7 +158,7 @@ public class VisualEditorPanel extends JPanel
 	 * This, however, does not mean that the underlying {@link InputTriggerConfig} was
 	 * changed at all as the GUI is buffering changes until the "Apply" button is pressed.
 	 */
-	private final Listeners.List< ConfigChangeListener > configChangeListeners;
+	private final Listeners.List< ConfigChangeListener > modelChangedListeners;
 
 	/**
 	 * Set of listeners that are triggered only when the "Apply" button is pressed,
@@ -204,7 +204,7 @@ public class VisualEditorPanel extends JPanel
 		commandNameToAcceptableContexts = new HashMap<>();
 		for ( final Command command : commands )
 			commandNameToAcceptableContexts.computeIfAbsent( command.getName(), k -> new HashSet<>() ).add( command.getContext() );
-		this.configChangeListeners = new Listeners.SynchronizedList<>();
+		this.modelChangedListeners = new Listeners.SynchronizedList<>();
 		this.configCommittedListeners = new Listeners.SynchronizedList<>();
 
 		/*
@@ -467,7 +467,7 @@ public class VisualEditorPanel extends JPanel
 		btnApply.addActionListener( ( e ) -> modelToConfig() );
 
 		// Buttons re-enabling when model and config are out of sync.
-		configChangeListeners().add( () -> {
+		modelChangedListeners.add( () -> {
 			btnApply.setEnabled( true );
 			btnRestore.setEnabled( true );
 		} );
@@ -826,7 +826,7 @@ public class VisualEditorPanel extends JPanel
 
 	private void notifyListeners()
 	{
-		configChangeListeners.list.forEach( ConfigChangeListener::configChanged );
+		modelChangedListeners.list.forEach( ConfigChangeListener::configChanged );
 	}
 
 	private static Map< Command, String > extractEmptyCommandDescriptions( final InputTriggerConfig keyconf )
@@ -842,37 +842,46 @@ public class VisualEditorPanel extends JPanel
 	}
 
 	/**
-	 * Please, see the documentation of {@link VisualEditorPanel#configChangeListeners}
-	 * and {@link VisualEditorPanel#configCommittedListeners} to understand when these
-	 * listeners are triggered. In short, these are triggered anytime a GUI item is changed.
+	 * @deprecated Use {@code modelChangedListeners()} instead.
 	 */
+	@Deprecated
 	public Listeners< ConfigChangeListener > configChangeListeners()
 	{
-		return configChangeListeners;
+		return modelChangedListeners();
 	}
 
 	/**
-	 * @deprecated Use {@code configChangeListeners().add(listener)} instead.
+	 * @deprecated Use {@code modelChangedListeners().add(listener)} instead.
 	 */
 	@Deprecated
 	public void addConfigChangeListener( final ConfigChangeListener listener )
 	{
-		configChangeListeners().add( listener );
+		modelChangedListeners().add( listener );
 	}
 
 	/**
-	 * @deprecated Use {@code configChangeListeners().remove(listener)} instead.
+	 * @deprecated Use {@code modelChangedListeners().remove(listener)} instead.
 	 */
 	@Deprecated
 	public void removeConfigChangeListener( final ConfigChangeListener listener )
 	{
-		configChangeListeners().remove( listener );
+		modelChangedListeners().remove( listener );
 	}
 
 	/**
-	 * Please, see the documentation of {@link VisualEditorPanel#configChangeListeners}
+	 * Please, see the documentation of {@link VisualEditorPanel#modelChangedListeners}
 	 * and {@link VisualEditorPanel#configCommittedListeners} to understand when these
-	 * listeners are triggered. In short, these are triggered only when "Apply" button is pressed.
+	 * listeners are triggered. In short, listeners here are triggered anytime a GUI item is changed.
+	 */
+	public Listeners< ConfigChangeListener > modelChangedListeners()
+	{
+		return modelChangedListeners;
+	}
+
+	/**
+	 * Please, see the documentation of {@link VisualEditorPanel#modelChangedListeners}
+	 * and {@link VisualEditorPanel#configCommittedListeners} to understand when these
+	 * listeners are triggered. In short, listeners here are triggered only when "Apply" button is pressed.
 	 */
 	public Listeners< ConfigChangeListener > configCommittedListeners()
 	{
