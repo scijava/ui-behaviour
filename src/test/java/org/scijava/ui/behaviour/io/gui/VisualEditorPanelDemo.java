@@ -119,7 +119,8 @@ public class VisualEditorPanelDemo
 				{
 					final JFrame frame = new JFrame( "Behaviour Key bindings editor" );
 					final VisualEditorPanel editorPanel = new VisualEditorPanel( getDemoConfig(), getDemoCommands() );
-					editorPanel.configChangeListeners().add( () -> System.out.println( "Config changed @ " + new java.util.Date().toString() ) );
+					editorPanel.modelChangedListeners().add( () -> System.out.println( "Model (GUI only) changed @ " + new java.util.Date().toString() ) );
+					editorPanel.configCommittedListeners().add( () -> System.out.println( "Config changed, Apply button pressed @ " + new java.util.Date().toString() ) );
 					SwingUtilities.updateComponentTreeUI( VisualEditorPanel.fileChooser );
 					frame.getContentPane().add( editorPanel );
 					frame.pack();
