@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>29.0.0-beta-3</version>
+		<version>29.2.1</version>
 	</parent>
 
 	<artifactId>ui-behaviour</artifactId>
@@ -99,8 +99,6 @@
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>Max Planck Institute of Molecular Cell Biology
 and Genetics.</license.copyrightOwners>
-
-		<scijava-listeners.version>1.0.0-beta-3</scijava-listeners.version>
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
