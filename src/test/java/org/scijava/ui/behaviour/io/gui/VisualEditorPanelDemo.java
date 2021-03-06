@@ -7,13 +7,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,6 +31,8 @@ package org.scijava.ui.behaviour.io.gui;
 
 import java.awt.EventQueue;
 import java.io.StringReader;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -95,6 +97,45 @@ public class VisualEditorPanelDemo
 				.addCommand( "make some coffee", "mamut", null )
 				.addCommand( "make some coffee", "trackscheme", "Make a decent coffee." )
 				.get();
+	}
+
+	/**
+	 * Utility class that is used to build a map of {@link Command}s to their
+	 * description.
+	 *
+	 * @author Jean-Yves Tinevez
+	 */
+	static class CommandDescriptionBuilder
+	{
+
+		/**
+		 * The map of {@link Command} to description of what the command does.
+		 */
+		private final HashMap< Command, String > map;
+
+		public CommandDescriptionBuilder()
+		{
+			this.map = new HashMap<>();
+		}
+
+		public CommandDescriptionBuilder addCommand( final String name, final String context, final String description )
+		{
+			final Command command = new Command( name, context );
+			map.put( command, description );
+			return this;
+		}
+
+		/**
+		 * Returns the map of {@link Command} to description of what the command
+		 * does.
+		 *
+		 * @return a new immutable map
+		 */
+		public Map< Command, String > get()
+		{
+			return Collections.unmodifiableMap( map );
+		}
+
 	}
 
 	/**
