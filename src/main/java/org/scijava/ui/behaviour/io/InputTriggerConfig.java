@@ -336,6 +336,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 			this.contexts.addAll( Arrays.asList( contexts ) );
 		}
 
+		@Deprecated
 		@Override
 		public void put( final String actionName, final KeyStroke... defaultKeyStrokes )
 		{
