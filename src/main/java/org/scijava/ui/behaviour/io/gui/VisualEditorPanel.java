@@ -193,7 +193,7 @@ public class VisualEditorPanel extends JPanel
 	 *            The commands available. They are specified as a map from
 	 *            command to description. Use <code>null</code> as value to not
 	 *            specify a description.
-	 * @see CommandDescriptionBuilder
+	 * @see CommandDescriptionsBuilder
 	 */
 	public VisualEditorPanel( final InputTriggerConfig config, final Map< Command, String > commandDescriptions )
 	{
