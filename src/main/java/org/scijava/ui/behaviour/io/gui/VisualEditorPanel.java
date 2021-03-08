@@ -68,6 +68,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -900,7 +901,13 @@ public class VisualEditorPanel extends JPanel
 		public MyContextsRenderer( final Collection< String > tags )
 		{
 			super( tags, false );
-			setBorder( null );
+		}
+
+		@Override
+		public void updateUI()
+		{
+			super.updateUI();
+			setBorder( new EmptyBorder( 0, 0, 0, 0 ) );
 		}
 
 		@Override
@@ -930,7 +937,13 @@ public class VisualEditorPanel extends JPanel
 		public MyBindingsRenderer()
 		{
 			super( false );
-			setBorder( null );
+		}
+
+		@Override
+		public void updateUI()
+		{
+			super.updateUI();
+			setBorder( new EmptyBorder( 0, 0, 0, 0 ) );
 		}
 
 		@Override

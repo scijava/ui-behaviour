@@ -51,6 +51,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -105,12 +107,10 @@ public class TagPanelEditor extends JPanel
 		setPreferredSize( new Dimension( 400, 26 ) );
 		setMinimumSize( new Dimension( 26, 26 ) );
 		setLayout( new BoxLayout( this, BoxLayout.LINE_AXIS ) );
-		setBackground( Color.white );
-		setBorder( new JTextField().getBorder() );
 
 		this.textField = new JTextField();
 		textField.setColumns( 10 );
-		textField.setBorder( null );
+		textField.setBorder( new EmptyBorder( 0, 0, 0, 0 ) );
 		textField.setOpaque( false );
 		textField.setEditable( editable );
 
@@ -142,6 +142,14 @@ public class TagPanelEditor extends JPanel
 
 		add( textField );
 		add( Box.createHorizontalGlue() );
+	}
+
+	@Override
+	public void updateUI()
+	{
+		super.updateUI();
+		setBorder( UIManager.getBorder( "TextField.border" ) );
+		setBackground( UIManager.getColor( "TextField.background" ) );
 	}
 
 	public List< String > getSelectedTags()
@@ -317,21 +325,25 @@ public class TagPanelEditor extends JPanel
 	{
 		private static final long serialVersionUID = 1L;
 
+		private final JPanel content;
+
+		private final boolean valid;
+
+		private final JLabel txt;
+
+		private JLabel close;
+
 		public TagPanel( final String tag, final boolean valid )
 		{
-			final Color bg = valid ? getBackground() : Color.PINK;
-			final Font font = TagPanelEditor.this.getFont().deriveFont( TagPanelEditor.this.getFont().getSize2D() - 2f );
+			this.valid = valid;
 
-			final JPanel content = new JPanel();
+			content = new JPanel();
 			content.setLayout( new BoxLayout( content, BoxLayout.LINE_AXIS ) );
 			content.setOpaque( true );
-			content.setBackground( bg );
-			content.setBorder( new RoundBorder( bg.darker(), TagPanelEditor.this, 1 ) );
 
 			if ( editable )
 			{
-				final JLabel close = new JLabel( "\u00D7" );
-				close.setFont( font );
+				close = new JLabel( "\u00D7" );
 				close.setOpaque( false );
 				close.addMouseListener( new java.awt.event.MouseAdapter()
 				{
@@ -346,16 +358,42 @@ public class TagPanelEditor extends JPanel
 			}
 
 			final String str = printables.containsKey( tag ) ? printables.get( tag ) : tag;
-			final JLabel txt = new JLabel( str );
-			txt.setFont( font );
+			txt = new JLabel( str );
 			txt.setOpaque( false );
 			content.add( txt );
+			updateTxtLook();
 
 			setLayout( new BoxLayout( this, BoxLayout.LINE_AXIS ) );
 			add( Box.createHorizontalStrut( 1 ) );
 			add( content );
 			add( Box.createHorizontalStrut( 4 ) );
 			setOpaque( false );
+		}
+
+		@Override
+		public void updateUI()
+		{
+			super.updateUI();
+			updateTxtLook();
+		}
+
+		private void updateTxtLook()
+		{
+			if ( content != null )
+			{
+				final Color tfg = UIManager.getColor( "TextField.foreground" );
+				final Color tbg = UIManager.getColor( "TextField.background" );
+				final Color bg = valid ? mix( tbg, tfg, 0.95 ) : mix( tbg, Color.red, 0.5 );
+				final Color borderColor = mix( bg, tfg, 0.8 );
+				content.setBackground( bg );
+				content.setBorder( new RoundBorder( borderColor, TagPanelEditor.this, 1 ) );
+
+				Font font = UIManager.getFont( "Label.font" );
+				font = font.deriveFont( font.getSize2D() - 2f );
+				txt.setFont( font );
+				if ( close != null )
+					close.setFont( font );
+			}
 		}
 	}
 
@@ -382,4 +420,15 @@ public class TagPanelEditor extends JPanel
 		listeners.remove( listener );
 	}
 
+	/**
+	 * Mix colors {@code c1} and {@code c2} by ratios {@code c1Weight} and {@code (1-c1Weight)}, respectively.
+	 */
+	static Color mix( final Color c1, final Color c2, final double c1Weight )
+	{
+		final double c2Weight = 1.0 - c1Weight;
+		return new Color(
+				( int ) ( c1.getRed() * c1Weight + c2.getRed() * c2Weight ),
+				( int ) ( c1.getGreen() * c1Weight + c2.getGreen() * c2Weight ),
+				( int ) ( c1.getBlue() * c1Weight + c2.getBlue() * c2Weight ) );
+	}
 }

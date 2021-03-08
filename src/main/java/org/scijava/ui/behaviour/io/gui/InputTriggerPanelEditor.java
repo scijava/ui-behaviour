@@ -54,11 +54,15 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
 import org.scijava.ui.behaviour.InputTrigger;
+
+import static org.scijava.ui.behaviour.io.gui.TagPanelEditor.mix;
 
 public class InputTriggerPanelEditor extends JPanel
 {
@@ -93,12 +97,10 @@ public class InputTriggerPanelEditor extends JPanel
 		setPreferredSize( new Dimension( 400, 26 ) );
 		setMinimumSize( new Dimension( 26, 26 ) );
 		setLayout( new BoxLayout( this, BoxLayout.LINE_AXIS ) );
-		setBackground( Color.white );
-		setBorder( new JTextField().getBorder() );
 
 		this.textField = new JTextField();
 		textField.setColumns( 10 );
-		textField.setBorder( null );
+		textField.setBorder( new EmptyBorder( 0, 0, 0, 0 ) );
 		textField.setOpaque( false );
 		textField.setEditable( editable );
 
@@ -131,6 +133,14 @@ public class InputTriggerPanelEditor extends JPanel
 
 		add( textField );
 		add( Box.createHorizontalGlue() );
+	}
+
+	@Override
+	public void updateUI()
+	{
+		super.updateUI();
+		setBorder( UIManager.getBorder( "TextField.border" ) );
+		setBackground( UIManager.getColor( "TextField.background" ) );
 	}
 
 	public void setInputTrigger( final InputTrigger trigger )
@@ -427,26 +437,49 @@ public class InputTriggerPanelEditor extends JPanel
 
 	private final class KeyItem extends JPanel
 	{
-
 		private static final long serialVersionUID = 1L;
+
+		private final boolean valid;
+
+		private final JLabel txt;
 
 		public KeyItem( final String tag, final boolean valid )
 		{
-			final Font parentFont = InputTriggerPanelEditor.this.getFont();
-			final Font font = parentFont.deriveFont( parentFont.getSize2D() - 2f );
+			this.valid = valid;
 			final String str = TRIGGER_SYMBOLS.containsKey( tag ) ? ( " " + TRIGGER_SYMBOLS.get( tag ) + " " ) : ( " " + tag + " " );
-			final JLabel txt = new JLabel( str );
-			txt.setFont( font );
+			txt = new JLabel( str );
 			txt.setOpaque( true );
-			if ( !valid )
-				txt.setBackground( Color.PINK );
-			txt.setBorder( new RoundBorder( getBackground().darker(), InputTriggerPanelEditor.this, 1 ) );
+			updateTxtLook();
 
 			setLayout( new BoxLayout( this, BoxLayout.LINE_AXIS ) );
 			add( Box.createHorizontalStrut( 1 ) );
 			add( txt );
 			add( Box.createHorizontalStrut( 1 ) );
 			setOpaque( false );
+		}
+
+		@Override
+		public void updateUI()
+		{
+			super.updateUI();
+			updateTxtLook();
+		}
+
+		private void updateTxtLook()
+		{
+			if ( txt != null )
+			{
+				final Color tfg = UIManager.getColor( "TextField.foreground" );
+				final Color tbg = UIManager.getColor( "TextField.background" );
+				final Color bg = valid ? mix( tbg, tfg, 0.95 ) : mix( tbg, Color.red, 0.5 );
+				final Color borderColor = mix( bg, tfg, 0.8 );
+				txt.setBackground( bg );
+				txt.setBorder( new RoundBorder( borderColor, InputTriggerPanelEditor.this, 1 ) );
+
+				Font font = UIManager.getFont( "Label.font" );
+				font = font.deriveFont( font.getSize2D() - 2f );
+				txt.setFont( font );
+			}
 		}
 	}
 
@@ -479,7 +512,7 @@ public class InputTriggerPanelEditor extends JPanel
 	static
 	{
 		INPUT_TRIGGER_SYNTAX_TAGS.addAll(
-				Arrays.asList( new String[] {
+				Arrays.asList(
 						"all",
 						"ctrl",
 						"alt",
@@ -540,8 +573,7 @@ public class InputTriggerPanelEditor extends JPanel
 						"button2",
 						"button3",
 						"scroll",
-						"|"
-				} ) );
+						"|" ) );
 		for ( int i = 0; i < 26; i++ )
 			INPUT_TRIGGER_SYNTAX_TAGS.add( String.valueOf( ( char ) ( 'A' + i ) ) );
 		for ( int i = 0; i < 10; i++ )
