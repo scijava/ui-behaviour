@@ -920,7 +920,9 @@ public class VisualEditorPanel extends JPanel
 			setAcceptableTags( commandNameToAcceptableContexts.get( name ) );
 
 			@SuppressWarnings( "unchecked" )
-			final List< String > contexts = ( List< String > ) value;
+			final List< String > contexts = value != null
+					? ( List< String > ) value
+					: Collections.emptyList();
 			if ( contexts.isEmpty() )
 				setBackground( Color.PINK );
 			setTags( contexts );
