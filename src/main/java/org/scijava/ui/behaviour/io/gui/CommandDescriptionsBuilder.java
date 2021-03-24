@@ -114,7 +114,7 @@ public class CommandDescriptionsBuilder extends AbstractContextual
 	 */
 	public void discoverProviders( final CommandDescriptionProvider.Scope ... scopes )
 	{
-		discoverProviders( Arrays.asList(scopes)::contains );
+		discoverProviders( provider -> Arrays.asList( scopes ).contains( provider.getScope() ) );
 	}
 
 	/**
