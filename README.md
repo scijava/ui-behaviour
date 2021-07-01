@@ -1,4 +1,4 @@
-[![](https://travis-ci.org/scijava/ui-behaviour.svg?branch=master)](https://travis-ci.org/scijava/ui-behaviour)
+[![](https://github.com/scijava/ui-behaviour/actions/workflows/build-main.yml/badge.svg)](https://github.com/scijava/ui-behaviour/actions/workflows/build-main.yml)
 
 # configurable-keys
 
