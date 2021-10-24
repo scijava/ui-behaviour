@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>30.0.0</version>
+		<version>31.1.0</version>
 	</parent>
 
 	<artifactId>ui-behaviour</artifactId>
@@ -31,7 +31,7 @@
 		<developer>
 			<id>tpietzsch</id>
 			<name>Tobias Pietzsch</name>
-			<url>https://imagej.net/User:Pietzsch</url>
+			<url>https://imagej.net/people/tpietzsch</url>
 			<roles>
 				<role>founder</role>
 				<role>lead</role>
@@ -45,7 +45,7 @@
 		<developer>
 			<id>tinevez</id>
 			<name>Jean-Yves Tinevez</name>
-			<url>https://imagej.net/User:JeanYvesTinevez</url>
+			<url>https://imagej.net/people/tinevez</url>
 			<roles>
 				<role>developer</role>
 				<role>debugger</role>
@@ -55,7 +55,7 @@
 		<developer>
 			<id>ctrueden</id>
 			<name>Curtis Rueden</name>
-			<url>https://imagej.net/User:Rueden</url>
+			<url>https://imagej.net/people/ctrueden</url>
 			<roles>
 				<role>maintainer</role>
 			</roles>
@@ -64,7 +64,7 @@
 	<contributors>
 		<contributor>
 			<name>Ulrik Günther</name>
-			<url>https://imagej.net/User:Skalarproduktraum</url>
+			<url>https://imagej.net/people/skalarproduktraum</url>
 			<properties><id>skalarproduktraum</id></properties>
 		</contributor>
 	</contributors>
