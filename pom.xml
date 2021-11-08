@@ -80,7 +80,7 @@
 	</mailingLists>
 
 	<scm>
-		<connection>scm:git:git://github.com/scijava/ui-behaviour</connection>
+		<connection>scm:git:https://github.com/scijava/ui-behaviour</connection>
 		<developerConnection>scm:git:git@github.com:scijava/ui-behaviour</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://github.com/scijava/ui-behaviour</url>
