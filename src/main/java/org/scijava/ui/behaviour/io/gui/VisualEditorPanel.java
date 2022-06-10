@@ -403,11 +403,17 @@ public class VisualEditorPanel extends JPanel
 		scrollPane.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
 		add( scrollPane, BorderLayout.CENTER );
 
-		tableBindings = new JTable();
+		tableBindings = new JTable() {
+			@Override
+			public void updateUI()
+			{
+				super.updateUI();
+				setRowHeight( ( int ) ( getFontMetrics( getFont() ).getHeight() * 1.5 ) );
+			}
+		};
 		tableBindings.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
 		tableBindings.setFillsViewportHeight( true );
 		tableBindings.setAutoResizeMode( JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS );
-		tableBindings.setRowHeight( 30 );
 		tableBindings.getSelectionModel().addListSelectionListener( new ListSelectionListener()
 		{
 			@Override
