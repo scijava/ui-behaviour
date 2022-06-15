@@ -28,7 +28,7 @@
  * #L%
  */
 /**
- * <h1>Configurable-keys</h1> Simplify making AWT mouse-handlers configurable.
+ * <h2>Configurable-keys</h2> Simplify making AWT mouse-handlers configurable.
  *
  * Works along the lines of the InputMap / ActionMap mechanism. The syntax for
  * defining key and mouse "triggers" is described in the InputTrigger-syntax
