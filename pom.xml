@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>ui-behaviour</artifactId>
-	<version>2.0.6-SNAPSHOT</version>
+	<version>2.0.6</version>
 
 	<name>UI Behaviour</name>
 	<description>Configurable key and mouse event handling</description>
@@ -82,7 +82,7 @@
 	<scm>
 		<connection>scm:git:https://github.com/scijava/ui-behaviour</connection>
 		<developerConnection>scm:git:git@github.com:scijava/ui-behaviour</developerConnection>
-		<tag>HEAD</tag>
+		<tag>ui-behaviour-2.0.6</tag>
 		<url>https://github.com/scijava/ui-behaviour</url>
 	</scm>
 	<issueManagement>
