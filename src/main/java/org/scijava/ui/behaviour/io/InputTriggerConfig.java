@@ -229,6 +229,12 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		}
 	}
 
+	@Override
+	public String toString()
+	{
+		return "InputTriggerConfig{" + new InputTriggerDescriptionsBuilder( this ).getDescriptions() + '}';
+	}
+
 	public static class InputTriggerAdderImp implements InputTriggerAdder
 	{
 		private final InputTriggerMap map;
