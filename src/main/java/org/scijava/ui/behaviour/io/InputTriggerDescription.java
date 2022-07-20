@@ -29,6 +29,7 @@
  */
 package org.scijava.ui.behaviour.io;
 
+import java.util.Arrays;
 import javax.swing.Action;
 
 import org.scijava.ui.behaviour.Behaviour;
@@ -120,5 +121,14 @@ public class InputTriggerDescription
 			this.contexts = new String[ 0 ];
 		else
 			this.contexts = contexts;
+	}
+
+	public void addTrigger( final String trigger )
+	{
+		if ( !Arrays.asList( triggers ).contains( trigger ) )
+		{
+			triggers = Arrays.copyOf( triggers, triggers.length + 1 );
+			triggers[ triggers.length - 1 ] = trigger;
+		}
 	}
 }

@@ -65,11 +65,9 @@ public class InputTriggerDescriptionsBuilder
 	public List< InputTriggerDescription > getDescriptions()
 	{
 		final ArrayList< InputTriggerDescription > descs = new ArrayList<>();
-		final String[] emptyStringArray = new String[ 0 ];
 
-		for ( final Entry< String, Set< Input > > entry : config.actionToInputsMap.entrySet() )
+		for ( final Set< Input > inputs : config.actionToInputsMap.values() )
 		{
-			final Set< Input > inputs = entry.getValue();
 			for ( final Input input : inputs )
 			{
 				boolean found = false;
@@ -78,20 +76,14 @@ public class InputTriggerDescriptionsBuilder
 					if ( input.behaviour.equals( desc.getAction() ) &&
 							input.contexts.equals( new HashSet<>( Arrays.asList( desc.getContexts() ) ) ) )
 					{
-						final HashSet< String > triggers = new HashSet<>( Arrays.asList( desc.getTriggers() ) );
-						triggers.add( input.trigger.toString() );
-						desc.setTriggers( triggers.toArray( emptyStringArray ) );
+						desc.addTrigger( input.trigger.toString() );
 						found = true;
 						break;
 					}
 				}
 				if ( !found )
 				{
-					final InputTriggerDescription desc = new InputTriggerDescription(
-							new String[] { input.trigger.toString() },
-							input.behaviour,
-							input.contexts.toArray( emptyStringArray ) );
-					descs.add( desc );
+					descs.add( input.getDescription() );
 				}
 			}
 		}
