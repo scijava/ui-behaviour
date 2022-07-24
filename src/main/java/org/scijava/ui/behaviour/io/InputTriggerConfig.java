@@ -260,8 +260,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		{
 			this.map = map;
 			this.config = config;
-			this.contexts = new HashSet<>();
-			this.contexts.addAll( Arrays.asList( contexts ) );
+			this.contexts = new HashSet<>( Arrays.asList( contexts ) );
 		}
 
 		@Override
@@ -338,8 +337,7 @@ public class InputTriggerConfig implements InputTriggerAdder.Factory, KeyStrokeA
 		{
 			this.map = map;
 			this.config = config;
-			this.contexts = new HashSet<>();
-			this.contexts.addAll( Arrays.asList( contexts ) );
+			this.contexts = new HashSet<>( Arrays.asList( contexts ) );
 		}
 
 		@Deprecated
