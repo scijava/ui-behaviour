@@ -52,9 +52,6 @@ public abstract class CommandDescriptionProvider implements SciJavaPlugin
 	}
 
 	/**
-	 * The contexts in which the described actions/bahaviours are expected to be
-	 * used.
-	 * <p>
 	 * The scope describes the application / Fiji plugin that the actions are
 	 * defined in. This is to make it possible to only harvest descriptions
 	 * for the desired scopes.
@@ -73,7 +70,7 @@ public abstract class CommandDescriptionProvider implements SciJavaPlugin
 	}
 
 	/**
-	 * The contexts in which the described actions/bahaviours are expected to be
+	 * The contexts in which the described actions/behaviours are expected to be
 	 * used.
 	 * <p>
 	 * Note that {@code CommandDescriptionProvider} is only used for harvesting
