@@ -237,7 +237,8 @@ public class Actions
 		final Object[] keys = actionMap.keys();
 		if ( keys != null )
 			for ( final Object o : keys )
-				keyStrokeAdder.put( ( String ) o );
+				if ( !unassigned.containsKey( o ) )
+					keyStrokeAdder.put( ( String ) o );
 
 		unassigned.forEach( ( actionMapKey, keyStrokes ) -> keyStrokes.forEach( keyStroke -> inputMap.put( keyStroke, actionMapKey ) ) );
 	}
