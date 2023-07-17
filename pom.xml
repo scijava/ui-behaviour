@@ -131,6 +131,7 @@ and Genetics.</license.copyrightOwners>
 		<dependency>
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
-		</dependency>
+            <version>2.0</version>
+        </dependency>
 	</dependencies>
 </project>
