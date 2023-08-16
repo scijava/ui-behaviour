@@ -39,6 +39,7 @@ import java.util.List;
 
 import org.scijava.ui.behaviour.io.InputTriggerDescription;
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -86,14 +87,17 @@ public class YamlConfigIO
 	 */
 	private static final Yaml getYaml()
 	{
-		final Representer representer = new Representer();
-		representer.addClassTag( InputTriggerDescription.class, tag );
-
-		final Constructor constructor = new Constructor();
-		constructor.addTypeDescription( new TypeDescription( InputTriggerDescription.class, tag ) );
-
 		final DumperOptions options = new DumperOptions();
 		options.setExplicitStart( true );
+
+		final Representer representer = new Representer( options );
+		representer.addClassTag( InputTriggerDescription.class, tag );
+
+		final LoaderOptions loaderOptions = new LoaderOptions();
+
+		final Constructor constructor = new Constructor( loaderOptions );
+		constructor.addTypeDescription( new TypeDescription( InputTriggerDescription.class, tag ) );
+
 
 		final Yaml yaml = new Yaml( constructor, representer, options );
 		return yaml;
