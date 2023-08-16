@@ -2,7 +2,7 @@
  * #%L
  * Configurable key and mouse event handling
  * %%
- * Copyright (C) 2015 - 2022 Max Planck Institute of Molecular Cell Biology
+ * Copyright (C) 2015 - 2023 Max Planck Institute of Molecular Cell Biology
  * and Genetics.
  * %%
  * Redistribution and use in source and binary forms, with or without

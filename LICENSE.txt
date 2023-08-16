@@ -1,4 +1,4 @@
-Copyright (c) 2015 - 2022, Max Planck Institute of Molecular Cell Biology
+Copyright (c) 2015 - 2023, Max Planck Institute of Molecular Cell Biology
 and Genetics.
 All rights reserved.
 
