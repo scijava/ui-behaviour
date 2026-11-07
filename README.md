@@ -1,4 +1,4 @@
-[![](https://github.com/scijava/ui-behaviour/actions/workflows/build-main.yml/badge.svg)](https://github.com/scijava/ui-behaviour/actions/workflows/build-main.yml)
+[![Build Status](https://github.com/scijava/ui-behaviour/actions/workflows/build.yml/badge.svg)](https://github.com/scijava/ui-behaviour/actions/workflows/build.yml)
 
 # configurable-keys
 
